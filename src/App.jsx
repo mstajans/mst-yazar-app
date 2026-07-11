@@ -880,7 +880,6 @@ const PLANS = {
 const COMMISSION_RATE = 0.5;
 const AD_PLATFORMS = ["Instagram", "Facebook"];
 const LANGUAGES = ["İngilizce", "Almanca", "Fransızca", "İspanyolca", "Arapça", "Rusça"];
-const BANK_INFO = { bank: "ÖrnekBank", iban: "TR00 0006 4000 0011 2345 6789 01", name: "MST Yayıncılık A.Ş." };
 
 const WORDS_PER_PAGE = 250;
 const BASE_COST_PER_WORD = 0.06;
@@ -1549,8 +1548,8 @@ function LoginScreen({ onLogin }) {
         )}
 
         <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <input className="mst-input" value={user} onChange={(e) => setUser(e.target.value)} placeholder="E-posta" style={fieldStyle} />
-          <input className="mst-input" type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Şifre" style={fieldStyle} />
+          <input className="mst-input" value={user} onChange={(e) => setUser(e.target.value)} placeholder="Kullanıcı Adı" autoComplete="username" style={fieldStyle} />
+          <input className="mst-input" type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Şifre" autoComplete="current-password" style={fieldStyle} />
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: LT.goldSoft }}>
             <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
               <input type="checkbox" checked={remember} onChange={() => setRemember(!remember)} style={{ accentColor: LT.gold }} />
@@ -1564,10 +1563,6 @@ function LoginScreen({ onLogin }) {
             fontFamily: "'Fraunces', serif", boxShadow: "0 8px 20px rgba(0,0,0,0.35)", opacity: loading ? 0.7 : 1,
           }}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</button>
         </form>
-
-        <div style={{ marginTop: 20, fontSize: 9.5, color: LT.goldSoft, textAlign: "center", lineHeight: 1.5 }}>
-          Demo erişim: zekiye.dogan/1919 · elif.demir/4321 · oguz.korkut/1234
-        </div>
       </div>
     </div>
   );
@@ -1770,35 +1765,92 @@ function SupportSection({ requests, onSubmit }) {
   );
 }
 
-function PaymentNotice({ wallet, notices, onSubmit, label }) {
+function PaymentNotice({ wallet, notices, onSubmit, label, token }) {
+  const [yontem, setYontem] = useState("kart"); // kart | havale
   const [amount, setAmount] = useState(500);
   const [note, setNote] = useState("");
   const [file, setFile] = useState(null);
+  const [kartYukleniyor, setKartYukleniyor] = useState(false);
+  const [kartHata, setKartHata] = useState("");
   const handleFile = (e) => { const f = e.target.files[0]; if (!f) return; const reader = new FileReader(); reader.onload = () => setFile({ name: f.name, dataUrl: reader.result, isImage: f.type.startsWith("image/") }); reader.readAsDataURL(f); };
   const submit = (e) => { e.preventDefault(); onSubmit({ amount: Number(amount), note, file }); setNote(""); setFile(null); };
   const inputStyle = { padding: "9px 11px", border: `1px solid ${THEME.border}`, borderRadius: 3, fontSize: 16, boxSizing: "border-box", background: THEME.panelBgAlt, color: THEME.textLight };
+
+  // Kartla öde — backend'de WooCommerce siparişi açar, ödeme sayfasına yönlendirir
+  const kartlaOde = async () => {
+    const tutar = Number(amount);
+    if (!tutar || tutar < 1) { setKartHata("Geçerli bir tutar girin."); return; }
+    setKartYukleniyor(true); setKartHata("");
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/author/kart-odeme/baslat`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ tutar }),
+      });
+      const data = await r.json();
+      if (data.odemeUrl) window.location.href = data.odemeUrl;
+      else setKartHata(data.error || "Ödeme başlatılamadı.");
+    } catch { setKartHata("Bağlantı hatası. Tekrar deneyin."); }
+    finally { setKartYukleniyor(false); }
+  };
+
+  const sekmeStil = (aktif) => ({
+    flex: 1, padding: "9px 0", fontSize: 12.5, fontWeight: aktif ? 700 : 500, cursor: "pointer",
+    background: aktif ? THEME.cyan : "transparent", color: aktif ? "#04121A" : THEME.textMuted,
+    border: `1px solid ${aktif ? THEME.cyan : THEME.border}`, borderRadius: 4, textAlign: "center",
+  });
+
   return (
     <div style={{ background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: 14, marginBottom: 18 }}>
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted }}>{label || "HİZMET BAKİYESİ"}</div>
         <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.cyan, fontWeight: 600 }}>{tl(wallet.balance)}</div>
       </div>
-      <div style={{ background: THEME.headerBg, borderRadius: 4, padding: "10px 12px", fontSize: 12.5, color: THEME.textLight, lineHeight: 1.7, marginBottom: 12, border: `1px solid ${THEME.border}` }}>
-        Aşağıdaki hesaba havale/EFT yapıp dekontunu yükleyin. Yayınevi onayladığında bakiyeniz güncellenir.<br />
-        <strong>{BANK_INFO.bank}</strong> · {BANK_INFO.name}<br />
-        IBAN: <span style={{ fontFamily: "'Space Mono', monospace", color: THEME.cyan }}>{BANK_INFO.iban}</span>
+
+      {/* Ödeme yöntemi sekmeleri */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <div onClick={() => setYontem("kart")} style={sekmeStil(yontem === "kart")}>💳 Kartla Öde</div>
+        <div onClick={() => setYontem("havale")} style={sekmeStil(yontem === "havale")}>🏦 Havale / EFT</div>
       </div>
-      <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <label style={{ fontSize: 12, color: THEME.textMuted }}>Gönderdiğiniz tutar (₺)
-          <input type="number" min={50} step={50} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4, ...inputStyle }} />
-        </label>
-        <label style={{ fontSize: 12, color: THEME.textMuted }}>Dekont
-          <input type="file" accept="image/*,.pdf" onChange={handleFile} style={{ display: "block", width: "100%", marginTop: 4, fontSize: 16, color: THEME.textLight }} />
-        </label>
-        {file && <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: THEME.success }}>{file.isImage ? <img src={file.dataUrl} alt="" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 3, border: `1px solid ${THEME.border}` }} /> : <span>📄</span>}{file.name} eklendi</div>}
-        <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Not (opsiyonel)" style={inputStyle} />
-        <button type="submit" style={{ background: THEME.cyan, color: "#04121A", border: "none", borderRadius: 3, padding: "10px 0", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>Ödeme Bildirimini Gönder</button>
-      </form>
+
+      {yontem === "kart" ? (
+        <>
+          <div style={{ background: THEME.headerBg, borderRadius: 4, padding: "10px 12px", fontSize: 12.5, color: THEME.textLight, lineHeight: 1.7, marginBottom: 12, border: `1px solid ${THEME.border}` }}>
+            Kredi/banka kartınızla güvenli ödeme yapın. Ödeme tamamlandığında bakiyeniz <strong style={{ color: THEME.success }}>anında</strong> yüklenir.
+          </div>
+          <label style={{ fontSize: 12, color: THEME.textMuted }}>Yüklenecek tutar (₺)
+            <input type="number" min={50} step={50} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4, ...inputStyle }} />
+          </label>
+          {kartHata && <div style={{ fontSize: 12, color: THEME.danger, marginTop: 8 }}>{kartHata}</div>}
+          <button onClick={kartlaOde} disabled={kartYukleniyor} style={{
+            width: "100%", marginTop: 12, background: THEME.cyan, color: "#04121A", border: "none",
+            borderRadius: 3, padding: "11px 0", fontSize: 13.5, cursor: kartYukleniyor ? "default" : "pointer",
+            fontWeight: 700, opacity: kartYukleniyor ? 0.7 : 1,
+          }}>{kartYukleniyor ? "Ödeme sayfası açılıyor..." : `${tl(Number(amount) || 0)} Kartla Öde`}</button>
+          <div style={{ fontSize: 10.5, color: THEME.textFaint, textAlign: "center", marginTop: 8 }}>
+            Güvenli ödeme · mstyayincilik.com üzerinden
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ background: THEME.headerBg, borderRadius: 4, padding: "10px 12px", fontSize: 12.5, color: THEME.textLight, lineHeight: 1.7, marginBottom: 12, border: `1px solid ${THEME.border}` }}>
+            Havale/EFT yapıp dekontunuzu yükleyin. Yayınevi onayladığında bakiyeniz güncellenir.<br />
+            <span style={{ color: THEME.textMuted, fontSize: 11.5 }}>Banka bilgileri için yayınevi ile iletişime geçin.</span>
+          </div>
+          <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <label style={{ fontSize: 12, color: THEME.textMuted }}>Gönderdiğiniz tutar (₺)
+              <input type="number" min={50} step={50} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4, ...inputStyle }} />
+            </label>
+            <label style={{ fontSize: 12, color: THEME.textMuted }}>Dekont
+              <input type="file" accept="image/*,.pdf" onChange={handleFile} style={{ display: "block", width: "100%", marginTop: 4, fontSize: 16, color: THEME.textLight }} />
+            </label>
+            {file && <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: THEME.success }}>{file.isImage ? <img src={file.dataUrl} alt="" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 3, border: `1px solid ${THEME.border}` }} /> : <span>📄</span>}{file.name} eklendi</div>}
+            <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Not (opsiyonel)" style={inputStyle} />
+            <button type="submit" style={{ background: THEME.cyan, color: "#04121A", border: "none", borderRadius: 3, padding: "10px 0", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>Ödeme Bildirimini Gönder</button>
+          </form>
+        </>
+      )}
+
       {notices.length > 0 && (
         <div style={{ marginTop: 14 }}>
           <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 8 }}>ÖDEME BİLDİRİMLERİM</div>
@@ -2046,13 +2098,13 @@ function ServiceCard({ service, books, wallet, onOrder, expanded, onToggle, orde
   );
 }
 
-function StoreSection({ plan, books, wallet, notices, orders, onOrder, onSubmitNotice }) {
+function StoreSection({ plan, books, wallet, notices, orders, onOrder, onSubmitNotice, token }) {
   const [openKey, setOpenKey] = useState(null);
   const available = SERVICES.filter((s) => s.plans.includes(plan));
   return (
     <div>
       <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 12 }}>YAZAR MAĞAZASI · KARİYERİNİZİ BÜYÜTECEK HİZMETLER</div>
-      <PaymentNotice wallet={wallet} notices={notices} onSubmit={onSubmitNotice} label="HİZMET BAKİYESİ" />
+      <PaymentNotice wallet={wallet} notices={notices} onSubmit={onSubmitNotice} label="HİZMET BAKİYESİ" token={token} />
       {available.map((s) => (
         <ServiceCard key={s.key} service={s} books={books} wallet={wallet} onOrder={onOrder} expanded={openKey === s.key} onToggle={() => setOpenKey(openKey === s.key ? null : s.key)} ordersForService={orders.filter((o) => o.serviceKey === s.key)} />
       ))}
@@ -3150,7 +3202,7 @@ export default function App() {
         </>)}
         {tab === "stok" && <StockOrbitTab books={account.books} account={account} token={session.token} onQuickAction={(t) => setTab(t)} />}
         {tab === "kariyer" && <GameSection oyun={oyun} token={session.token} onRefresh={oyunCek} katman={katman} />}
-        {tab === "magaza" && <StoreSection plan={account.plan} books={account.books} wallet={account.wallet} notices={myNotices} orders={myOrders} onOrder={placeOrder} onSubmitNotice={submitNotice} />}
+        {tab === "magaza" && <StoreSection plan={account.plan} books={account.books} wallet={account.wallet} notices={myNotices} orders={myOrders} onOrder={placeOrder} onSubmitNotice={submitNotice} token={session.token} />}
         {tab === "reklam" && <AdSection plan={account.plan} books={account.books} wallet={account.wallet} adRequests={myAdRequests} campaigns={myCampaigns} onSubmitRequest={submitAdRequest} onStartCampaign={startCampaign} />}
         {tab === "ek" && vip && <ExtrasSection books={account.books} requests={myTranslations} onSubmit={submitTranslation} />}
         {tab === "kazanc" && <EarningsSection account={account} />}

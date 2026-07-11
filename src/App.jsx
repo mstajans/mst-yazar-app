@@ -938,52 +938,7 @@ function tl(n) { return Number(n).toLocaleString("tr-TR") + " ₺"; }
 
 const BACKEND_URL = "https://mst-backend-mauve.vercel.app";
 
-const AUTHORS_SEED = {
-  "zekiye.dogan": {
-    id: 1, name: "Zekiye Doğan", title: "Hanım", password: "1919", plan: "vip",
-    wallet: { balance: 4200, ledger: [{ id: 1, date: "18 Haz", type: "topup", amount: 5000 }, { id: 2, date: "19 Haz", type: "spend", amount: 800, note: "Meçhul Tren — Instagram kampanyası" }] },
-    unlocked: { "egitim-pro": false },
-    aiSubscription: { active: true },
-    royaltyRate: 0.18, nextPayoutDate: "2026-07-15",
-    payouts: [{ id: 1, date: "2026-04-15", amount: 6200 }, { id: 2, date: "2026-05-15", amount: 5400 }],
-    contract: { term: "3 yıl (2025-2028)", exclusivity: "Münhasır — basılı ve dijital", signedDate: "2025-04-01" },
-    books: [
-      { id: "mechul-tren", title: "Meçhul Tren", coverColor: "#0891B2", primaryPlatform: "trendyol", totalSold: 246, salePrice: 180, dailyRate: 9, translationQuota: 1, translationsUsed: 1,
-        stock: { mst: 62, trendyol: 84, n11: 12, hepsiburada: 37, pazarama: 15, amazon: 19 },
-        buyers: [{ name: "E. Kaya", city: "İstanbul", platform: "trendyol", date: "26 Haz" }, { name: "M. Yıldız", city: "İzmir", platform: "n11", date: "25 Haz" }, { name: "S. Arslan", city: "Ankara", platform: "hepsiburada", date: "24 Haz" }, { name: "B. Çelik", city: "Bursa", platform: "trendyol", date: "23 Haz" }],
-        pipeline: clonePipeline(PIPELINE_STAGES).map((s, i) => ({ ...s, status: "tamamlandi", eta: ["2026-03-10","2026-04-05","2026-04-25","2026-05-05","2026-05-15","2026-06-05","2026-06-15","2026-06-18"][i], ...(s.key==="kapak"?{needsApproval:true,approved:true}:{}) })) },
-      { id: "desifre", title: "Deşifre", coverColor: "#166534", primaryPlatform: "trendyol", totalSold: 0, salePrice: 160, dailyRate: 0, translationQuota: 1, translationsUsed: 0,
-        stock: { mst: 0, trendyol: 0, n11: 0, hepsiburada: 0, pazarama: 0, amazon: 0 }, buyers: [],
-        pipeline: clonePipeline(PIPELINE_STAGES).map((s, i) => { const presets=["tamamlandi","tamamlandi","tamamlandi","tamamlandi","tamamlandi","devam","beklemede","beklemede"]; const etas=["2026-05-01","2026-05-20","2026-06-02","2026-06-08","2026-06-15","2026-07-02","2026-07-12","2026-07-15"]; return { ...s, status: presets[i], eta: etas[i], ...(s.key==="kapak"?{needsApproval:true,approved:true}:{}) }; }) },
-    ],
-  },
-  "oguz.korkut": {
-    id: 2, name: "Oğuz Korkut", title: "Bey", password: "1234", plan: "standart",
-    wallet: { balance: 0, ledger: [] },
-    unlocked: { "egitim-pro": false },
-    royaltyRate: 0.12, nextPayoutDate: "2026-07-15",
-    payouts: [{ id: 1, date: "2026-06-15", amount: 750 }],
-    contract: { term: "2 yıl (2026-2028)", exclusivity: "Münhasır değil", signedDate: "2026-02-10" },
-    books: [
-      { id: "desifre-2", title: "Deşifre: Geri Dönüş", coverColor: "#B45309", primaryPlatform: "trendyol", totalSold: 63, salePrice: 150, dailyRate: 4,
-        stock: { mst: 18, trendyol: 41, n11: 0, hepsiburada: 0, pazarama: 0 }, buyers: [{ name: "C. Polat", city: "Konya", platform: "trendyol", date: "26 Haz" }],
-        pipeline: clonePipeline(PIPELINE_STAGES).map((s) => ({ ...s, status: "tamamlandi", eta: "2026-06-10", ...(s.key==="kapak"?{needsApproval:true,approved:true}:{}) })) },
-    ],
-  },
-  "elif.demir": {
-    id: 3, name: "Elif Demir", title: "Hanım", password: "4321", plan: "profesyonel",
-    wallet: { balance: 650, ledger: [{ id: 1, date: "21 Haz", type: "topup", amount: 1000 }, { id: 2, date: "23 Haz", type: "spend", amount: 350, note: "Kayıp Liman — Facebook kampanyası" }] },
-    unlocked: { "egitim-pro": false },
-    royaltyRate: 0.15, nextPayoutDate: "2026-07-15",
-    payouts: [{ id: 1, date: "2026-06-15", amount: 1350 }],
-    contract: { term: "3 yıl (2025-2028)", exclusivity: "Münhasır — basılı ve dijital", signedDate: "2025-09-01" },
-    books: [
-      { id: "kayip-liman", title: "Kayıp Liman", coverColor: "#4C1D95", primaryPlatform: "trendyol", totalSold: 53, salePrice: 170, dailyRate: 2,
-        stock: { mst: 8, trendyol: 22, n11: 4, hepsiburada: 9, pazarama: 3 }, buyers: [{ name: "T. Aydın", city: "Antalya", platform: "trendyol", date: "25 Haz" }],
-        pipeline: clonePipeline(PIPELINE_STAGES).map((s) => ({ ...s, status: "tamamlandi", eta: "2026-05-01", ...(s.key==="kapak"?{needsApproval:true,approved:true}:{}) })) },
-    ],
-  },
-};
+const AUTHORS_SEED = {}; // Eski demo verisi kaldırıldı — gerçek veriler backend'den gelir
 
 const ANNOUNCEMENTS_SEED = [
   { id: 1, date: "20 Haz", title: "Yaz dönemi baskı takvimi", body: "Temmuz ayında baskı sürecinde kısa bir yoğunluk bekleniyor; teslim tarihlerinde 2-3 günlük sapmalar olabilir.", audience: "all" },
@@ -1365,7 +1320,7 @@ function HudCorner({ style }) {
 }
 
 function LoginScreen({ onLogin }) {
-  const [user, setUser] = useState("zekiye.dogan");
+  const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [remember, setRemember] = useState(true);

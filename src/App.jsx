@@ -1493,7 +1493,7 @@ function LoginScreen({ onLogin }) {
             preload="auto"
             onEnded={() => { setIntroFading(true); setTimeout(() => setIntroDone(true), 700); }}
             onError={() => setIntroDone(true)}
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
           >
             <source src="/mst-intro.mp4" type="video/mp4" />
           </video>

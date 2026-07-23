@@ -978,7 +978,19 @@ const FAQ_ITEMS = [
 ];
 
 function getActiveStage(pipeline) { return pipeline.find((s) => s.status !== "tamamlandi") || pipeline[pipeline.length - 1]; }
-function isPublished(pipeline) { const p = pipeline || []; const last = p[p.length - 1]; return !!last && last.key === "yayin" && last.status === "tamamlandi"; }
+// Kitap "yayında" sayılır: ÖN SATIŞA açıldığı andan itibaren.
+// Kalan adımlar (depo girişi, hediye gönderimi, normal satış, dağıtım) arka planda
+// devam eder; yazar bunları süreç çizelgesinden izlemeye devam eder ama
+// uygulamanın tamamına erişimi açılır.
+const YAYIN_ESIGI = "on_satis";
+function isPublished(pipeline) {
+  const p = pipeline || [];
+  const esik = p.find((s) => s.key === YAYIN_ESIGI);
+  if (esik && esik.status === "tamamlandi") return true;
+  // Geriye dönük güvenlik: son adım tamamlanmışsa da yayında say
+  const last = p[p.length - 1];
+  return !!last && last.key === "yayin" && last.status === "tamamlandi";
+}
 
 // ==================== ONBOARDING / BEKLEME EKRANI ====================
 // Yeni yazar: hiçbir kitabı "yayin" aşamasında değilse tam uygulama yerine bu ekranı görür.
@@ -1051,7 +1063,7 @@ function OnboardingScreen({ account, token, onLogout }) {
     const bitenler = pipeline.filter((p) => p.status === "tamamlandi").map((p) => p.label);
     const kalanlar = pipeline.filter((p) => p.status !== "tamamlandi").map((p) => p.label);
     if (/ne zaman|kaç gün|tarih|yayınlan|çıkar|ne kadar sürer/.test(s)) {
-      if (yayinEta) return `Kitabınız "${takipKitap?.title || ""}" için tahmini yayın tarihi ${formatDate(yayinEta)} civarıdır. Şu an "${aktif?.label}" aşamasındasınız; toplam ${toplamAsama} aşamadan ${tamamlanan} tanesi tamamlandı.`;
+      if (yayinEta) return `Kitabınız "${takipKitap?.title || ""}" için tahmini yayın tarihi ${formatDate(yayinEta)} civarıdır. Şu an "${aktif?.label}" aşamasındasınız; ${toplamAsama} adımdan ${tamamlanan} tanesi tamamlandı. Kitabınız "Ön Satışa Açılma" adımına geldiğinde satışa çıkar — kalan işlemler arka planda tamamlanır.`;
       return `Kitabınız şu an "${aktif?.label}" aşamasında ve süreç devam ediyor. ${toplamAsama} aşamadan ${tamamlanan} tanesi tamamlandı. Kesin tarih yaklaştıkça burada görünecek.`;
     }
     if (/hangi aşama|neredeyim|durum|süreç nerede|ne durumda/.test(s)) {
@@ -1680,18 +1692,35 @@ function BookCard({ book, plan, expanded, onToggle, onApproveCover }) {
       </button>
       {expanded && (
         <div style={{ padding: "0 16px 18px" }}>
-          {published ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, background: THEME.successBg, border: `1px solid rgba(89,227,157,0.3)`, borderRadius: 6, padding: "10px 12px", margin: "4px 0 16px" }}>
-              <span style={{ fontSize: 15 }}>✓</span>
-              <span style={{ fontSize: 13, color: THEME.success, fontWeight: 600 }}>Yayınlandı</span>
-              <span style={{ fontSize: 11.5, color: THEME.textMuted, marginLeft: "auto" }}>tüm pazaryerlerinde satışta</span>
-            </div>
-          ) : (
-            <>
-              <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, margin: "4px 0 10px" }}>YAYIN SÜRECİ</div>
-              <PipelineTimeline pipeline={book.pipeline} onApproveCover={() => onApproveCover(book.id)} />
-            </>
-          )}
+          {(() => {
+            const kalanAdimlar = (book.pipeline || []).filter((s) => s.status !== "tamamlandi" && s.status !== "atlandi");
+            const tamamenBitti = kalanAdimlar.length === 0;
+            return published ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: THEME.successBg, border: `1px solid rgba(89,227,157,0.3)`, borderRadius: 6, padding: "10px 12px", margin: "4px 0 16px" }}>
+                  <span style={{ fontSize: 15 }}>✓</span>
+                  <span style={{ fontSize: 13, color: THEME.success, fontWeight: 600 }}>Satışta</span>
+                  <span style={{ fontSize: 11.5, color: THEME.textMuted, marginLeft: "auto" }}>
+                    {tamamenBitti ? "tüm pazaryerlerinde" : `${kalanAdimlar.length} adım devam ediyor`}
+                  </span>
+                </div>
+                {/* Satışa çıktıktan sonra da kalan adımlar izlenebilir */}
+                {!tamamenBitti && (
+                  <>
+                    <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, margin: "4px 0 10px" }}>
+                      DEVAM EDEN İŞLEMLER
+                    </div>
+                    <PipelineTimeline pipeline={book.pipeline} onApproveCover={() => onApproveCover(book.id)} />
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, margin: "4px 0 10px" }}>YAYIN SÜRECİ</div>
+                <PipelineTimeline pipeline={book.pipeline} onApproveCover={() => onApproveCover(book.id)} />
+              </>
+            );
+          })()}
           <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, margin: "18px 0 8px" }}>PAZARYERİ STOKLARI</div>
           <PlatformGrid book={book} plan={plan} />
 

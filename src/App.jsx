@@ -867,10 +867,25 @@ const PLATFORMS = [
 ];
 const AMAZON = { key: "amazon", label: "Amazon", tag: "AMZ" };
 
+// 17 ADIMLI YAYIN SÜRECİ — backend ile birebir aynı sıra
 const PIPELINE_STAGES = [
-  { key: "teslim", label: "Kitap Teslim Alındı" }, { key: "editor", label: "Editör Hizmeti" }, { key: "kapak", label: "Kapak Tasarımı" },
-  { key: "isbn", label: "Bandrol Alımı" }, { key: "sosyal", label: "Sosyal Medya Tanıtımı" }, { key: "baski", label: "Baskı" },
-  { key: "satis", label: "Satışa Sunum" }, { key: "yayin", label: "Yayında" },
+  { key: "teslim", label: "Kitap Teslim Alındı" },
+  { key: "isbn", label: "ISBN Alımı" },
+  { key: "kapak", label: "Kapak Tasarımı", onay: true },
+  { key: "tanitim_video", label: "Tanıtım Videosu (Yakında)" },
+  { key: "editor", label: "Editörlük Süreci" },
+  { key: "bandrol", label: "Bandrol Alımı" },
+  { key: "redaksiyon", label: "Redaksiyon", opsiyonel: true },
+  { key: "mizanpaj", label: "Mizanpaj / Baskıya Hazırlık" },
+  { key: "yazar_onay", label: "Yazar Onayı (Kapak + Editörlük)", onay: true },
+  { key: "baskiya_gonderim", label: "Baskıya Gönderim" },
+  { key: "satis_video", label: "Satış Videosu Hazırlığı" },
+  { key: "on_satis", label: "Ön Satışa Açılma" },
+  { key: "depo_giris", label: "Matbaadan Depoya Giriş" },
+  { key: "hediye_gonderim", label: "Hediye Kitap Gönderimi" },
+  { key: "normal_satis", label: "Normal Satışa Açılma" },
+  { key: "dagitim", label: "Dağıtım Ağlarına Yükleme" },
+  { key: "yayin", label: "Yayında" },
 ];
 
 const PLANS = {
@@ -963,11 +978,11 @@ const FAQ_ITEMS = [
 ];
 
 function getActiveStage(pipeline) { return pipeline.find((s) => s.status !== "tamamlandi") || pipeline[pipeline.length - 1]; }
-function isPublished(pipeline) { const last = pipeline[pipeline.length - 1]; return last.key === "yayin" && last.status === "tamamlandi"; }
+function isPublished(pipeline) { const p = pipeline || []; const last = p[p.length - 1]; return !!last && last.key === "yayin" && last.status === "tamamlandi"; }
 
 // ==================== ONBOARDING / BEKLEME EKRANI ====================
 // Yeni yazar: hiçbir kitabı "yayin" aşamasında değilse tam uygulama yerine bu ekranı görür.
-// 8 aşamalı süreç takibi + konfeti kutlaması + sınırlı AI danışman + bilgilendirme kartları.
+// 17 adımlı süreç takibi + konfeti kutlaması + sınırlı AI danışman + bilgilendirme kartları.
 
 function OnboardingConfetti({ tetik }) {
   // Aşama tamamlandığında coşkulu konfeti yağmuru
@@ -1040,10 +1055,25 @@ function OnboardingScreen({ account, token, onLogout }) {
       return `Kitabınız şu an "${aktif?.label}" aşamasında ve süreç devam ediyor. ${toplamAsama} aşamadan ${tamamlanan} tanesi tamamlandı. Kesin tarih yaklaştıkça burada görünecek.`;
     }
     if (/hangi aşama|neredeyim|durum|süreç nerede|ne durumda/.test(s)) {
-      return `Şu an "${aktif?.label}" aşamasındasınız. Tamamlananlar: ${bitenler.length ? bitenler.join(", ") : "henüz yok"}. Sıradakiler: ${kalanlar.join(", ")}.`;
+      const sonBiten = bitenler.slice(-3);
+      const sonrakiler = kalanlar.slice(0, 3);
+      return `Şu an "${aktif?.label}" aşamasındasınız — ${toplamAsama} adımlık sürecin ${tamamlanan}. adımı tamamlandı.`
+        + (sonBiten.length ? ` Son tamamlananlar: ${sonBiten.join(", ")}.` : "")
+        + (sonrakiler.length ? ` Sırada: ${sonrakiler.join(", ")}${kalanlar.length > 3 ? ` ve ${kalanlar.length - 3} adım daha` : ""}.` : "");
     }
     if (/tamamlan|biten|geçt/.test(s)) {
-      return bitenler.length ? `Tamamlanan aşamalar: ${bitenler.join(", ")}. Toplam ${tamamlanan}/${toplamAsama}.` : "Henüz tamamlanan aşama yok, süreç yeni başladı. En kısa sürede ilk aşama tamamlanacak.";
+      return bitenler.length
+        ? `Tamamlanan adımlar (${tamamlanan}/${toplamAsama}): ${bitenler.join(", ")}.`
+        : "Henüz tamamlanan adım yok, süreç yeni başladı. En kısa sürede ilk adım tamamlanacak.";
+    }
+    if (/hediye|ücretsiz kitap|kaç kitap/.test(s)) {
+      return `Paketinize dahil hediye kitaplarınız, süreçteki "Hediye Kitap Gönderimi" adımında otomatik olarak gönderilir. Ayrıca talep etmenize gerek yoktur.`;
+    }
+    if (/onay|kapak onay|ne yapmam/.test(s)) {
+      const onayBekleyen = pipeline.find((p) => p.status === "devam" && (p.key === "kapak" || p.key === "yazar_onay"));
+      return onayBekleyen
+        ? `Şu an "${onayBekleyen.label}" adımı sizin onayınızı bekliyor. Onayladığınızda süreç kaldığı yerden devam eder.`
+        : `Şu an sizden beklenen bir onay yok. Süreç yayınevi tarafından yürütülüyor; onayınız gereken bir adım geldiğinde burada göreceksiniz.`;
     }
     return null; // kural bulunamadı → gerçek AI'a gidebilir
   };
@@ -1180,7 +1210,7 @@ function OnboardingScreen({ account, token, onLogout }) {
           )}
 
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
-            {["Kitabım ne zaman çıkar?", "Hangi aşamadayım?", "Hangi aşamalar tamamlandı?"].map((h) => (
+            {["Kitabım ne zaman çıkar?", "Hangi aşamadayım?", "Benden onay bekleyen var mı?", "Hediye kitaplarım?"].map((h) => (
               <button key={h} onClick={() => soruSor(h)} style={{
                 fontSize: 11, background: THEME.cyan, color: "#DCEDE4", border: "none",
                 padding: "6px 11px", borderRadius: 20, cursor: "pointer",

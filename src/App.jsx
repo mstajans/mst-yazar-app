@@ -859,9 +859,10 @@ const PLATFORMS = [
   { key: "n11", label: "N11", tag: "n11", badgeBg: "#5B21B6", badgeFg: "#FFFFFF" },
   { key: "hepsiburada", label: "Hepsiburada", tag: "HB", badgeBg: "#FFFFFF", badgeFg: "#FF6000" },
   { key: "pazarama", label: "Pazarama", tag: "PZ", badgeBg: "#0F2A5C", badgeFg: "#FF2D87" },
+  // Manuel bildirimli platformlar: satışlar toplu geldiği için gecikmeli yansır
+  { key: "kitapyurdu", label: "Kitapyurdu", tag: "KY", badgeBg: "#1D7A3C", badgeFg: "#FFFFFF", manuel: true },
+  { key: "dr", label: "D&R", tag: "D&R", badgeBg: "#FFFFFF", badgeFg: "#E4032E", manuel: true },
   { key: "idefix", label: "İdefix", tag: "İD", badgeBg: "#FFFFFF", badgeFg: "#111111", comingSoon: true },
-  { key: "kitapyurdu", label: "Kitapyurdu", tag: "KY", badgeBg: "#1D7A3C", badgeFg: "#FFFFFF", comingSoon: true },
-  { key: "dr", label: "D&R", tag: "D&R", badgeBg: "#FFFFFF", badgeFg: "#E4032E", comingSoon: true },
   { key: "amazon", label: "Amazon", tag: "AMZ", badgeBg: "#0A0A0A", badgeFg: "#FF9900", comingSoon: true },
 ];
 const AMAZON = { key: "amazon", label: "Amazon", tag: "AMZ" };
@@ -1583,6 +1584,15 @@ function PlatformGrid({ book, plan }) {
           ⚠ Şu anki satış hızıyla tahmini <strong>{daysLeft} gün</strong> içinde stoksuz kalabilir — yeni baskı için yayınevini bilgilendirin.
         </div>
       )}
+      {/* Manuel bildirimli platformlar (D&R, Kitapyurdu) — satışlar toplu geldiği için gecikmeli yansır */}
+      {platforms.some((p) => p.manuel && (book.stock[p.key] ?? 0) > 0) && (
+        <div style={{ marginTop: 10, background: THEME.headerBg, border: `1px solid ${THEME.border}`, borderRadius: 4, padding: "8px 10px", fontSize: 11.5, color: THEME.textMuted, lineHeight: 1.6 }}>
+          ℹ️ <strong style={{ color: THEME.textLight }}>D&R ve Kitapyurdu</strong> satışları bu platformlardan
+          <strong style={{ color: THEME.textLight }}> toplu olarak bildirilir</strong>; bu nedenle rakamlar
+          diğer pazaryerlerine göre gecikmeli görünebilir. Bildirim geldiğinde yayınevi tarafından işlenir ve
+          telifinize eksiksiz yansır.
+        </div>
+      )}
       {gated && (
         <div style={{ marginTop: 10 }}>
           <div style={{ fontSize: 11.5, color: THEME.warn, marginBottom: 5 }}>Diğer platformlar 100 satışa ulaşınca otomatik açılır — {book.totalSold}/{gate}</div>
@@ -1654,22 +1664,54 @@ function BookCard({ book, plan, expanded, onToggle, onApproveCover }) {
           )}
           <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, margin: "18px 0 8px" }}>PAZARYERİ STOKLARI</div>
           <PlatformGrid book={book} plan={plan} />
-          <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, margin: "18px 0 8px" }}>SON ALICILAR</div>
-          {book.buyers.length === 0 ? <div style={{ fontSize: 13, color: THEME.textMuted, padding: "6px 0" }}>Bu kitap için henüz satış kaydı yok.</div> : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {book.buyers.map((b, i) => {
-                const plat = [...PLATFORMS, AMAZON].find((p) => p.key === b.platform);
-                return (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13.5, color: THEME.textLight, borderBottom: i < book.buyers.length - 1 ? `1px solid ${THEME.divider}` : "none", paddingBottom: 8 }}>
-                    <span>{b.name} <span style={{ color: THEME.textMuted }}>· {b.city}</span></span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 10.5, color: THEME.cyan, background: THEME.headerBg, borderRadius: 3, padding: "2px 6px" }}>{plat?.tag}</span>
-                      <span style={{ color: THEME.textMuted, fontSize: 12 }}>{b.date}</span>
+
+          {/* TELİF ŞEFFAFLIĞI — yazar satış ile telif arasındaki farkı burada görür */}
+          {(book.telif || book.indirimliDusulen > 0 || book.hediyeDusulen > 0) && (
+            <>
+              <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, margin: "18px 0 8px" }}>TELİF DÖKÜMÜ</div>
+              <div style={{ background: THEME.headerBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: "12px 14px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textLight, marginBottom: 7 }}>
+                  <span>Toplam satış</span>
+                  <span style={{ fontFamily: "'Space Mono', monospace" }}>{book.totalSold} adet</span>
+                </div>
+
+                {book.indirimliDusulen > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textMuted, marginBottom: 7 }}>
+                    <span>🏷️ İndirimli aldığınız</span>
+                    <span style={{ fontFamily: "'Space Mono', monospace" }}>− {book.indirimliDusulen} adet</span>
+                  </div>
+                )}
+                {book.hediyeDusulen > 0 && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textMuted, marginBottom: 7 }}>
+                    <span>🎁 Hediye gönderilen</span>
+                    <span style={{ fontFamily: "'Space Mono', monospace" }}>− {book.hediyeDusulen} adet</span>
+                  </div>
+                )}
+
+                {(book.indirimliDusulen > 0 || book.hediyeDusulen > 0) && (
+                  <div style={{ borderTop: `1px solid ${THEME.divider}`, margin: "9px 0", paddingTop: 9, display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textLight, fontWeight: 600 }}>
+                    <span>Telife sayılan</span>
+                    <span style={{ fontFamily: "'Space Mono', monospace", color: THEME.cyan }}>
+                      {Math.max(0, (book.totalSold || 0) - (book.indirimliDusulen || 0) - (book.hediyeDusulen || 0))} adet
                     </span>
                   </div>
-                );
-              })}
-            </div>
+                )}
+
+                {book.telif && (
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: THEME.success, fontWeight: 700, marginTop: 4 }}>
+                    <span>Telif geliriniz</span>
+                    <span style={{ fontFamily: "'Space Mono', monospace" }}>{tl(book.telif.toplamTelif)}</span>
+                  </div>
+                )}
+
+                {(book.indirimliDusulen > 0 || book.hediyeDusulen > 0) && (
+                  <div style={{ fontSize: 11.5, color: THEME.textMuted, marginTop: 10, lineHeight: 1.6, borderTop: `1px solid ${THEME.divider}`, paddingTop: 9 }}>
+                    İndirimli aldığınız ve hediye gönderilen kitaplar satış rakamında görünür, ancak
+                    <strong style={{ color: THEME.textLight }}> gerçek satış olmadıkları için telife sayılmaz.</strong>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       )}
@@ -2124,7 +2166,7 @@ function EarningsSection({ account }) {
 
       <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 4 }}>ÖDEME GEÇMİŞİ</div>
       <div style={{ fontSize: 10.5, color: THEME.success, marginBottom: 10 }}>✓ Her ödeme tam ve açıktır — gizli kesinti veya komisyon yoktur.</div>
-      {account.payouts.length === 0 ? <div style={{ fontSize: 13, color: THEME.textMuted }}>Henüz ödeme yapılmadı.</div> : account.payouts.map((p) => (
+      {!(account.payouts || []).length ? <div style={{ fontSize: 13, color: THEME.textMuted }}>Henüz ödeme yapılmadı.</div> : (account.payouts || []).map((p) => (
         <div key={p.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, padding: "8px 0", borderBottom: `1px solid ${THEME.divider}`, color: THEME.textLight }}>
           <span>{formatDate(p.date)}</span><span style={{ fontFamily: "'Space Mono', monospace", color: THEME.success }}>{tl(p.amount)}</span>
         </div>
@@ -3146,10 +3188,70 @@ export default function App() {
       </div>
       <div style={{ padding: "18px 14px 110px" }}>
         {tab === "kitaplar" && (<>
+          {(() => {
+            const kitapSayisi = account.books.length;
+            const toplamSatis = account.books.reduce((s, b) => s + (b.totalSold || 0), 0);
+            const toplamTelif = account.books.reduce((s, b) => s + (b.telif?.toplamTelif || 0), 0);
+            const yayinda = account.books.filter((b) => isPublished(b.pipeline)).length;
+            const surecte = kitapSayisi - yayinda;
+            return (
+              <>
+                {/* PERFORMANS ÖZETİ */}
+                <div style={{ background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 8, padding: "14px 16px", marginBottom: 14 }}>
+                  <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 12 }}>KÜTÜPHANENİZ</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
+                    <div>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.gold, fontWeight: 700 }}>{kitapSayisi}</div>
+                      <div style={{ fontSize: 10.5, color: THEME.textMuted }}>kitap</div>
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.cyan, fontWeight: 700 }}>{toplamSatis}</div>
+                      <div style={{ fontSize: 10.5, color: THEME.textMuted }}>toplam satış</div>
+                    </div>
+                    <div>
+                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.success, fontWeight: 700 }}>{tl(toplamTelif)}</div>
+                      <div style={{ fontSize: 10.5, color: THEME.textMuted }}>telif geliri</div>
+                    </div>
+                  </div>
+                  {(yayinda > 0 || surecte > 0) && (
+                    <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${THEME.divider}`, fontSize: 12, color: THEME.textMuted }}>
+                      {yayinda > 0 && <span style={{ color: THEME.success }}>✓ {yayinda} kitap yayında</span>}
+                      {yayinda > 0 && surecte > 0 && <span> · </span>}
+                      {surecte > 0 && <span style={{ color: THEME.warn }}>◷ {surecte} kitap süreçte</span>}
+                    </div>
+                  )}
+                </div>
+
+                {/* YENİ KİTAP TEŞVİKİ */}
+                <div style={{ background: `linear-gradient(135deg, ${THEME.headerBg}, ${THEME.panelBg})`, border: `1px solid ${THEME.gold}`, borderRadius: 8, padding: "14px 16px", marginBottom: 16 }}>
+                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: THEME.gold, marginBottom: 6 }}>
+                    {kitapSayisi === 0 ? "İlk kitabınızı yayınlayın" : kitapSayisi === 1 ? "İkinci kitabınız için hazır mısınız?" : "Serinizi büyütmeye devam edin"}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: THEME.textLight, lineHeight: 1.65, marginBottom: 4 }}>
+                    {kitapSayisi === 0
+                      ? "Eserinizi teslim edin, yayın süreci hemen başlasın. Editör, kapak tasarımı, bandrol ve pazaryeri dağıtımı bizden."
+                      : kitapSayisi === 1
+                        ? "Okurlar bir yazarın ikinci kitabını merak eder. Yeni eseriniz, ilk kitabınızın da satışını artırır."
+                        : `${kitapSayisi} kitaplık bir külliyatınız var. Her yeni eser, okurlarınızı diğer kitaplarınıza da yönlendirir.`}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+
           <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 10 }}>
             KİTAPLARINIZ ({account.books.length})
           </div>
           <NewBookForm onSubmit={submitNewBook} submissions={mySubmissions} />
+          {account.books.length === 0 && (
+            <div style={{ background: THEME.panelBg, border: `1px dashed ${THEME.border}`, borderRadius: 8, padding: "26px 18px", textAlign: "center", marginBottom: 14 }}>
+              <div style={{ fontSize: 26, marginBottom: 8 }}>📖</div>
+              <div style={{ fontSize: 13.5, color: THEME.textLight, marginBottom: 4 }}>Henüz kitabınız yok</div>
+              <div style={{ fontSize: 12, color: THEME.textMuted, lineHeight: 1.6 }}>
+                Yukarıdaki butondan ilk eserinizi teslim edin — süreç aynı gün başlar.
+              </div>
+            </div>
+          )}
           {account.books.map((b) => <BookCard key={b.id} book={b} plan={account.plan} expanded={expandedId === b.id} onToggle={() => setExpandedId(expandedId === b.id ? null : b.id)} onApproveCover={approveCover} />)}
           <div style={{ marginTop: 8, fontSize: 11.5, color: THEME.textMuted, textAlign: "center", lineHeight: 1.6 }}>
             Stok ve satış verileri Trendyol, N11, Hepsiburada ve Pazarama satıcı panellerinden senkronize edilir.

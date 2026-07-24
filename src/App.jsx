@@ -978,18 +978,13 @@ const FAQ_ITEMS = [
 ];
 
 function getActiveStage(pipeline) { return pipeline.find((s) => s.status !== "tamamlandi") || pipeline[pipeline.length - 1]; }
-// Kitap "yayında" sayılır: ÖN SATIŞA açıldığı andan itibaren.
-// Kalan adımlar (depo girişi, hediye gönderimi, normal satış, dağıtım) arka planda
-// devam eder; yazar bunları süreç çizelgesinden izlemeye devam eder ama
-// uygulamanın tamamına erişimi açılır.
-const YAYIN_ESIGI = "on_satis";
+// Kitap "yayında" sayılır: yayınevi "Yayında" adımını işaretlediğinde.
+// Süreç sıralı değildir — adımlar bağımsız işaretlenir, kontrol yayınevindedir.
+const YAYIN_ESIGI = "yayin";
 function isPublished(pipeline) {
   const p = pipeline || [];
   const esik = p.find((s) => s.key === YAYIN_ESIGI);
-  if (esik && esik.status === "tamamlandi") return true;
-  // Geriye dönük güvenlik: son adım tamamlanmışsa da yayında say
-  const last = p[p.length - 1];
-  return !!last && last.key === "yayin" && last.status === "tamamlandi";
+  return !!esik && esik.status === "tamamlandi";
 }
 
 // ==================== ONBOARDING / BEKLEME EKRANI ====================

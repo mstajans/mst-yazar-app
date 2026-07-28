@@ -5,36 +5,40 @@ const LOGO_GOLD = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASwAAAH6CAYAAAC
 const LOGO_HEADER = "data:image/png;base64,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";
 
 const THEME = {
-  bg: "#F7F4EC",
-  panelBg: "#FFFFFF",
-  panelBgAlt: "#FBF8F0",
-  headerBg: "#F7F4EC",
-  headerGradA: "#F7F4EC",
-  headerGradB: "#F7F4EC",
-  border: "rgba(27,67,50,0.12)",
-  divider: "rgba(27,67,50,0.09)",
-  cyan: "#2D6A4F",
-  cyanDim: "#163826",
-  textLight: "#1B2B22",
-  textMuted: "#6B7C70",
-  textFaint: "#95A092",
-  success: "#2D6A4F",
-  successBg: "rgba(45,106,79,0.1)",
-  warn: "#B4801E",
-  warnBg: "rgba(180,128,30,0.12)",
-  danger: "#B0453A",
-  dangerBg: "rgba(176,69,58,0.1)",
-  secondary: "#C9A227",
-  secondaryBg: "rgba(201,162,39,0.14)",
-  gold: "#C9A227",
-  goldBg: "rgba(201,162,39,0.14)",
-  vip: "#C9A227",
-  vipBg: "rgba(201,162,39,0.12)",
-  vipBorder: "#C9A227",
-  standartFg: "#6B7C70",
-  standartBg: "rgba(27,67,50,0.05)",
-  disabledBg: "rgba(27,67,50,0.04)",
-  disabledFg: "#95A092",
+  // MST paket sayfası tasarım dili (vip.html) — lacivert / altın / fildişi
+  bg: "#070D1B",            // --royal
+  panelBg: "#0C1730",       // --royal2
+  panelBgAlt: "#132445",    // --royal3
+  headerBg: "#070D1B",
+  headerGradA: "#0C1730",
+  headerGradB: "#132445",
+  border: "rgba(201,162,75,0.22)",
+  divider: "rgba(245,240,228,0.10)",
+  cyan: "#C9A24B",          // vurgu rengi artık altın
+  cyanDim: "#0C1730",
+  textLight: "#F5F0E4",     // --ivory
+  textMuted: "rgba(245,240,228,0.62)",  // --dim
+  textFaint: "rgba(245,240,228,0.38)",
+  success: "#8FBF9F",
+  successBg: "rgba(143,191,159,0.12)",
+  warn: "#F0D68A",          // --gold-br
+  warnBg: "rgba(240,214,138,0.12)",
+  danger: "#E08878",
+  dangerBg: "rgba(224,136,120,0.12)",
+  secondary: "#C9A24B",
+  secondaryBg: "rgba(201,162,75,0.14)",
+  gold: "#C9A24B",
+  goldBr: "#F0D68A",
+  goldDp: "#8C6A22",
+  goldBg: "rgba(201,162,75,0.14)",
+  goldGlow: "rgba(201,162,75,0.35)",
+  vip: "#F0D68A",
+  vipBg: "rgba(201,162,75,0.12)",
+  vipBorder: "#C9A24B",
+  standartFg: "rgba(245,240,228,0.62)",
+  standartBg: "rgba(245,240,228,0.06)",
+  disabledBg: "rgba(245,240,228,0.05)",
+  disabledFg: "rgba(245,240,228,0.30)",
 };
 
 
@@ -92,17 +96,17 @@ function OdulKutlama({ k }) {
     <div style={{ position: "relative", width: "100%", maxWidth: 420, height: 500 }}>
       <div style={{ position: "absolute", top: "38%", left: "50%", width: 340, height: 340, transform: "translate(-50%,-50%)", animation: "rayDon 8s linear infinite" }}>
         {raylar.map((_, i) => (
-          <div key={i} style={{ position: "absolute", top: "50%", left: "50%", width: 170, height: 3, transformOrigin: "left center", transform: `rotate(${i * 22.5}deg)`, background: "linear-gradient(90deg,rgba(201,162,39,0.9),transparent)" }} />
+          <div key={i} style={{ position: "absolute", top: "50%", left: "50%", width: 170, height: 3, transformOrigin: "left center", transform: `rotate(${i * 22.5}deg)`, background: "linear-gradient(90deg,rgba(201,162,75,0.9),transparent)" }} />
         ))}
       </div>
       {parcalar.map((_, i) => {
         const a = (i / parcalar.length) * Math.PI * 2, dist = 90 + (i % 5) * 30;
-        return <div key={i} style={{ position: "absolute", top: "38%", left: "50%", width: 8, height: 8, borderRadius: "50%", background: "#F5D76E", boxShadow: "0 0 8px #C9A227", "--dx": `${Math.cos(a) * dist}px`, "--dy": `${Math.sin(a) * dist}px`, animation: `parcaUc 1.2s ease-out ${i * 0.02}s forwards` }} />;
+        return <div key={i} style={{ position: "absolute", top: "38%", left: "50%", width: 8, height: 8, borderRadius: "50%", background: "#F5D76E", boxShadow: "0 0 8px #C9A24B", "--dx": `${Math.cos(a) * dist}px`, "--dy": `${Math.sin(a) * dist}px`, animation: `parcaUc 1.2s ease-out ${i * 0.02}s forwards` }} />;
       })}
-      <div style={{ position: "absolute", top: "38%", left: "50%", width: 150, height: 150, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%,#F5D76E,#C9A227 55%,#9a7d1a)", boxShadow: "0 0 60px rgba(201,162,39,0.7),inset 0 -8px 20px rgba(0,0,0,0.3)", border: "4px solid rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", animation: "madalyaGir 0.7s ease-out", fontSize: 66 }}>{k.gorsel || "🏅"}</div>
+      <div style={{ position: "absolute", top: "38%", left: "50%", width: 150, height: 150, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%,#F5D76E,#C9A24B 55%,#9a7d1a)", boxShadow: "0 0 60px rgba(201,162,75,0.7),inset 0 -8px 20px rgba(0,0,0,0.3)", border: "4px solid rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", animation: "madalyaGir 0.7s ease-out", fontSize: 66 }}>{k.gorsel || "🏅"}</div>
       <div style={{ position: "absolute", top: "62%", left: 0, right: 0, textAlign: "center", animation: "yaziGir 0.5s ease-out 0.3s both" }}>
-        <div style={{ fontFamily: "'Fraunces',serif", fontSize: 15, letterSpacing: 3, color: "#C9A227", textTransform: "uppercase", marginBottom: 10 }}>✦ Tebrikler ✦</div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontSize: 30, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{k.baslik}</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 15, letterSpacing: 3, color: "#C9A24B", textTransform: "uppercase", marginBottom: 10 }}>✦ Tebrikler ✦</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 30, fontWeight: 700, color: "#fff", marginBottom: 8 }}>{k.baslik}</div>
         <div style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{k.alt_metin}</div>
       </div>
     </div>
@@ -114,15 +118,15 @@ function SeviyeKutlama({ k }) {
   const kivilcimlar = Array.from({ length: 30 });
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: 420, height: 520 }}>
-      <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", transform: "translateX(-50%)", width: 200, background: "linear-gradient(180deg,transparent,rgba(45,106,79,0.25) 40%,rgba(201,162,39,0.35))", filter: "blur(20px)" }} />
+      <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", transform: "translateX(-50%)", width: 200, background: "linear-gradient(180deg,transparent,rgba(45,106,79,0.25) 40%,rgba(201,162,75,0.35))", filter: "blur(20px)" }} />
       {kivilcimlar.map((_, i) => (
-        <div key={i} style={{ position: "absolute", width: 6, height: 6, background: "#C9A227", borderRadius: "50%", boxShadow: "0 0 10px #F5D76E", left: `${30 + (i * 37) % 40}%`, top: `${10 + (i * 23) % 70}%`, animation: `kivilcim ${1 + (i % 3) * 0.4}s ease-in-out ${i * 0.05}s infinite` }} />
+        <div key={i} style={{ position: "absolute", width: 6, height: 6, background: "#C9A24B", borderRadius: "50%", boxShadow: "0 0 10px #F5D76E", left: `${30 + (i * 37) % 40}%`, top: `${10 + (i * 23) % 70}%`, animation: `kivilcim ${1 + (i % 3) * 0.4}s ease-in-out ${i * 0.05}s infinite` }} />
       ))}
-      <div style={{ position: "absolute", top: "34%", left: "50%", width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#2D6A4F,#1B4332 60%,#0d2a1e)", boxShadow: "0 0 70px rgba(45,106,79,0.6),0 0 0 3px rgba(201,162,39,0.5),0 0 0 12px rgba(201,162,39,0.12)", display: "flex", alignItems: "center", justifyContent: "center", animation: "rozetYuksel 0.8s ease-out", fontSize: 60 }}>{k.gorsel || "🌲"}</div>
+      <div style={{ position: "absolute", top: "34%", left: "50%", width: 160, height: 160, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#C9A24B,#0C1730 60%,#0d2a1e)", boxShadow: "0 0 70px rgba(45,106,79,0.6),0 0 0 3px rgba(201,162,75,0.5),0 0 0 12px rgba(201,162,75,0.12)", display: "flex", alignItems: "center", justifyContent: "center", animation: "rozetYuksel 0.8s ease-out", fontSize: 60 }}>{k.gorsel || "🌲"}</div>
       <div style={{ position: "absolute", top: "60%", left: 0, right: 0, textAlign: "center", animation: "yaziGir 0.5s ease-out 0.4s both" }}>
-        <div style={{ fontFamily: "'Fraunces',serif", fontSize: 14, letterSpacing: 4, color: "#4ADE80", textTransform: "uppercase", marginBottom: 12 }}>Seviye Atladın</div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontSize: 34, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{k.baslik}</div>
-        <div style={{ fontSize: 14, color: "#C9A227", padding: "0 40px", lineHeight: 1.5 }}>{k.alt_metin}</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 14, letterSpacing: 4, color: "#F0D68A", textTransform: "uppercase", marginBottom: 12 }}>Seviye Atladın</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 34, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{k.baslik}</div>
+        <div style={{ fontSize: 14, color: "#C9A24B", padding: "0 40px", lineHeight: 1.5 }}>{k.alt_metin}</div>
       </div>
     </div>
   );
@@ -131,16 +135,16 @@ function SeviyeKutlama({ k }) {
 // ---- BAŞARIM: konfeti + kart ----
 function BasarimKutlama({ k }) {
   const konfeti = Array.from({ length: 50 });
-  const cols = ["#C9A227", "#2D6A4F", "#1B4332", "#F5D76E", "#4ADE80"];
+  const cols = ["#C9A24B", "#C9A24B", "#0C1730", "#F5D76E", "#F0D68A"];
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: 420, height: 500 }}>
       {konfeti.map((_, i) => (
         <div key={i} style={{ position: "absolute", width: 10, height: 14, borderRadius: 2, background: cols[i % cols.length], left: `${(i * 17) % 100}%`, top: "-5%", transform: `rotate(${i * 47}deg)`, animation: `konfetiDus ${2 + (i % 4) * 0.5}s linear ${i * 0.04}s infinite` }} />
       ))}
-      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 300, padding: "36px 28px", borderRadius: 22, background: "linear-gradient(160deg,#FBF9F3,#F7F4EC)", boxShadow: "0 30px 80px rgba(0,0,0,0.5)", textAlign: "center", border: "2px solid #C9A227", animation: "kartZipla 0.6s ease-out" }}>
-        <div style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", background: "#C9A227", color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: 2, padding: "6px 20px", borderRadius: 20, textTransform: "uppercase" }}>Başarım</div>
-        <div style={{ width: 96, height: 96, margin: "8px auto 18px", borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#2D6A4F,#1B4332)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, boxShadow: "0 8px 24px rgba(27,67,50,0.4)" }}>{k.gorsel || "🏅"}</div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontSize: 24, fontWeight: 700, color: "#1B4332", marginBottom: 8 }}>{k.baslik}</div>
+      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 300, padding: "36px 28px", borderRadius: 22, background: "linear-gradient(160deg,#132445,#070D1B)", boxShadow: "0 30px 80px rgba(0,0,0,0.6)", textAlign: "center", border: "1.5px solid #C9A24B", animation: "kartZipla 0.6s ease-out" }}>
+        <div style={{ position: "absolute", top: -16, left: "50%", transform: "translateX(-50%)", background: "#C9A24B", color: "#fff", fontSize: 12, fontWeight: 700, letterSpacing: 2, padding: "6px 20px", borderRadius: 20, textTransform: "uppercase" }}>Başarım</div>
+        <div style={{ width: 96, height: 96, margin: "8px auto 18px", borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#C9A24B,#0C1730)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, boxShadow: "0 8px 24px rgba(201,162,75,0.4)" }}>{k.gorsel || "🏅"}</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, fontWeight: 700, color: "#0C1730", marginBottom: 8 }}>{k.baslik}</div>
         <div style={{ fontSize: 13.5, color: "#6B7B6E", lineHeight: 1.55 }}>{k.alt_metin}</div>
       </div>
     </div>
@@ -175,7 +179,7 @@ function AICocKarti({ token, onAc }) {
   return (
     <div
       onClick={() => onAc && onAc()}
-      style={{ background: "linear-gradient(135deg, rgba(45,106,79,.08), rgba(201,162,39,.08))", border: `1px solid ${THEME.cyan}`, borderRadius: 14, padding: 16, marginBottom: 16, cursor: "pointer", position: "relative", overflow: "hidden" }}>
+      style={{ background: "linear-gradient(135deg, rgba(45,106,79,.08), rgba(201,162,75,.08))", border: `1px solid ${THEME.cyan}`, borderRadius: 14, padding: 16, marginBottom: 16, cursor: "pointer", position: "relative", overflow: "hidden" }}>
       <style>{`
         @keyframes mgrAura { 0%,100% { opacity:.5; transform: scale(1);} 50% { opacity:.9; transform: scale(1.06);} }
         .mgr-card-arrow { transition: transform .2s ease; }
@@ -184,11 +188,11 @@ function AICocKarti({ token, onAc }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: karsilama || hedef ? 12 : 0 }}>
         <div style={{ position: "relative", width: 38, height: 38, flexShrink: 0 }}>
-          <div style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,162,39,.4), transparent 70%)", animation: "mgrAura 3s ease-in-out infinite" }} />
-          <div style={{ position: "relative", width: 38, height: 38, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#2D6A4F,#1B4332)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>🤝</div>
+          <div style={{ position: "absolute", inset: -3, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,162,75,.4), transparent 70%)", animation: "mgrAura 3s ease-in-out infinite" }} />
+          <div style={{ position: "relative", width: 38, height: 38, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#C9A24B,#0C1730)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 19 }}>🤝</div>
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 14.5, fontWeight: 700, color: THEME.textLight, fontFamily: "'Fraunces',serif" }}>Menajerim</div>
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: THEME.textLight, fontFamily: "'Cormorant Garamond',serif" }}>Menajerim</div>
           <div style={{ fontSize: 10.5, color: THEME.textMuted }}>7/24 destek</div>
         </div>
         <span className="mgr-card-arrow" style={{ fontSize: 18, color: THEME.cyan }}>→</span>
@@ -237,7 +241,7 @@ function SeriKarti({ katman }) {
       <div style={{ flex: "1 1 140px", background: THEME.panelBg, border: `1px solid ${seri > 0 ? THEME.gold : THEME.border}`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
         <div style={{ fontSize: 32 }}>🔥</div>
         <div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: THEME.gold, fontFamily: "'Space Mono',monospace", lineHeight: 1 }}>{seri}</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: THEME.gold, fontFamily: "'Jost',sans-serif", lineHeight: 1 }}>{seri}</div>
           <div style={{ fontSize: 11, color: THEME.textMuted, marginTop: 2 }}>günlük seri</div>
           <div style={{ fontSize: 10, color: THEME.textFaint, marginTop: 3 }}>
             {freeze > 0 ? `❄️ ${freeze} dondurma hakkı` : "❄️ dondurma yok"} · rekor {enUzun}
@@ -268,7 +272,7 @@ function GameSection({ oyun, token, onRefresh, katman }) {
     return (
       <div style={{ textAlign: "center", padding: "40px 20px" }}>
         <div style={{ fontSize: 48, marginBottom: 16 }}>🔒</div>
-        <div style={{ fontFamily: "'Fraunces',serif", fontSize: 20, fontWeight: 700, color: THEME.textLight, marginBottom: 10 }}>Kariyer Sistemi Kilitli</div>
+        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 700, color: THEME.textLight, marginBottom: 10 }}>Kariyer Sistemi Kilitli</div>
         <div style={{ fontSize: 13.5, color: THEME.textMuted, lineHeight: 1.6, maxWidth: 320, margin: "0 auto 20px" }}>
           {oyun.mesaj || "Kariyer ve ödül sistemi, ilk 100 satışa ulaşınca açılır."}
         </div>
@@ -297,9 +301,9 @@ function GameSection({ oyun, token, onRefresh, katman }) {
       {/* Kariyer başlığı — her zaman üstte */}
       <div style={{ background: THEME.panelBg, border: `1px solid ${THEME.gold}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 60, height: 60, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#2D6A4F,#1B4332)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, flexShrink: 0, boxShadow: "0 4px 14px rgba(27,67,50,0.4)" }}>{seviye.gorsel}</div>
+          <div style={{ width: 60, height: 60, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#C9A24B,#0C1730)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, flexShrink: 0, boxShadow: "0 4px 14px rgba(201,162,75,0.4)" }}>{seviye.gorsel}</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: "'Fraunces',serif", fontSize: 19, fontWeight: 700, color: THEME.textLight }}>{seviye.unvan}</div>
+            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 19, fontWeight: 700, color: THEME.textLight }}>{seviye.unvan}</div>
             <div style={{ fontSize: 12, color: THEME.gold, marginBottom: 6 }}>{seviye.gorsel} {seviye.rozet} · {xp} XP</div>
             <div style={{ height: 7, background: THEME.divider, borderRadius: 4, overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${ilerlemePct}%`, background: `linear-gradient(90deg,${THEME.cyan},${THEME.gold})`, borderRadius: 4, transition: "width .5s" }} />
@@ -318,7 +322,7 @@ function GameSection({ oyun, token, onRefresh, katman }) {
             flex: "1 1 auto", padding: "8px 6px", fontSize: 11, fontWeight: 600, borderRadius: 8, cursor: "pointer",
             border: `1px solid ${altTab === k ? THEME.gold : THEME.border}`,
             background: altTab === k ? THEME.gold : "transparent",
-            color: altTab === k ? "#1B4332" : THEME.textMuted,
+            color: altTab === k ? "#0C1730" : THEME.textMuted,
           }}>{l}</button>
         ))}
       </div>
@@ -406,7 +410,7 @@ function GorevKart({ g, token, onRefresh }) {
           {tamam ? <span style={{ fontSize: 12, color: THEME.success, fontWeight: 700 }}>✓ Tamam</span>
             : bekliyor ? <span style={{ fontSize: 11, color: THEME.gold }}>⏳ Onayda</span>
             : g.tip === "hizmet" ? <span style={{ fontSize: 10.5, color: THEME.cyan, textAlign: "right", lineHeight: 1.3 }}>🎓 MST ile<br/>gerçekleşir</span>
-            : g.tip === "kanit" ? <button onClick={() => setKanitAcik((v) => !v)} style={{ fontSize: 11, background: THEME.gold, color: "#1B4332", border: "none", borderRadius: 6, padding: "5px 10px", cursor: "pointer", fontWeight: 600 }}>Kanıt Yükle</button>
+            : g.tip === "kanit" ? <button onClick={() => setKanitAcik((v) => !v)} style={{ fontSize: 11, background: THEME.gold, color: "#0C1730", border: "none", borderRadius: 6, padding: "5px 10px", cursor: "pointer", fontWeight: 600 }}>Kanıt Yükle</button>
             : <span style={{ fontSize: 11, color: THEME.textMuted, fontFamily: "monospace" }}>{g.ilerleme}/{g.hedef_deger}</span>}
         </div>
       </div>
@@ -447,14 +451,14 @@ function KariyerYolu({ oyun }) {
           <div key={s.no} style={{ display: "flex", gap: 12, marginBottom: 4 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div style={{ width: 44, height: 44, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0,
-                background: aktif ? "radial-gradient(circle at 40% 35%,#2D6A4F,#1B4332)" : gecildi ? THEME.cyanDim : THEME.panelBgAlt,
+                background: aktif ? "radial-gradient(circle at 40% 35%,#C9A24B,#0C1730)" : gecildi ? THEME.cyanDim : THEME.panelBgAlt,
                 border: `2px solid ${aktif ? THEME.gold : gecildi ? THEME.cyan : THEME.border}`, opacity: gecildi || aktif ? 1 : 0.5 }}>{s.gorsel}</div>
               {i < seviyeler.length - 1 && <div style={{ width: 2, flex: 1, minHeight: 24, background: gecildi ? THEME.cyan : THEME.border }} />}
             </div>
             <div style={{ paddingBottom: 16, flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 14.5, fontWeight: 700, color: aktif ? THEME.gold : gecildi ? THEME.textLight : THEME.textMuted, fontFamily: "'Fraunces',serif" }}>{s.unvan}</span>
-                {aktif && <span style={{ fontSize: 9.5, background: THEME.gold, color: "#1B4332", borderRadius: 4, padding: "1px 6px", fontWeight: 700 }}>ŞU AN</span>}
+                <span style={{ fontSize: 14.5, fontWeight: 700, color: aktif ? THEME.gold : gecildi ? THEME.textLight : THEME.textMuted, fontFamily: "'Cormorant Garamond',serif" }}>{s.unvan}</span>
+                {aktif && <span style={{ fontSize: 9.5, background: THEME.gold, color: "#0C1730", borderRadius: 4, padding: "1px 6px", fontWeight: 700 }}>ŞU AN</span>}
               </div>
               <div style={{ fontSize: 11.5, color: THEME.textMuted, marginTop: 2 }}>{s.gorsel} {s.rozet} · {s.xp} XP</div>
             </div>
@@ -561,9 +565,9 @@ function ToplulukBolumu({ token }) {
     <div>
       {/* Topluluk hedefi */}
       {hedef && (
-        <div style={{ background: "linear-gradient(135deg, rgba(45,106,79,.08), rgba(201,162,39,.08))", border: `1px solid ${THEME.gold}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(45,106,79,.08), rgba(201,162,75,.08))", border: `1px solid ${THEME.gold}`, borderRadius: 12, padding: 16, marginBottom: 16 }}>
           <div style={{ fontSize: 10.5, letterSpacing: "0.05em", color: THEME.gold, marginBottom: 6 }}>🌍 TOPLULUK HEDEFİ</div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: THEME.textLight, fontFamily: "'Fraunces',serif", marginBottom: 4 }}>{hedef.baslik}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: THEME.textLight, fontFamily: "'Cormorant Garamond',serif", marginBottom: 4 }}>{hedef.baslik}</div>
           {hedef.aciklama && <div style={{ fontSize: 12, color: THEME.textMuted, marginBottom: 10 }}>{hedef.aciklama}</div>}
           <div style={{ height: 10, background: THEME.divider, borderRadius: 5, overflow: "hidden", marginBottom: 6 }}>
             <div style={{ height: "100%", width: `${hedef.yuzde}%`, background: `linear-gradient(90deg,${THEME.cyan},${THEME.gold})`, borderRadius: 5, transition: "width .6s" }} />
@@ -586,7 +590,7 @@ function ToplulukBolumu({ token }) {
           <div style={{ background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 10, padding: "4px 0" }}>
             {lig.siralama.slice(0, 10).map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 14px", borderBottom: i < Math.min(9, lig.siralama.length - 1) ? `1px solid ${THEME.divider}` : "none",
-                background: s.ben ? "rgba(201,162,39,.08)" : "transparent" }}>
+                background: s.ben ? "rgba(201,162,75,.08)" : "transparent" }}>
                 <span style={{ fontSize: 13, fontWeight: 700, color: s.sira <= 3 ? THEME.gold : THEME.textMuted, width: 24, fontFamily: "monospace" }}>{s.sira}</span>
                 <span style={{ fontSize: 18 }}>{s.rozet}</span>
                 <div style={{ flex: 1 }}>
@@ -856,13 +860,13 @@ function ReklamDashboard({ kampanyalar = [], C, baslik = "Reklam Performansı" }
 const PLATFORMS = [
   { key: "mst", label: "MST Yayıncılık", tag: "MST", badgeBg: THEME.cyan, badgeFg: "#0A0E1A" },
   { key: "trendyol", label: "Trendyol", tag: "TY", badgeBg: "#0A0A0A", badgeFg: "#FF6A00" },
-  { key: "n11", label: "N11", tag: "n11", badgeBg: "#5B21B6", badgeFg: "#FFFFFF" },
-  { key: "hepsiburada", label: "Hepsiburada", tag: "HB", badgeBg: "#FFFFFF", badgeFg: "#FF6000" },
+  { key: "n11", label: "N11", tag: "n11", badgeBg: "#5B21B6", badgeFg: "#0C1730" },
+  { key: "hepsiburada", label: "Hepsiburada", tag: "HB", badgeBg: "#0C1730", badgeFg: "#FF6000" },
   { key: "pazarama", label: "Pazarama", tag: "PZ", badgeBg: "#0F2A5C", badgeFg: "#FF2D87" },
   // Manuel bildirimli platformlar: satışlar toplu geldiği için gecikmeli yansır
-  { key: "kitapyurdu", label: "Kitapyurdu", tag: "KY", badgeBg: "#1D7A3C", badgeFg: "#FFFFFF", manuel: true },
-  { key: "dr", label: "D&R", tag: "D&R", badgeBg: "#FFFFFF", badgeFg: "#E4032E", manuel: true },
-  { key: "idefix", label: "İdefix", tag: "İD", badgeBg: "#FFFFFF", badgeFg: "#111111", comingSoon: true },
+  { key: "kitapyurdu", label: "Kitapyurdu", tag: "KY", badgeBg: "#1D7A3C", badgeFg: "#0C1730", manuel: true },
+  { key: "dr", label: "D&R", tag: "D&R", badgeBg: "#0C1730", badgeFg: "#E4032E", manuel: true },
+  { key: "idefix", label: "İdefix", tag: "İD", badgeBg: "#0C1730", badgeFg: "#111111" },
   { key: "amazon", label: "Amazon", tag: "AMZ", badgeBg: "#0A0A0A", badgeFg: "#FF9900", comingSoon: true },
 ];
 const AMAZON = { key: "amazon", label: "Amazon", tag: "AMZ" };
@@ -1123,16 +1127,16 @@ function OnboardingScreen({ account, token, onLogout }) {
   const kart = { background: THEME.panelBg, borderRadius: 14, padding: "16px 16px", border: `1px solid ${THEME.border}`, marginBottom: 14 };
 
   return (
-    <div style={{ position: "fixed", inset: 0, overflowY: "auto", background: THEME.bg, fontFamily: "'Manrope', sans-serif" }}>
+    <div style={{ position: "fixed", inset: 0, overflowY: "auto", background: THEME.bg, fontFamily: "'Jost', sans-serif" }}>
       <OnboardingConfetti tetik={konfetiVar} />
 
       {/* Header */}
       <div style={{ background: THEME.cyanDim, padding: "26px 20px 22px", textAlign: "center" }}>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-          <button onClick={onLogout} style={{ background: "none", border: "1px solid rgba(247,244,236,0.25)", color: "#F7F4EC", fontSize: 11, borderRadius: 4, padding: "5px 12px", cursor: "pointer" }}>ÇIKIŞ</button>
+          <button onClick={onLogout} style={{ background: "none", border: "1px solid rgba(247,244,236,0.25)", color: "#070D1B", fontSize: 11, borderRadius: 4, padding: "5px 12px", cursor: "pointer" }}>ÇIKIŞ</button>
         </div>
         <div style={{ color: THEME.gold, fontSize: 10.5, letterSpacing: "0.16em", marginBottom: 8 }}>MST YAYINCILIK</div>
-        <div style={{ color: "#F7F4EC", fontSize: 22, fontFamily: "'Fraunces', serif", fontWeight: 700, marginBottom: 6 }}>Merhaba {ad}</div>
+        <div style={{ color: "#070D1B", fontSize: 22, fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, marginBottom: 6 }}>Merhaba {ad}</div>
         <div style={{ color: "#9FC4B0", fontSize: 13, lineHeight: 1.6, maxWidth: 360, margin: "0 auto" }}>
           Kitabınız yayına hazırlanıyor. Tüm aşamalar tamamlandığında uygulamanızın tüm özellikleri otomatik olarak açılacak.
         </div>
@@ -1145,14 +1149,14 @@ function OnboardingScreen({ account, token, onLogout }) {
           {kitapYok ? (
             <div style={{ textAlign: "center", padding: "8px 4px" }}>
               <div style={{ fontSize: 30, marginBottom: 8 }}>📖</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: THEME.cyanDim, fontFamily: "'Fraunces', serif", marginBottom: 6 }}>Henüz kitabınız yayın sürecinde değil</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: THEME.cyanDim, fontFamily: "'Cormorant Garamond', serif", marginBottom: 6 }}>Henüz kitabınız yayın sürecinde değil</div>
               <div style={{ fontSize: 12, color: THEME.textMuted, lineHeight: 1.6 }}>
                 İlk kitabınız yayınevimize teslim edilip süreç başladığında, tüm aşamaları buradan canlı olarak takip edebileceksiniz.
               </div>
             </div>
           ) : (<>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: THEME.cyanDim, fontFamily: "'Fraunces', serif" }}>{takipKitap?.title || "Kitabınız"}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: THEME.cyanDim, fontFamily: "'Cormorant Garamond', serif" }}>{takipKitap?.title || "Kitabınız"}</span>
             <span style={{ fontSize: 11.5, color: THEME.gold, fontWeight: 600 }}>{tamamlanan} / {toplamAsama} aşama</span>
           </div>
 
@@ -1170,7 +1174,7 @@ function OnboardingScreen({ account, token, onLogout }) {
                     width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 12, fontWeight: 700,
-                    background: bitti ? THEME.success : suan ? THEME.gold : "rgba(27,67,50,0.09)",
+                    background: bitti ? THEME.success : suan ? THEME.gold : "rgba(201,162,75,0.09)",
                     color: bitti || suan ? "#fff" : THEME.textFaint,
                   }}>
                     {bitti ? "✓" : suan ? "•" : ""}
@@ -1200,7 +1204,7 @@ function OnboardingScreen({ account, token, onLogout }) {
         <div style={{ background: THEME.cyanDim, borderRadius: 14, padding: "16px", marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
             <span style={{ color: THEME.gold, fontSize: 16 }}>✦</span>
-            <span style={{ fontSize: 13.5, color: "#F7F4EC", fontWeight: 600 }}>Yazar Danışmanınıza Sorun</span>
+            <span style={{ fontSize: 13.5, color: "#070D1B", fontWeight: 600 }}>Yazar Danışmanınıza Sorun</span>
           </div>
 
           {sorular.length > 0 && (
@@ -1233,7 +1237,7 @@ function OnboardingScreen({ account, token, onLogout }) {
               placeholder="Bir soru yazın…"
               style={{
                 flex: 1, background: "rgba(247,244,236,0.08)", border: "1px solid rgba(247,244,236,0.15)",
-                borderRadius: 8, padding: "9px 12px", color: "#F7F4EC", fontSize: 12.5, outline: "none",
+                borderRadius: 8, padding: "9px 12px", color: "#070D1B", fontSize: 12.5, outline: "none",
               }}
             />
             <button onClick={() => soruSor(girdi)} style={{
@@ -1278,7 +1282,7 @@ function StatusPill({ stage }) {
 function StockBadge({ count }) {
   const empty = count === 0; const low = count > 0 && count <= 10;
   const color = empty ? THEME.danger : low ? THEME.warn : THEME.success;
-  return <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, color, fontWeight: 600 }}>{String(count).padStart(2, "0")}</span>;
+  return <span style={{ fontFamily: "'Jost', sans-serif", fontSize: 13, color, fontWeight: 600 }}>{String(count).padStart(2, "0")}</span>;
 }
 function PlanBadge({ plan }) {
   const p = PLANS[plan];
@@ -1370,9 +1374,9 @@ function LoginScreen({ onLogin }) {
   // Giriş ekranı kendi sabit lacivert/altın paletini kullanır (global tema kreme dönse de bozulmaz)
   const LT = {
     bg: "#0A1B34", bgDeep: "#061223",
-    gold: "#C9A227", goldSoft: "#E0BD6B",
+    gold: "#C9A24B", goldSoft: "#E0BD6B",
     cream: "#F5EFDD", textLight: "#EDE4C8",
-    border: "rgba(201,162,39,0.45)", panel: "rgba(6,18,35,0.72)",
+    border: "rgba(201,162,75,0.45)", panel: "rgba(6,18,35,0.72)",
     danger: "#E27878",
   };
 
@@ -1444,13 +1448,13 @@ function LoginScreen({ onLogin }) {
   const fieldStyle = {
     width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,0.03)",
     border: `1px solid ${LT.border}`, borderRadius: 6, padding: "12px 14px",
-    color: LT.textLight, fontSize: 16, fontFamily: "'Manrope', sans-serif", outline: "none",
+    color: LT.textLight, fontSize: 16, fontFamily: "'Jost', sans-serif", outline: "none",
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${LT.bg} 0%, ${LT.bgDeep} 75%)`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "16px", fontFamily: "'Manrope', sans-serif", touchAction: "manipulation" }}>
+    <div style={{ position: "fixed", inset: 0, overflow: "hidden", background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${LT.bg} 0%, ${LT.bgDeep} 75%)`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", padding: "16px", fontFamily: "'Jost', sans-serif", touchAction: "manipulation" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&family=Jost:wght@200;300;400;500;600&display=swap');
         @keyframes mstFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes mstFadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes mstDriftA { 0%, 100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px,-26px) scale(1.08); } }
@@ -1467,7 +1471,7 @@ function LoginScreen({ onLogin }) {
       <ScanLine />
 
       <div style={{ position: "absolute", top: "-10%", left: "-10%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,106,79,0.12), transparent 70%)", filter: "blur(10px)", animation: "mstDriftA 13s ease-in-out infinite" }} />
-      <div style={{ position: "absolute", bottom: "-15%", right: "-10%", width: 340, height: 340, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,162,39,0.14), transparent 70%)", filter: "blur(12px)", animation: "mstDriftB 16s ease-in-out infinite" }} />
+      <div style={{ position: "absolute", bottom: "-15%", right: "-10%", width: 340, height: 340, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,162,75,0.14), transparent 70%)", filter: "blur(12px)", animation: "mstDriftB 16s ease-in-out infinite" }} />
 
       {particles.map((p, i) => (
         <div key={i} style={{ position: "absolute", bottom: -40, left: p.left, width: p.size, height: p.size, background: LT.gold, borderRadius: "50%", boxShadow: `0 0 6px ${LT.gold}`, animation: `mstFloatDot ${p.duration} linear infinite`, animationDelay: p.delay }} />
@@ -1529,9 +1533,9 @@ function LoginScreen({ onLogin }) {
         animation: "mstFadeUp 0.8s ease 0.25s both",
       }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 22 }}>
-          <img src={LOGO_GOLD} alt="MST Ajans Production" style={{ width: 150, height: "auto", filter: "drop-shadow(0 4px 14px rgba(201,162,39,0.35))" }} />
+          <img src={LOGO_GOLD} alt="MST Ajans Production" style={{ width: 150, height: "auto", filter: "drop-shadow(0 4px 14px rgba(201,162,75,0.35))" }} />
           <div style={{ width: 44, height: 1, background: LT.border, margin: "14px 0 12px" }} />
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 20, color: LT.textLight }}>Yazar Giriş Paneli</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: LT.textLight }}>Yazar Giriş Paneli</div>
         </div>
 
         {error && (
@@ -1553,7 +1557,7 @@ function LoginScreen({ onLogin }) {
           <button type="submit" disabled={loading} style={{
             marginTop: 6, background: `linear-gradient(135deg, ${LT.cream}, #FBF6E6)`, color: "#0A1B34",
             border: "none", borderRadius: 6, padding: "13px 0", fontSize: 15, fontWeight: 700, cursor: loading ? "default" : "pointer",
-            fontFamily: "'Fraunces', serif", boxShadow: "0 8px 20px rgba(0,0,0,0.35)", opacity: loading ? 0.7 : 1,
+            fontFamily: "'Cormorant Garamond', serif", boxShadow: "0 8px 20px rgba(0,0,0,0.35)", opacity: loading ? 0.7 : 1,
           }}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</button>
         </form>
       </div>
@@ -1584,7 +1588,7 @@ function MiniRingNode({ count, maxCount, badgeBg, badgeFg, tag, locked }) {
         }}
       />
       <div style={{ position: "absolute", inset: thickness + 2, borderRadius: "50%", background: THEME.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 11, fontWeight: 800, fontFamily: "'Space Mono', monospace", color: locked ? THEME.textFaint : THEME.textLight }}>{locked ? "🔒" : count}</span>
+        <span style={{ fontSize: 11, fontWeight: 800, fontFamily: "'Jost', sans-serif", color: locked ? THEME.textFaint : THEME.textLight }}>{locked ? "🔒" : count}</span>
       </div>
       {!locked && (
         <div style={{ position: "absolute", top: -7, left: "50%", transform: "translateX(-50%)", width: 18, height: 18, borderRadius: "50%", background: badgeBg, border: `1.5px solid ${THEME.bg}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1656,7 +1660,7 @@ function PipelineTimeline({ pipeline, onApproveCover }) {
             <div style={{ paddingBottom: isLast ? 4 : 16, flex: 1 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
                 <span style={{ fontSize: 14, color: THEME.textLight }}>{stage.label}</span>
-                <span style={{ fontSize: 10.5, color: THEME.textMuted, fontFamily: "'Space Mono', monospace", whiteSpace: "nowrap" }}>{stage.status === "tamamlandi" ? "✓ Tamam" : stage.eta ? `Tahmini ${formatDate(stage.eta)}` : ""}</span>
+                <span style={{ fontSize: 10.5, color: THEME.textMuted, fontFamily: "'Jost', sans-serif", whiteSpace: "nowrap" }}>{stage.status === "tamamlandi" ? "✓ Tamam" : stage.eta ? `Tahmini ${formatDate(stage.eta)}` : ""}</span>
               </div>
               {stage.key === "kapak" && stage.approved && <div style={{ fontSize: 11.5, color: THEME.success, marginTop: 4 }}>✓ Kapağı onayladınız</div>}
               {showApprove && <button onClick={onApproveCover} style={{ marginTop: 8, background: THEME.cyan, color: "#04121A", border: "none", borderRadius: 3, padding: "8px 14px", fontSize: 12.5, cursor: "pointer", fontWeight: 600 }}>Kapak Tasarımını Onayla</button>}
@@ -1677,11 +1681,11 @@ function BookCard({ book, plan, expanded, onToggle, onApproveCover }) {
       <button onClick={onToggle} style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "16px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
         <div style={{ width: 34, height: 46, background: book.coverColor, borderRadius: 2, flexShrink: 0, boxShadow: "1px 1px 6px rgba(0,0,0,0.4)" }} />
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 17, color: THEME.textLight, marginBottom: 5 }}>{book.title}</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, color: THEME.textLight, marginBottom: 5 }}>{book.title}</div>
           <StatusPill stage={active} /><span style={{ fontSize: 11, color: THEME.textMuted, marginLeft: 8 }}>{active.label}</span>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 15, color: THEME.cyan, fontWeight: 600 }}>{book.totalSold}</div>
+          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 15, color: THEME.cyan, fontWeight: 600 }}>{book.totalSold}</div>
           <div style={{ fontSize: 10, color: THEME.textMuted }}>toplam satış</div>
         </div>
       </button>
@@ -1726,26 +1730,26 @@ function BookCard({ book, plan, expanded, onToggle, onApproveCover }) {
               <div style={{ background: THEME.headerBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: "12px 14px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textLight, marginBottom: 7 }}>
                   <span>Toplam satış</span>
-                  <span style={{ fontFamily: "'Space Mono', monospace" }}>{book.totalSold} adet</span>
+                  <span style={{ fontFamily: "'Jost', sans-serif" }}>{book.totalSold} adet</span>
                 </div>
 
                 {book.indirimliDusulen > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textMuted, marginBottom: 7 }}>
                     <span>🏷️ İndirimli aldığınız</span>
-                    <span style={{ fontFamily: "'Space Mono', monospace" }}>− {book.indirimliDusulen} adet</span>
+                    <span style={{ fontFamily: "'Jost', sans-serif" }}>− {book.indirimliDusulen} adet</span>
                   </div>
                 )}
                 {book.hediyeDusulen > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textMuted, marginBottom: 7 }}>
                     <span>🎁 Hediye gönderilen</span>
-                    <span style={{ fontFamily: "'Space Mono', monospace" }}>− {book.hediyeDusulen} adet</span>
+                    <span style={{ fontFamily: "'Jost', sans-serif" }}>− {book.hediyeDusulen} adet</span>
                   </div>
                 )}
 
                 {(book.indirimliDusulen > 0 || book.hediyeDusulen > 0) && (
                   <div style={{ borderTop: `1px solid ${THEME.divider}`, margin: "9px 0", paddingTop: 9, display: "flex", justifyContent: "space-between", fontSize: 13, color: THEME.textLight, fontWeight: 600 }}>
                     <span>Telife sayılan</span>
-                    <span style={{ fontFamily: "'Space Mono', monospace", color: THEME.cyan }}>
+                    <span style={{ fontFamily: "'Jost', sans-serif", color: THEME.cyan }}>
                       {Math.max(0, (book.totalSold || 0) - (book.indirimliDusulen || 0) - (book.hediyeDusulen || 0))} adet
                     </span>
                   </div>
@@ -1754,7 +1758,7 @@ function BookCard({ book, plan, expanded, onToggle, onApproveCover }) {
                 {book.telif && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, color: THEME.success, fontWeight: 700, marginTop: 4 }}>
                     <span>Telif geliriniz</span>
-                    <span style={{ fontFamily: "'Space Mono', monospace" }}>{tl(book.telif.toplamTelif)}</span>
+                    <span style={{ fontFamily: "'Jost', sans-serif" }}>{tl(book.telif.toplamTelif)}</span>
                   </div>
                 )}
 
@@ -1855,7 +1859,7 @@ function PaymentNotice({ wallet, notices, onSubmit, label, token }) {
     <div style={{ background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: 14, marginBottom: 18 }}>
       <div style={{ marginBottom: 12 }}>
         <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted }}>{label || "HİZMET BAKİYESİ"}</div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.cyan, fontWeight: 600 }}>{tl(wallet.balance)}</div>
+        <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, color: THEME.cyan, fontWeight: 600 }}>{tl(wallet.balance)}</div>
       </div>
 
       {/* Ödeme yöntemi sekmeleri */}
@@ -1970,7 +1974,7 @@ function AdSection({ plan, books, wallet, adRequests, campaigns, onSubmitRequest
     <div>
       {vip && (
         <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, border: `1px solid ${THEME.vipBorder}`, borderRadius: 8, padding: "16px 18px", marginBottom: 18, color: THEME.textLight }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: THEME.vip }}>✦ VIP Reklam Stüdyosu</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.vip }}>✦ VIP Reklam Stüdyosu</div>
           <div style={{ fontSize: 12.5, color: THEME.textMuted, marginTop: 4, lineHeight: 1.6 }}>Aylık {tl(cap)}'ye kadar bütçe ve öncelikli destek VIP paketinize dahildir.</div>
         </div>
       )}
@@ -2013,9 +2017,9 @@ function AdSection({ plan, books, wallet, adRequests, campaigns, onSubmitRequest
             <div style={{ fontSize: 12.5, color: THEME.textMuted, marginTop: 4 }}>{c.platform} · Bütçe {tl(c.budget)} · {c.duration} gün</div>
             {c.performance && (<>
               <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
-                <div><div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: THEME.textLight }}>{c.performance.reach.toLocaleString("tr-TR")}</div><div style={{ fontSize: 10, color: THEME.textMuted }}>erişim</div></div>
-                <div><div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: THEME.textLight }}>{c.performance.clicks.toLocaleString("tr-TR")}</div><div style={{ fontSize: 10, color: THEME.textMuted }}>tıklama</div></div>
-                <div><div style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, color: THEME.textLight }}>{((c.performance.clicks / c.performance.reach) * 100).toFixed(1)}%</div><div style={{ fontSize: 10, color: THEME.textMuted }}>CTR</div></div>
+                <div><div style={{ fontFamily: "'Jost', sans-serif", fontSize: 14, color: THEME.textLight }}>{c.performance.reach.toLocaleString("tr-TR")}</div><div style={{ fontSize: 10, color: THEME.textMuted }}>erişim</div></div>
+                <div><div style={{ fontFamily: "'Jost', sans-serif", fontSize: 14, color: THEME.textLight }}>{c.performance.clicks.toLocaleString("tr-TR")}</div><div style={{ fontSize: 10, color: THEME.textMuted }}>tıklama</div></div>
+                <div><div style={{ fontFamily: "'Jost', sans-serif", fontSize: 14, color: THEME.textLight }}>{((c.performance.clicks / c.performance.reach) * 100).toFixed(1)}%</div><div style={{ fontSize: 10, color: THEME.textMuted }}>CTR</div></div>
               </div>
               <PerformanceChart daily={c.performance.daily} />
               <div style={{ fontSize: 10.5, color: THEME.textMuted, marginTop: 4 }}>Meta'dan otomatik senkronize edildi</div>
@@ -2046,7 +2050,7 @@ function ExtrasSection({ books, requests, onSubmit }) {
   return (
     <div>
       <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, border: `1px solid ${THEME.vipBorder}`, borderRadius: 8, padding: "16px 18px", marginBottom: 18, color: THEME.textLight }}>
-        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: THEME.vip }}>✦ VIP Ek Hizmetler</div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.vip }}>✦ VIP Ek Hizmetler</div>
         <div style={{ fontSize: 12.5, color: THEME.textMuted, marginTop: 4, lineHeight: 1.6 }}>Kitaplarınız otomatik olarak Amazon üzerinden dünyaya açılır. Her kitap için 1 dile çeviri hakkınız bulunur.</div>
       </div>
       <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 10 }}>KİTAP ÇEVİRİ HAKLARI</div>
@@ -2098,7 +2102,7 @@ function ServiceCard({ service, books, wallet, onOrder, expanded, onToggle, orde
       <button onClick={onToggle} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
         <div style={{ fontSize: 24 }}>{service.icon}</div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: THEME.textLight }}>{service.title}</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.textLight }}>{service.title}</div>
           <div style={{ fontSize: 12, color: THEME.textMuted, marginTop: 2 }}>{service.desc}</div>
         </div>
         <div style={{ fontSize: 16, color: THEME.cyan }}>{expanded ? "–" : "+"}</div>
@@ -2177,7 +2181,7 @@ function EarningsSection({ account }) {
   const totalEarned = earningsByBook.reduce((s, b) => s + b.earned, 0);
   const totalCekilebilir = earningsByBook.reduce((s, b) => s + (b.cekilebilir || 0), 0);
   const totalKilitli = earningsByBook.reduce((s, b) => s + (b.kilitli || 0), 0);
-  const totalPaid = account.payouts.reduce((s, p) => s + p.amount, 0);
+  const totalPaid = (account.payouts || []).reduce((s, p) => s + (Number(p?.amount) || 0), 0);
   const pending = Math.max(0, totalCekilebilir - totalPaid);
   const mstOran = account.paketKurali ? Math.round(account.paketKurali.telifMst * 100) : Math.round(account.royaltyRate * 100);
   const digerOran = account.paketKurali ? Math.round(account.paketKurali.telifDiger * 100) : Math.round(account.royaltyRate * 100);
@@ -2186,21 +2190,21 @@ function EarningsSection({ account }) {
       <div style={{ display: "flex", gap: 10, marginBottom: 18, flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 130px", background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: "12px 14px" }}>
           <div style={{ fontSize: 10.5, letterSpacing: "0.05em", color: THEME.textMuted }}>TELİF ORANI</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 18, color: THEME.cyan, fontWeight: 600, marginTop: 4 }}>%{mstOran} <span style={{ fontSize: 11, color: THEME.textMuted }}>MST</span></div>
+          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 18, color: THEME.cyan, fontWeight: 600, marginTop: 4 }}>%{mstOran} <span style={{ fontSize: 11, color: THEME.textMuted }}>MST</span></div>
           <div style={{ fontSize: 11, color: THEME.textMuted, marginTop: 2 }}>%{digerOran} diğer siteler</div>
         </div>
         <div style={{ flex: "1 1 130px", background: THEME.panelBg, border: `1px solid ${THEME.success}`, borderRadius: 6, padding: "12px 14px" }}>
           <div style={{ fontSize: 10.5, letterSpacing: "0.05em", color: THEME.textMuted }}>ÇEKİLEBİLİR</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, color: THEME.success, fontWeight: 600, marginTop: 4 }}>{tl(pending)}</div>
+          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 20, color: THEME.success, fontWeight: 600, marginTop: 4 }}>{tl(pending)}</div>
         </div>
         <div style={{ flex: "1 1 130px", background: THEME.panelBg, border: `1px solid ${THEME.warn}`, borderRadius: 6, padding: "12px 14px" }}>
           <div style={{ fontSize: 10.5, letterSpacing: "0.05em", color: THEME.textMuted }}>KİLİTLİ TELİF</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 20, color: THEME.warn, fontWeight: 600, marginTop: 4 }}>{tl(totalKilitli)}</div>
+          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 20, color: THEME.warn, fontWeight: 600, marginTop: 4 }}>{tl(totalKilitli)}</div>
           <div style={{ fontSize: 10, color: THEME.textMuted, marginTop: 2 }}>stok tükenince açılır</div>
         </div>
         <div style={{ flex: "1 1 130px", background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: "12px 14px" }}>
           <div style={{ fontSize: 10.5, letterSpacing: "0.05em", color: THEME.textMuted }}>SONRAKİ ÖDEME</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 15, color: THEME.textLight, marginTop: 6 }}>{formatDate(account.nextPayoutDate)}</div>
+          <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 15, color: THEME.textLight, marginTop: 6 }}>{formatDate(account.nextPayoutDate)}</div>
         </div>
       </div>
 
@@ -2210,19 +2214,19 @@ function EarningsSection({ account }) {
           <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13.5, padding: "10px 0", borderBottom: i < earningsByBook.length - 1 ? `1px solid ${THEME.divider}` : "none", color: THEME.textLight }}>
             <span>{b.title}</span>
             <span style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              {hasReal && b.kilitli > 0 && <span style={{ fontSize: 11, color: THEME.warn, fontFamily: "'Space Mono', monospace" }}>🔒 {tl(b.kilitli)}</span>}
-              <span style={{ fontFamily: "'Space Mono', monospace", color: THEME.cyan }}>{tl(b.earned)}</span>
+              {hasReal && b.kilitli > 0 && <span style={{ fontSize: 11, color: THEME.warn, fontFamily: "'Jost', sans-serif" }}>🔒 {tl(b.kilitli)}</span>}
+              <span style={{ fontFamily: "'Jost', sans-serif", color: THEME.cyan }}>{tl(b.earned)}</span>
             </span>
           </div>
         ))}
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, padding: "10px 0", fontWeight: 600, color: THEME.textLight }}><span>Toplam</span><span style={{ fontFamily: "'Space Mono', monospace", color: THEME.cyan }}>{tl(totalEarned)}</span></div>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, padding: "10px 0", fontWeight: 600, color: THEME.textLight }}><span>Toplam</span><span style={{ fontFamily: "'Jost', sans-serif", color: THEME.cyan }}>{tl(totalEarned)}</span></div>
       </div>
 
       <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 4 }}>ÖDEME GEÇMİŞİ</div>
       <div style={{ fontSize: 10.5, color: THEME.success, marginBottom: 10 }}>✓ Her ödeme tam ve açıktır — gizli kesinti veya komisyon yoktur.</div>
       {!(account.payouts || []).length ? <div style={{ fontSize: 13, color: THEME.textMuted }}>Henüz ödeme yapılmadı.</div> : (account.payouts || []).map((p) => (
         <div key={p.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, padding: "8px 0", borderBottom: `1px solid ${THEME.divider}`, color: THEME.textLight }}>
-          <span>{formatDate(p.date)}</span><span style={{ fontFamily: "'Space Mono', monospace", color: THEME.success }}>{tl(p.amount)}</span>
+          <span>{formatDate(p.date)}</span><span style={{ fontFamily: "'Jost', sans-serif", color: THEME.success }}>{tl(p.amount)}</span>
         </div>
       ))}
       <div style={{ marginTop: 14, fontSize: 11.5, color: THEME.textMuted, lineHeight: 1.6 }}>
@@ -2231,10 +2235,10 @@ function EarningsSection({ account }) {
       </div>
 
       {/* HAK GÜVENCESİ ROZETİ (Hamle 3: Radikal Şeffaflık) */}
-      <div style={{ background: "linear-gradient(135deg, rgba(27,67,50,.06), rgba(201,162,39,.06))", border: `1px solid ${THEME.success}`, borderRadius: 12, padding: 16, marginTop: 20, display: "flex", gap: 14, alignItems: "flex-start" }}>
+      <div style={{ background: "linear-gradient(135deg, rgba(201,162,75,.06), rgba(201,162,75,.06))", border: `1px solid ${THEME.success}`, borderRadius: 12, padding: 16, marginTop: 20, display: "flex", gap: 14, alignItems: "flex-start" }}>
         <div style={{ fontSize: 32, flexShrink: 0 }}>🛡️</div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: THEME.success, fontFamily: "'Fraunces',serif", marginBottom: 4 }}>Hak Güvencesi</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: THEME.success, fontFamily: "'Cormorant Garamond',serif", marginBottom: 4 }}>Hak Güvencesi</div>
           <div style={{ fontSize: 12.5, color: THEME.textLight, lineHeight: 1.55 }}>
             Kitabının tüm hakları <b>%100 sana aittir.</b> MST, eserini yayınlar ve dağıtır; hiçbir zaman haklarını devralmaz, formatını değiştirmeye zorlamaz. İstediğin an eserini başka yerde de değerlendirebilirsin. Şeffaf ve açık — gizli madde yok.
           </div>
@@ -2250,12 +2254,12 @@ function EarningsSection({ account }) {
             { yer: "Geleneksel yayınevleri", oran: "%8–15", vurgu: false, not: "genelde etiket üzerinden düşük" },
             { yer: "Çoğu dijital platform", oran: "%30–50", vurgu: false, not: "ama haklar devredilir" },
           ].map((r, i) => (
-            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: i < 2 ? `1px solid ${THEME.divider}` : "none", background: r.vurgu ? "rgba(201,162,39,.08)" : "transparent" }}>
+            <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 14px", borderBottom: i < 2 ? `1px solid ${THEME.divider}` : "none", background: r.vurgu ? "rgba(201,162,75,.08)" : "transparent" }}>
               <div>
                 <div style={{ fontSize: 13, fontWeight: r.vurgu ? 700 : 500, color: r.vurgu ? THEME.success : THEME.textLight }}>{r.yer}</div>
                 <div style={{ fontSize: 10.5, color: THEME.textMuted, marginTop: 2 }}>{r.not}</div>
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: r.vurgu ? THEME.gold : THEME.textMuted, fontFamily: "'Space Mono', monospace" }}>{r.oran}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: r.vurgu ? THEME.gold : THEME.textMuted, fontFamily: "'Jost', sans-serif" }}>{r.oran}</div>
             </div>
           ))}
         </div>
@@ -2282,7 +2286,7 @@ function NewBookForm({ onSubmit, submissions }) {
         <button onClick={() => setOpen(true)} style={{ background: THEME.cyan, color: "#04121A", border: "none", borderRadius: 4, padding: "10px 16px", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>+ Yeni Kitap Teslim Et</button>
       ) : (
         <form onSubmit={submit} style={{ background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: THEME.textLight }}>Yeni Eser Teslimi</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.textLight }}>Yeni Eser Teslimi</div>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Kitabın başlığı" style={inputStyle} />
           <label style={{ fontSize: 12, color: THEME.textMuted }}>Sayfa sayısı<input type="number" min={1} value={pages} onChange={(e) => setPages(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4, ...inputStyle }} /></label>
           <label style={{ fontSize: 12, color: THEME.textMuted }}>Eser dosyası (Word/PDF)
@@ -2313,11 +2317,11 @@ function NewBookForm({ onSubmit, submissions }) {
 
 // ---- "Veridian" ilhamlı açık tema (yalnızca bu ekrana özel — uygulamanın geri kalanı koyu temada kalır) ----
 const VTHEME = {
-  bg: "#F7F4EC", card: "#FFFFFF", cardAlt: "#FBF8F0",
-  emerald: "#1B4332", emeraldMid: "#2D6A4F", emeraldSoft: "rgba(27,67,50,0.08)",
-  gold: "#C9A227", goldSoft: "rgba(201,162,39,0.14)",
-  textDark: "#1B2B22", textMuted: "#7A8578", divider: "#E7E1D1",
-  danger: "#B0453A",
+  bg: "#070D1B", card: "#0C1730", cardAlt: "#132445",
+  emerald: "#C9A24B", emeraldMid: "#F0D68A", emeraldSoft: "rgba(201,162,75,0.12)",
+  gold: "#C9A24B", goldSoft: "rgba(201,162,75,0.14)",
+  textDark: "#F5F0E4", textMuted: "rgba(245,240,228,0.62)", divider: "rgba(201,162,75,0.20)",
+  danger: "#E08878",
 };
 
 // Ekranı saran dönen neon çerçeve — AI/menajer ile konuşurken "özel alan" hissi
@@ -2343,7 +2347,7 @@ function NeonCerceve({ aktif }) {
             ${THEME.cyan}, ${THEME.gold}, #7CE7FF, ${THEME.cyan}, ${THEME.gold});
           background-size: 300% 100%;
           animation: neonBelir .5s ease forwards, neonKay 4s linear infinite;
-          filter: drop-shadow(0 0 6px rgba(201,162,39,.5)) drop-shadow(0 0 10px rgba(124,231,255,.35));
+          filter: drop-shadow(0 0 6px rgba(201,162,75,.5)) drop-shadow(0 0 10px rgba(124,231,255,.35));
         }
       `}</style>
       <div className="neon-cerceve" />
@@ -2417,9 +2421,9 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
   const weekdayStr = new Date().toLocaleDateString("tr-TR", { weekday: "long" });
 
   return (
-    <div style={{ position: "relative", overflow: "hidden", background: VTHEME.bg, borderRadius: 14, padding: "20px 16px 24px", fontFamily: "'Manrope',sans-serif", color: VTHEME.textDark, margin: "0 -2px" }}>
+    <div style={{ position: "relative", overflow: "hidden", background: VTHEME.bg, borderRadius: 14, padding: "20px 16px 24px", fontFamily: "'Jost',sans-serif", color: VTHEME.textDark, margin: "0 -2px" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Jost:wght@200;300;400;500;600&display=swap');
       `}</style>
 
       {/* ince yaprak/takımyıldız süslemeleri */}
@@ -2437,7 +2441,7 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 18 }}>
           <div>
             <div style={{ fontSize: 12.5, color: VTHEME.textMuted }}>{(() => { const h = new Date().getHours(); if (h < 6) return "İyi geceler,"; if (h < 12) return "Günaydın,"; if (h < 18) return "İyi günler,"; return "İyi akşamlar,"; })()}</div>
-            <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 24, color: VTHEME.textDark }}>{formalName} ✦</div>
+            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: 24, color: VTHEME.textDark }}>{formalName} ✦</div>
           </div>
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 11.5, color: VTHEME.textMuted }}>{todayStr}</div>
@@ -2456,7 +2460,7 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
             <div key={c.label} style={{ background: VTHEME.card, border: `1px solid ${VTHEME.divider}`, borderRadius: 14, padding: "14px 14px" }}>
               <div style={{ width: 30, height: 30, borderRadius: "50%", background: VTHEME.emerald, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, marginBottom: 10 }}>{c.icon}</div>
               <div style={{ fontSize: 12, color: VTHEME.textMuted, marginBottom: 3 }}>{c.label}</div>
-              <div style={{ fontFamily: "'Fraunces',serif", fontWeight: 700, fontSize: 19, color: VTHEME.textDark }}>{c.value}</div>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontWeight: 700, fontSize: 19, color: VTHEME.textDark }}>{c.value}</div>
               <div style={{ fontSize: 10.5, color: VTHEME.emeraldMid, marginTop: 2 }}>{c.sub}</div>
             </div>
           ))}
@@ -2469,11 +2473,11 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
         )}
 
         {/* Canlı Satış Panosu — modern sparkline sıralaması */}
-        <div style={{ background: VTHEME.card, border: `1px solid ${VTHEME.divider}`, borderRadius: 20, padding: "18px 18px 8px", marginBottom: 18, boxShadow: "0 1px 2px rgba(27,67,50,.04), 0 8px 24px -14px rgba(27,67,50,.14)" }}>
+        <div style={{ background: VTHEME.card, border: `1px solid ${VTHEME.divider}`, borderRadius: 20, padding: "18px 18px 8px", marginBottom: 18, boxShadow: "0 1px 2px rgba(201,162,75,.04), 0 8px 24px -14px rgba(201,162,75,.14)" }}>
           {/* toplam hero rakam + trend */}
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${VTHEME.divider}` }}>
             <div>
-              <div style={{ fontFamily: "'Space Mono',monospace", fontWeight: 700, fontSize: 34, color: VTHEME.textDark, lineHeight: 0.9 }}>{totalStock}</div>
+              <div style={{ fontFamily: "'Jost',sans-serif", fontWeight: 700, fontSize: 34, color: VTHEME.textDark, lineHeight: 0.9 }}>{totalStock}</div>
               <div style={{ fontSize: 11.5, color: VTHEME.textMuted, marginTop: 5 }}>toplam satış · {book.title}</div>
             </div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11.5, fontWeight: 700, color: VTHEME.emeraldMid, background: "rgba(45,106,79,.08)", padding: "6px 11px", borderRadius: 20 }}>◎ {PLATFORMS.length} kanal</div>
@@ -2495,7 +2499,7 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
                   <span style={{ fontSize: 12.5, fontWeight: 600, color: soon ? VTHEME.textMuted : VTHEME.textDark }}>{n.label}</span>
                 </div>
                 {!soon && <div style={{ width: 78, height: 30, flexShrink: 0 }}><Sparkline seri={seri} renk={VTHEME.emeraldMid} /></div>}
-                <div style={{ fontFamily: "'Space Mono',monospace", fontSize: 14, fontWeight: 700, color: soon ? VTHEME.textMuted : VTHEME.textDark, width: 40, textAlign: "right" }}>{soon ? "—" : n.sold}</div>
+                <div style={{ fontFamily: "'Jost',sans-serif", fontSize: 14, fontWeight: 700, color: soon ? VTHEME.textMuted : VTHEME.textDark, width: 40, textAlign: "right" }}>{soon ? "—" : n.sold}</div>
               </div>
             );
           })}
@@ -2516,8 +2520,8 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
 
         {discountOpen && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(10,15,20,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20 }} onClick={() => discountStatus !== "gönderiliyor" && setDiscountOpen(false)}>
-            <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 340, background: VTHEME.card, borderRadius: 16, padding: 22, fontFamily: "'Manrope',sans-serif" }}>
-              <div style={{ fontFamily: "'Fraunces',serif", fontSize: 18, fontWeight: 700, color: VTHEME.textDark, marginBottom: 4 }}>İndirimli Kitap Talebi</div>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 340, background: VTHEME.card, borderRadius: 16, padding: 22, fontFamily: "'Jost',sans-serif" }}>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 18, fontWeight: 700, color: VTHEME.textDark, marginBottom: 4 }}>İndirimli Kitap Talebi</div>
               <div style={{ fontSize: 12, color: VTHEME.textMuted, marginBottom: 16 }}>{book.title} için yayınevinden indirimli kitap talep edin.</div>
               <div style={{ fontSize: 11, color: VTHEME.textMuted, marginBottom: 5 }}>ADET</div>
               <input type="number" min="1" value={discountQty} onChange={(e) => setDiscountQty(e.target.value)} style={{ width: "100%", boxSizing: "border-box", padding: "10px 12px", borderRadius: 8, border: `1px solid ${VTHEME.divider}`, fontSize: 15, marginBottom: 14, fontFamily: "inherit" }} />
@@ -2606,7 +2610,7 @@ function AccountSection({ account, token, referrals, onRefer, otherItems, onNavi
 
       <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 10 }}>YAZAR GETİR, KAZAN</div>
       <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, borderRadius: 8, padding: "16px 18px", marginBottom: 12, color: THEME.textLight, border: `1px solid ${THEME.border}` }}>
-        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15 }}>Referans Kodunuz: <span style={{ color: THEME.cyan, fontFamily: "'Space Mono', monospace" }}>{referralCode}</span></div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15 }}>Referans Kodunuz: <span style={{ color: THEME.cyan, fontFamily: "'Jost', sans-serif" }}>{referralCode}</span></div>
         <div style={{ fontSize: 12.5, color: THEME.textMuted, marginTop: 6, lineHeight: 1.6 }}>Getirdiğiniz her yazar MST'ye katıldığında hizmet bakiyenize {tl(REFERRAL_REWARD)} yansır.</div>
       </div>
       <form onSubmit={submitReferral} style={{ background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: 14, display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
@@ -2734,7 +2738,7 @@ function FilmFrameIcon({ glyph, tint }) {
       background: `linear-gradient(160deg, ${tint}EE, ${tint}99)`,
       border: "1px solid rgba(255,255,255,0.15)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 19, color: THEME.textLight, fontFamily: "'Space Mono', monospace",
+      fontSize: 19, color: THEME.textLight, fontFamily: "'Jost', sans-serif",
     }}>{glyph}</div>
   );
 }
@@ -2749,11 +2753,11 @@ function CinematicHeader({ module, onClick, openable }) {
     }}>
       <div style={{
         position: "absolute", right: -10, top: -18, fontSize: 110, lineHeight: 1, color: "rgba(255,255,255,0.05)",
-        fontFamily: "'Fraunces', serif", userSelect: "none",
+        fontFamily: "'Cormorant Garamond', serif", userSelect: "none",
       }}>{module.icon}</div>
       <div style={{ position: "relative", padding: "18px 20px 16px" }}>
         <div style={{ fontSize: 10, letterSpacing: "0.22em", color: module.accent }}>{module.kicker}</div>
-        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, marginTop: 6, maxWidth: "85%" }}>{module.title}</div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, marginTop: 6, maxWidth: "85%" }}>{module.title}</div>
         {module.intro && <div style={{ fontSize: 12, color: "rgba(231,236,255,0.7)", marginTop: 6, maxWidth: "88%", lineHeight: 1.5 }}>{module.intro}</div>}
         <div style={{ width: 28, height: 2, background: module.accent, marginTop: 12 }} />
       </div>
@@ -2785,7 +2789,7 @@ function AISubscribeScreen({ accountName, wallet, onSubscribe }) {
     <div>
       <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, borderRadius: 8, padding: "20px 20px 18px", marginBottom: 16, color: THEME.textLight, border: `1px solid ${THEME.cyan}` }}>
         <div style={{ fontSize: 10, letterSpacing: "0.2em", color: THEME.cyan }}>MST YAZAR DANIŞMANI</div>
-        <div style={{ fontFamily: "'Fraunces', serif", fontSize: 19, marginTop: 6 }}>{firstName}, size özel bir danışman ekibiniz olsun</div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, marginTop: 6 }}>{firstName}, size özel bir danışman ekibiniz olsun</div>
         <div style={{ fontSize: 12.5, color: THEME.textMuted, marginTop: 6, lineHeight: 1.6 }}>Tek bir asistan, beş farklı uzmanlık alanıyla — sadece yazarlık kariyerinizle ilgili sorularda, sizi adınızla tanıyarak yanıt verir.</div>
       </div>
 
@@ -2794,7 +2798,7 @@ function AISubscribeScreen({ accountName, wallet, onSubscribe }) {
           <div key={r.title} style={{ display: "flex", gap: 12, background: THEME.panelBg, border: `1px solid ${THEME.border}`, borderRadius: 6, padding: "10px 12px" }}>
             <div style={{ fontSize: 20 }}>{r.icon}</div>
             <div>
-              <div style={{ fontSize: 13.5, color: THEME.textLight, fontFamily: "'Fraunces', serif" }}>{r.title}</div>
+              <div style={{ fontSize: 13.5, color: THEME.textLight, fontFamily: "'Cormorant Garamond', serif" }}>{r.title}</div>
               <div style={{ fontSize: 12, color: THEME.textMuted, marginTop: 2 }}>{r.desc}</div>
             </div>
           </div>
@@ -2803,7 +2807,7 @@ function AISubscribeScreen({ accountName, wallet, onSubscribe }) {
 
       <div style={{ background: THEME.panelBg, border: `1px solid ${THEME.vipBorder}`, borderRadius: 6, padding: "14px 16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 17, color: THEME.textLight }}>{tl(AI_PRICE)}</span>
+          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, color: THEME.textLight }}>{tl(AI_PRICE)}</span>
           <span style={{ fontSize: 12, color: THEME.textMuted }}>/ ay</span>
         </div>
         {error && <div style={{ fontSize: 12.5, color: THEME.danger, marginBottom: 8 }}>{error}</div>}
@@ -2909,9 +2913,9 @@ function AIAssistant({ account, token, onSubscribe }) {
       <NeonCerceve aktif={loading} />
       <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, borderRadius: 8, padding: "14px 16px", marginBottom: 14, color: THEME.textLight, border: `1px solid ${THEME.cyan}` }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#2D6A4F,#1B4332)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>🤝</div>
+          <div style={{ width: 34, height: 34, borderRadius: "50%", background: "radial-gradient(circle at 40% 35%,#C9A24B,#0C1730)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, flexShrink: 0 }}>🤝</div>
           <div>
-            <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15 }}>Menajerim</div>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15 }}>Menajerim</div>
             <div style={{ fontSize: 10.5, color: THEME.gold, marginTop: 1 }}>7/24 destek</div>
           </div>
         </div>
@@ -2974,7 +2978,7 @@ function EducationSection({ unlocked, onUnlock, wallet }) {
       <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 12 }}>YAZAR KARİYER EĞİTİM PROGRAMI · {MODULES.length} BÖLÜM</div>
       {!unlocked && (
         <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, borderRadius: 8, padding: "16px 18px", marginBottom: 16, color: THEME.textLight, border: `1px solid ${THEME.cyan}` }}>
-          <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15 }}>Tüm programa erişim</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15 }}>Tüm programa erişim</div>
           <div style={{ fontSize: 12.5, color: THEME.textMuted, marginTop: 4, marginBottom: 10, lineHeight: 1.6 }}>İlk bölüm (uygulama kullanımı) ücretsiz. Reklam stratejisi, sosyal medya, Instagram, BookTok/Bookstagram iş birliği, PR, e-posta bülteni ve kitap lansmanı planlaması dahil kalan {MODULES.length - 1} bölüm için tek seferlik {tl(program.price)}.</div>
           <button onClick={onUnlock} style={{ background: THEME.cyan, color: "#04121A", border: "none", borderRadius: 3, padding: "9px 16px", fontSize: 13, cursor: "pointer", fontWeight: 600 }}>Programı Satın Al — {tl(program.price)}</button>
         </div>
@@ -2989,7 +2993,7 @@ function EducationSection({ unlocked, onUnlock, wallet }) {
                 <FilmFrameIcon glyph="🔒" tint={m.color} />
                 <div>
                   <div style={{ fontSize: 10, letterSpacing: "0.18em", color: "rgba(231,236,255,0.55)" }}>BÖLÜM {i + 1} · PROGRAM GEREKLİ</div>
-                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15.5, marginTop: 2 }}>{m.title}</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15.5, marginTop: 2 }}>{m.title}</div>
                 </div>
               </div>
             ) : (
@@ -3004,7 +3008,7 @@ function EducationSection({ unlocked, onUnlock, wallet }) {
                         <FilmFrameIcon glyph={j + 1} tint={s.tint} />
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 10, letterSpacing: "0.1em", color: THEME.textMuted, marginBottom: 2 }}>{s.tag.toUpperCase()}</div>
-                          <div style={{ fontSize: 14, color: THEME.textLight, fontFamily: "'Fraunces', serif", marginBottom: 4 }}>{s.title}</div>
+                          <div style={{ fontSize: 14, color: THEME.textLight, fontFamily: "'Cormorant Garamond', serif", marginBottom: 4 }}>{s.title}</div>
                           <div style={{ fontSize: 13, color: THEME.textMuted, lineHeight: 1.6 }}>{s.detail}</div>
                         </div>
                       </div>
@@ -3052,7 +3056,7 @@ export default function App() {
       const style = document.createElement("style");
       style.id = styleId;
       style.textContent = `
-        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700&family=Jost:wght@200;300;400;500;600&display=swap');
         html, body { touch-action: manipulation; -webkit-text-size-adjust: 100%; overscroll-behavior: none; margin: 0; background: ${THEME.bg}; }
         * { -webkit-tap-highlight-color: transparent; }
         input, textarea, select, button { touch-action: manipulation; }
@@ -3209,17 +3213,19 @@ export default function App() {
   const submitReferral = ({ name, contact }) => setReferralData((prev) => ({ ...prev, [account.id]: [{ id: Date.now(), name, contact, status: "Beklemede" }, ...(prev[account.id] || [])] }));
 
   const tabs = [["kitaplar", "Kitaplarım"], ["stok", "Stok Takip"], ["kariyer", "Kariyer & Görevler"], ["magaza", "Mağaza"], ["reklam", "Reklam"], ...(vip ? [["ek", "Ek Hizmetler"]] : []), ["kazanc", "Kazanç"], ["egitim", "Eğitim"], ["ai", "Yazar Danışmanım"], ["destek", "Duyuru & Destek"], ["hesabim", "Hesabım"]];
-  const OTHER_ITEMS = [["kariyer", "Kariyer & Görevler", "🌱"], ["magaza", "Mağaza", "🛍️"], ["reklam", "Reklam", "📣"], ...(vip ? [["ek", "Ek Hizmetler", "✨"]] : []), ["egitim", "Eğitim", "🎓"], ["destek", "Duyuru & Destek", "🔔"]];
+  const OTHER_ITEMS = [["kitaplar", "Kitaplarım", "◫"], ["magaza", "Mağaza", "🛍️"], ["reklam", "Reklam", "📣"], ...(vip ? [["ek", "Ek Hizmetler", "✨"]] : []), ["egitim", "Eğitim", "🎓"], ["destek", "Duyuru & Destek", "🔔"]];
+  // Kariyer alt menüye alındı — oyunlaştırma sistemin en büyük yatırımı, arka planda kalmamalı.
+  // Kitaplar, Profil > diğer bölümler listesinden ve Pano'dan erişilebilir durumda.
   const BOTTOM_NAV = [
     { key: "stok", label: "Pano", icon: "◎" },
-    { key: "kitaplar", label: "Kitaplar", icon: "📖" },
-    { key: "ai", label: "Menajerim", icon: "🤝", center: true },
-    { key: "kazanc", label: "Kazanç", icon: "💰" },
-    { key: "hesabim", label: "Profil", icon: "👤" },
+    { key: "kariyer", label: "Kariyer", icon: "◈" },
+    { key: "ai", label: "Menajerim", center: true },
+    { key: "kazanc", label: "Kazanç", icon: "₺" },
+    { key: "hesabim", label: "Profil", icon: "◐" },
   ];
 
   return (
-    <div style={{ position: "fixed", inset: 0, overflowY: "auto", background: THEME.bg, fontFamily: "'Manrope', sans-serif" }}>
+    <div style={{ position: "fixed", inset: 0, overflowY: "auto", background: THEME.bg, fontFamily: "'Jost', sans-serif" }}>
       {aktifKutlamalar.length > 0 && <KutlamaOverlay kutlamalar={aktifKutlamalar} onKapat={kutlamaKapat} />}
       <GridBackdrop />
       <ScanLine />
@@ -3229,7 +3235,7 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src={LOGO_HEADER} alt="MST" style={{ width: 34, height: "auto", flexShrink: 0 }} />
             <div>
-              <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: 15, color: THEME.cyan, letterSpacing: "0.03em" }}>MST YAYINCILIK</div>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 700, fontSize: 15, color: THEME.cyan, letterSpacing: "0.03em" }}>MST YAYINCILIK</div>
               <div style={{ fontSize: 8.5, letterSpacing: "0.18em", color: THEME.gold, marginTop: 1 }}>YAZAR ASİSTANINIZ</div>
             </div>
             <div style={{ marginLeft: 4 }}><PlanBadge plan={account.plan} /></div>
@@ -3255,15 +3261,15 @@ export default function App() {
                   <div style={{ fontSize: 11, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 12 }}>KÜTÜPHANENİZ</div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
                     <div>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.gold, fontWeight: 700 }}>{kitapSayisi}</div>
+                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, color: THEME.gold, fontWeight: 700 }}>{kitapSayisi}</div>
                       <div style={{ fontSize: 10.5, color: THEME.textMuted }}>kitap</div>
                     </div>
                     <div>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.cyan, fontWeight: 700 }}>{toplamSatis}</div>
+                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, color: THEME.cyan, fontWeight: 700 }}>{toplamSatis}</div>
                       <div style={{ fontSize: 10.5, color: THEME.textMuted }}>toplam satış</div>
                     </div>
                     <div>
-                      <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 22, color: THEME.success, fontWeight: 700 }}>{tl(toplamTelif)}</div>
+                      <div style={{ fontFamily: "'Jost', sans-serif", fontSize: 22, color: THEME.success, fontWeight: 700 }}>{tl(toplamTelif)}</div>
                       <div style={{ fontSize: 10.5, color: THEME.textMuted }}>telif geliri</div>
                     </div>
                   </div>
@@ -3278,7 +3284,7 @@ export default function App() {
 
                 {/* YENİ KİTAP TEŞVİKİ */}
                 <div style={{ background: `linear-gradient(135deg, ${THEME.headerBg}, ${THEME.panelBg})`, border: `1px solid ${THEME.gold}`, borderRadius: 8, padding: "14px 16px", marginBottom: 16 }}>
-                  <div style={{ fontFamily: "'Fraunces', serif", fontSize: 15, color: THEME.gold, marginBottom: 6 }}>
+                  <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.gold, marginBottom: 6 }}>
                     {kitapSayisi === 0 ? "İlk kitabınızı yayınlayın" : kitapSayisi === 1 ? "İkinci kitabınız için hazır mısınız?" : "Serinizi büyütmeye devam edin"}
                   </div>
                   <div style={{ fontSize: 12.5, color: THEME.textLight, lineHeight: 1.65, marginBottom: 4 }}>
@@ -3326,7 +3332,7 @@ export default function App() {
 
       {/* Alt navigasyon — referans tasarıma göre 5 slot + ortada öne çıkan amblem */}
       <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 10, display: "flex", justifyContent: "center", padding: "0 14px 18px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", maxWidth: 420, background: THEME.cyanDim, borderRadius: 26, padding: "10px 16px", boxShadow: "0 10px 28px rgba(22,56,38,0.35)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", maxWidth: 420, background: "linear-gradient(180deg, #0C1730 0%, #070D1B 100%)", border: "1px solid rgba(201,162,75,0.28)", borderRadius: 26, padding: "10px 16px", boxShadow: "0 10px 30px rgba(0,0,0,0.5)" }}>
           {BOTTOM_NAV.map((item) =>
             item.center ? (
               <button key={item.key} onClick={() => setTab(item.key)} style={{
@@ -3335,21 +3341,27 @@ export default function App() {
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <style>{`
-                  @keyframes mgrBtnBreath { 0%,100% { transform: scale(1); box-shadow: 0 6px 18px rgba(201,162,39,.45), 0 0 0 rgba(201,162,39,0); } 50% { transform: scale(1.05); box-shadow: 0 8px 24px rgba(201,162,39,.6), 0 0 16px rgba(201,162,39,.35); } }
-                  @keyframes mgrBtnRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-                  @keyframes mgrBtnRingRev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
-                  .mgr-btn-core { animation: mgrBtnBreath 3.2s ease-in-out infinite; }
-                  .mgr-btn-ring { position: absolute; inset: -3px; border-radius: 50%; border: 1.5px solid transparent; border-top-color: ${THEME.gold}; border-right-color: rgba(201,162,39,.3); animation: mgrBtnRing 4s linear infinite; }
-                  .mgr-btn-ring2 { position: absolute; inset: -6px; border-radius: 50%; border: 1px solid transparent; border-bottom-color: rgba(124,231,255,.5); animation: mgrBtnRingRev 6s linear infinite; }
+                  @keyframes mgrBtnBreath { 0%,100% { transform: scale(1); box-shadow: 0 6px 20px rgba(201,162,75,.30); } 50% { transform: scale(1.035); box-shadow: 0 8px 26px rgba(201,162,75,.48); } }
+                  @keyframes mgrBtnHalo  { 0%,100% { opacity: .30; transform: scale(1); } 50% { opacity: .62; transform: scale(1.06); } }
+                  .mgr-btn-core { animation: mgrBtnBreath 4.5s ease-in-out infinite; }
+                  .mgr-btn-halo { position: absolute; inset: -7px; border-radius: 50%; background: radial-gradient(circle, rgba(201,162,75,.28) 0%, rgba(201,162,75,0) 68%); animation: mgrBtnHalo 4.5s ease-in-out infinite; }
                 `}</style>
-                <span className="mgr-btn-ring" />
-                <span className="mgr-btn-ring2" />
+                <span className="mgr-btn-halo" />
                 <span className="mgr-btn-core" style={{
-                  width: 54, height: 54, borderRadius: "50%",
-                  background: "radial-gradient(circle at 40% 35%, #3d8063, #1B4332)", border: `2px solid ${THEME.gold}`,
-                  display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
+                  width: 56, height: 56, borderRadius: "50%",
+                  background: "linear-gradient(155deg, #132445 0%, #070D1B 100%)",
+                  border: "1.5px solid #C9A24B",
+                  display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
-                  🤝
+                  {/* Açık kitap + kalem ucu — MST amblemi, emoji değil */}
+                  <svg width="27" height="27" viewBox="0 0 28 28" fill="none">
+                    <path d="M14 8.4C11.9 6.9 9.5 6.5 6.6 6.9c-.5.1-.9.5-.9 1v11.4c0 .6.5 1.1 1.1 1 2.5-.3 4.9.1 6.7 1.4"
+                      stroke="#F0D68A" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M14 8.4c2.1-1.5 4.5-1.9 7.4-1.5.5.1.9.5.9 1v11.4c0 .6-.5 1.1-1.1 1-2.5-.3-4.9.1-6.7 1.4"
+                      stroke="#C9A24B" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M14 8.4v14.3" stroke="#F0D68A" strokeWidth="1.1" strokeLinecap="round" opacity=".85" />
+                    <circle cx="14" cy="4.9" r="1.55" fill="#F0D68A" />
+                  </svg>
                 </span>
               </button>
             ) : (
@@ -3357,8 +3369,8 @@ export default function App() {
                 background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
                 color: tab === item.key ? THEME.gold : "rgba(247,244,236,0.55)",
               }}>
-                <span style={{ fontSize: 17 }}>{item.icon}</span>
-                <span style={{ fontSize: 9.5, fontWeight: 600 }}>{item.label}</span>
+                <span style={{ fontSize: 16, lineHeight: 1 }}>{item.icon}</span>
+                <span style={{ fontSize: 9.5, fontWeight: 500, letterSpacing: "0.06em" }}>{item.label}</span>
               </button>
             )
           )}

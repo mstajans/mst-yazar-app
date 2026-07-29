@@ -2167,6 +2167,275 @@ function UygulamaIndirSeridi() {
 // yazar onaylar, iş yürütülür, sonuç raporu gelir.
 // Self-serve Meta kampanyaları (Hat 1) Meta altyapısı kurulunca eklenecek.
 // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// KENDİ KAMPANYAM — yazar kitabını doğrudan reklama açar
+// Bütçe bloke edilir, harcanmaz. Onaydan sonra Meta'da gerçek kampanya
+// kurulur. Kampanya bitince harcanmayan tutar iade edilir.
+// ═══════════════════════════════════════════════════════════════════
+const KAMPANYA_DURUM = {
+  onay_bekliyor: { ad: "Onay bekliyor", renk: "#F0D68A", not: "Bütçeniz ayrıldı, henüz harcanmadı." },
+  onaylandi:     { ad: "Onaylandı",     renk: "#9FC7A8", not: "Yayına alınıyor." },
+  yayinda:       { ad: "Yayında",       renk: "#9FC7A8", not: "Reklamınız gösteriliyor." },
+  bitti:         { ad: "Tamamlandı",    renk: "rgba(245,240,228,.62)", not: "" },
+  reddedildi:    { ad: "Reddedildi",    renk: "#E09080", not: "" },
+  iptal:         { ad: "İptal edildi",  renk: "rgba(245,240,228,.48)", not: "" },
+};
+
+function KendiKampanyam({ books, token }) {
+  const [liste, setListe] = useState(null);
+  const [kurallar, setKurallar] = useState(null);
+  const [acik, setAcik] = useState(false);
+  const [bookId, setBookId] = useState(books[0]?.id || "");
+  const [butce, setButce] = useState("1000");
+  const [gun, setGun] = useState("14");
+  const [kitle, setKitle] = useState("genel");
+  const [amac, setAmac] = useState("satis");
+  const [calisiyor, setCalisiyor] = useState(false);
+  const [mesaj, setMesaj] = useState("");
+  const [tahmin, setTahmin] = useState(null);
+
+  const api = async (yol, ayar = {}) => {
+    const r = await fetch(`${BACKEND_URL}${yol}`, {
+      ...ayar,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(ayar.headers || {}) },
+    });
+    return r.json();
+  };
+
+  const yukle = async () => {
+    try {
+      const d = await api("/api/author/reklam/kampanyalarim");
+      setListe(d.kampanyalar || []);
+      if (d.kurallar) setKurallar(d.kurallar);
+    } catch { setListe([]); }
+  };
+  useEffect(() => { yukle(); }, []);
+
+  // Bütçe ya da süre değişince tahmini tazele — yazar yazarken sürekli
+  // istek gitmesin diye yarım saniye beklenir
+  useEffect(() => {
+    if (!acik || !Number(butce)) { setTahmin(null); return; }
+    const zamanlayici = setTimeout(async () => {
+      try {
+        const d = await api(`/api/author/reklam/tahmin?butce=${Number(butce)}&gun=${Number(gun) || 14}`);
+        setTahmin(d);
+      } catch { setTahmin(null); }
+    }, 500);
+    return () => clearTimeout(zamanlayici);
+  }, [butce, gun, acik]);
+
+  const gonder = async () => {
+    if (calisiyor) return;
+    setCalisiyor(true); setMesaj("");
+    try {
+      const d = await api("/api/author/reklam/kampanya", {
+        method: "POST",
+        body: JSON.stringify({ bookId: Number(bookId), butce: Number(butce), gun: Number(gun), kitle, amac }),
+      });
+      setMesaj(d.ok ? d.mesaj : (d.error || "Gönderilemedi."));
+      if (d.ok) { setAcik(false); yukle(); }
+    } catch { setMesaj("Sunucuya ulaşılamadı."); }
+    finally { setCalisiyor(false); }
+  };
+
+  const iptal = async (id) => {
+    const d = await api(`/api/author/reklam/kampanya/${id}/iptal`, { method: "POST", body: "{}" });
+    setMesaj(d.ok ? d.mesaj : (d.error || "İptal edilemedi."));
+    yukle();
+  };
+
+  const inputStyle = {
+    padding: "12px 14px", border: "1px solid rgba(201,162,75,.28)", borderRadius: 0, fontSize: 15,
+    boxSizing: "border-box", background: "rgba(255,255,255,.015)", color: THEME.textLight,
+    fontFamily: "'Jost', sans-serif", width: "100%",
+  };
+  const etiket = { fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 };
+
+  const gunluk = Number(butce) && Number(gun) ? Math.round(Number(butce) / Number(gun)) : 0;
+
+  return (
+    <div style={{ marginBottom: 34 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Kendi Kampanyam</span>
+        <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
+      </div>
+
+      <div style={{ background: "rgba(201,162,75,.04)", border: "1px solid rgba(201,162,75,.28)", padding: "18px 20px", marginBottom: 20 }}>
+        <div style={{ fontSize: 14.5, color: THEME.textLight, lineHeight: 1.75, fontWeight: 300 }}>
+          Kitabınızı Instagram ve Facebook'ta doğrudan tanıtın. Bütçeniz <b style={{ fontWeight: 500 }}>ayrılır,
+          hemen harcanmaz</b> — kampanya bitiminde harcanmayan tutar bakiyenize iade edilir.
+          Reklamınızın kaç kişiye ulaştığını, kaç tıklama aldığını ve satışınıza etkisini buradan izlersiniz.
+        </div>
+      </div>
+
+      {!acik && (
+        <button onClick={() => setAcik(true)} style={{
+          background: THEME.altinButon, color: "#0A1428", border: "none", padding: "14px 26px",
+          fontSize: 15, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer",
+          fontFamily: "'Jost', sans-serif", marginBottom: 24,
+        }}>KİTABIMI REKLAMA AÇ</button>
+      )}
+
+      {acik && (
+        <div style={{ display: "grid", gap: 14, marginBottom: 24 }}>
+          <div>
+            <div style={etiket}>HANGİ KİTAP</div>
+            <select value={bookId} onChange={(e) => setBookId(e.target.value)} style={inputStyle}>
+              {books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={etiket}>AMAÇ</div>
+            <select value={amac} onChange={(e) => setAmac(e.target.value)} style={inputStyle}>
+              <option value="satis">Satış — kitabımı satın alsınlar</option>
+              <option value="bilinirlik">Bilinirlik — kitabımı tanısınlar</option>
+            </select>
+          </div>
+          <div>
+            <div style={etiket}>KİMLERE GÖSTERİLSİN</div>
+            <select value={kitle} onChange={(e) => setKitle(e.target.value)} style={inputStyle}>
+              {kurallar && Object.entries(kurallar.kitleler).map(([k, v]) => (
+                <option key={k} value={k}>{v.ad}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <div style={etiket}>BÜTÇE (₺)</div>
+              <input value={butce} onChange={(e) => setButce(e.target.value.replace(/[^0-9]/g, ""))}
+                style={{ ...inputStyle, fontFamily: "'Cormorant Garamond', serif", fontSize: 20 }} />
+            </div>
+            <div>
+              <div style={etiket}>SÜRE (GÜN)</div>
+              <input value={gun} onChange={(e) => setGun(e.target.value.replace(/[^0-9]/g, ""))}
+                style={{ ...inputStyle, fontFamily: "'Cormorant Garamond', serif", fontSize: 20 }} />
+            </div>
+          </div>
+
+          {/* Bütçe tahmini — MST'nin gerçek geçmiş performansından hesaplanır */}
+          <div style={{ background: "linear-gradient(160deg, rgba(201,162,75,.07), rgba(10,20,40,.45))",
+            border: "1px solid rgba(201,162,75,.30)", padding: "18px 20px" }}>
+            <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 14 }}>
+              BU BÜTÇEYLE BEKLENEN
+            </div>
+
+            {tahmin && tahmin.tahminVar ? (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(105px,1fr))", gap: 16 }}>
+                  {[
+                    { e: "ULAŞILAN KİŞİ", a: tahmin.erisim.alt, u: tahmin.erisim.ust },
+                    { e: "GÖSTERİM", a: tahmin.gosterim.alt, u: tahmin.gosterim.ust },
+                    ...(tahmin.tiklama ? [{ e: "TIKLAMA", a: tahmin.tiklama.alt, u: tahmin.tiklama.ust }] : []),
+                  ].map((x) => (
+                    <div key={x.e}>
+                      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 21, fontWeight: 600, lineHeight: 1.2,
+                        background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                        {x.a.toLocaleString("tr-TR")}–{x.u.toLocaleString("tr-TR")}
+                      </div>
+                      <div style={{ fontSize: 9.5, letterSpacing: "0.2em", color: "rgba(201,162,75,.75)", marginTop: 4 }}>{x.e}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 13, color: "rgba(245,240,228,.72)", marginTop: 14, lineHeight: 1.7, fontWeight: 300 }}>
+                  Günlük yaklaşık <b style={{ color: "#F0D68A", fontWeight: 500 }}>{tahmin.gunluk} ₺</b> harcanır.
+                  {tahmin.tiklamaMaliyeti ? ` Tıklama başına ortalama ${tahmin.tiklamaMaliyeti} ₺.` : ""}
+                </div>
+                <div style={{ fontSize: 12, color: "rgba(245,240,228,.52)", marginTop: 10, lineHeight: 1.65, fontWeight: 300 }}>
+                  {tahmin.uyari}
+                </div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13.5, color: "rgba(245,240,228,.72)", lineHeight: 1.7, fontWeight: 300 }}>
+                Günlük yaklaşık <b style={{ color: "#F0D68A", fontWeight: 500 }}>{gunluk} ₺</b> harcanır.
+                {tahmin?.mesaj ? " " + tahmin.mesaj : ""} En az {kurallar?.butceMin || 1000} ₺ öneriyoruz —
+                daha düşük bütçeler yeterli veriye ulaşamadan tükeniyor. Reklam satış garantisi değildir.
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={gonder} disabled={calisiyor || !bookId} style={{
+              background: THEME.altinButon, color: "#0A1428", border: "none", padding: "13px 24px",
+              fontSize: 15, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
+            }}>{calisiyor ? "GÖNDERİLİYOR..." : "KAMPANYAYI BAŞLAT"}</button>
+            <button onClick={() => setAcik(false)} style={{
+              background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
+              padding: "13px 20px", fontSize: 14, cursor: "pointer", fontFamily: "'Jost', sans-serif",
+            }}>Vazgeç</button>
+          </div>
+        </div>
+      )}
+
+      {mesaj && <div style={{ fontSize: 14, color: "#F0D68A", marginBottom: 18, lineHeight: 1.7 }}>{mesaj}</div>}
+
+      {liste && liste.length > 0 && (
+        <div style={{ display: "grid", gap: 2, background: "rgba(201,162,75,.16)", border: "1px solid rgba(201,162,75,.24)" }}>
+          {liste.map((k) => {
+            const d = KAMPANYA_DURUM[k.durum] || KAMPANYA_DURUM.onay_bekliyor;
+            return (
+              <div key={k.id} style={{ background: "rgba(12,23,48,.55)", padding: "22px 24px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 15, color: THEME.textLight, fontWeight: 500 }}>{k.kitap}</div>
+                    <div style={{ fontSize: 13, color: "rgba(245,240,228,.62)", marginTop: 4, fontWeight: 300 }}>
+                      {k.hedefKitle} · {k.gun} gün · {k.butce} ₺
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 10.5, letterSpacing: "0.16em", color: d.renk, border: `1px solid ${d.renk}`, padding: "4px 10px", height: "fit-content" }}>
+                    {d.ad.toLocaleUpperCase("tr-TR")}
+                  </div>
+                </div>
+                {d.not && <div style={{ fontSize: 13, color: "rgba(245,240,228,.58)", marginTop: 8, fontWeight: 300 }}>{d.not}</div>}
+                {k.redSebebi && k.durum === "reddedildi" && (
+                  <div style={{ fontSize: 13, color: "#E09080", marginTop: 8, fontWeight: 300 }}>Sebep: {k.redSebebi}</div>
+                )}
+
+                {(k.harcanan > 0 || k.erisim > 0) && (
+                  <div style={{ marginTop: 16, borderTop: "1px solid rgba(201,162,75,.20)", paddingTop: 14 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(90px,1fr))", gap: 14 }}>
+                      {[
+                        { e: "ULAŞILAN KİŞİ", v: k.erisim.toLocaleString("tr-TR") },
+                        { e: "TIKLAMA", v: k.tiklama.toLocaleString("tr-TR") },
+                        { e: "HARCANAN", v: k.harcanan + " ₺" },
+                        { e: "KALAN", v: k.kalan + " ₺" },
+                      ].map((x) => (
+                        <div key={x.e}>
+                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, fontWeight: 600,
+                            background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>{x.v}</div>
+                          <div style={{ fontSize: 9.5, letterSpacing: "0.2em", color: "rgba(201,162,75,.75)", marginTop: 3 }}>{x.e}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {k.tiklamaMaliyeti != null && (
+                      <div style={{ fontSize: 13, color: "rgba(245,240,228,.62)", marginTop: 12, fontWeight: 300 }}>
+                        Tıklama başına {k.tiklamaMaliyeti} ₺
+                      </div>
+                    )}
+                    {k.satisFarki != null && (
+                      <div style={{ fontSize: 14, color: k.satisFarki > 0 ? "#9FC7A8" : "rgba(245,240,228,.62)", marginTop: 8, fontWeight: 300 }}>
+                        Kampanya başladığından beri satış: {k.satisOncesi} → {k.satisSonrasi}
+                        {k.satisFarki > 0 ? ` (+${k.satisFarki})` : ""}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {["onay_bekliyor", "onaylandi"].includes(k.durum) && (
+                  <button onClick={() => iptal(k.id)} style={{
+                    marginTop: 14, background: "none", color: "rgba(245,240,228,.62)",
+                    border: "1px solid rgba(201,162,75,.28)", padding: "9px 16px", fontSize: 13,
+                    cursor: "pointer", fontFamily: "'Jost', sans-serif",
+                  }}>İptal et ve bütçemi geri al</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const TEKLIF_GORUNUM = {
   basvuru:      { ad: "Başvurunuz alındı",   renk: "#C9A24B", aciklama: "Ekibimiz teklifinizi hazırlıyor." },
   teklif_hazir: { ad: "Teklifiniz hazır",     renk: "#F0D68A", aciklama: "İnceleyip onaylayabilirsiniz." },
@@ -2234,6 +2503,8 @@ function AdSection({ books, token, onRefresh }) {
         <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Reklam &amp; Tanıtım</span>
         <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
       </div>
+
+      <KendiKampanyam books={books} token={token} />
 
       {/* Dürüst çerçeve — ne veriyoruz, ne vaat etmiyoruz */}
       <div style={{ background: "rgba(201,162,75,.04)", border: "1px solid rgba(201,162,75,.28)", padding: "18px 20px", marginBottom: 24 }}>

@@ -179,6 +179,74 @@ function BasarimKutlama({ k }) {
 
 // ==================== KARİYER & GÖREVLER ====================
 // ==================== AI KOÇ KARTI (Hamle 1: AI Kişiselleştirme) ====================
+// ============ Okunmamış duyuru katmanı ============
+// Yayınevinden gelen duyuru (genel ya da kişiye özel) uygulama açılır açılmaz
+// karşıya çıkar. Okunanlar cihazda işaretlenir, bir daha gösterilmez.
+function OkunmamisDuyurular({ duyurular, yazarId }) {
+  const anahtar = `mst_okunan_duyurular_${yazarId || "genel"}`;
+  const [okunanlar, setOkunanlar] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(anahtar) || "[]"); } catch { return []; }
+  });
+  const [sira, setSira] = useState(0);
+
+  const bekleyen = (duyurular || []).filter((d) => !okunanlar.includes(d.id));
+  if (!bekleyen.length) return null;
+
+  const d = bekleyen[Math.min(sira, bekleyen.length - 1)];
+  const sonuncu = sira >= bekleyen.length - 1;
+
+  const okundu = () => {
+    const yeni = [...okunanlar, d.id];
+    setOkunanlar(yeni);
+    try { localStorage.setItem(anahtar, JSON.stringify(yeni.slice(-100))); } catch {}
+    if (!sonuncu) setSira(sira + 1);
+  };
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 90, background: "rgba(4,8,18,.86)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 20,
+    }}>
+      <div style={{
+        width: "100%", maxWidth: 460,
+        background: "linear-gradient(160deg, rgba(201,162,75,.07), rgba(10,20,40,.72))",
+        border: "1px solid rgba(201,162,75,.38)", padding: "30px 28px 26px",
+        backdropFilter: "blur(2px)",
+      }}>
+        <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", fontWeight: 600, marginBottom: 14 }}>
+          MST YAYINCILIK{bekleyen.length > 1 ? ` · ${sira + 1}/${bekleyen.length}` : ""}
+        </div>
+
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, color: "#fff", fontWeight: 600, lineHeight: 1.25, marginBottom: 14 }}>
+          {d.title}
+        </div>
+
+        <div style={{ fontSize: 14.5, color: "rgba(245,240,228,.82)", lineHeight: 1.8, fontWeight: 300, whiteSpace: "pre-wrap", maxHeight: "46vh", overflowY: "auto" }}>
+          {d.body}
+        </div>
+
+        {d.date && (
+          <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.45)", marginTop: 16 }}>{d.date}</div>
+        )}
+
+        <div style={{ marginTop: 22, display: "flex", alignItems: "center", justifyContent: "center", gap: 14 }}>
+          <span style={{ height: 1, flex: 1, background: "linear-gradient(90deg,transparent,rgba(201,162,75,.6))" }} />
+          <span style={{ width: 6, height: 6, background: "#C9A24B", transform: "rotate(45deg)" }} />
+          <span style={{ height: 1, flex: 1, background: "linear-gradient(90deg,rgba(201,162,75,.6),transparent)" }} />
+        </div>
+
+        <button onClick={okundu} style={{
+          marginTop: 20, width: "100%", background: THEME.altinButon, color: "#0A1428",
+          border: "none", padding: "14px 0", fontSize: 14, fontWeight: 600,
+          letterSpacing: "0.08em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
+        }}>
+          {sonuncu ? "ANLADIM" : "SONRAKİ"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AICocKarti({ token, onAc }) {
   const [karsilama, setKarsilama] = useState(null);
   const [durum, setDurum] = useState(null);
@@ -3544,6 +3612,7 @@ export default function App() {
       {/* Kadife dokusu — sitedeki .vel katmanı */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", opacity: 0.35, zIndex: 1, background: THEME.kadife }} />
       <UygulamaIndirSeridi />
+      <OkunmamisDuyurular duyurular={myAnnouncements} yazarId={account && account.id} />
       {aktifKutlamalar.length > 0 && <KutlamaOverlay kutlamalar={aktifKutlamalar} onKapat={kutlamaKapat} />}
       <GridBackdrop />
       <ScanLine />

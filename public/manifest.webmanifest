@@ -1,0 +1,25 @@
+{
+  "name": "MST Yazar",
+  "short_name": "MST Yazar",
+  "description": "MST Yayıncılık yazar uygulaması — satışlarını, telifini ve yayın sürecini tek yerden takip et.",
+  "id": "/",
+  "start_url": "/?kaynak=uygulama",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070D1B",
+  "theme_color": "#070D1B",
+  "lang": "tr-TR",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "books"],
+  "icons": [
+    { "src": "/icons/icon-192.png",     "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png",     "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Kariyer & Görevler", "url": "/?ekran=kariyer", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Kazanç",             "url": "/?ekran=kazanc",  "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

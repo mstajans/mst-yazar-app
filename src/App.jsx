@@ -432,7 +432,7 @@ function GorevKart({ g, token, onRefresh }) {
   return (
     <div style={{
       background: tamam ? "rgba(159,199,168,.05)" : "rgba(12,23,48,.55)",
-      borderRadius: 0, padding: "26px 30px", opacity: tamam ? 0.72 : 1,
+      borderRadius: 0, padding: "clamp(16px, 4vw, 26px) clamp(14px, 3.5vw, 30px)", opacity: tamam ? 0.72 : 1,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
         <div style={{ flex: 1 }}>
@@ -1169,7 +1169,7 @@ function OnboardingScreen({ account, token, onLogout }) {
 
   return (
     <div style={{
-      position: "fixed", inset: 0, overflowY: "auto",
+      position: "fixed", inset: 0, overflowY: "auto", overflowX: "hidden",
       // Sitedeki .hero katmanlaması: üstten altın spot, alttan lacivert derinlik
       background: `radial-gradient(760px 460px at 50% 0%, rgba(201,162,75,.13), transparent 66%),
                    radial-gradient(1200px 700px at 50% 100%, rgba(26,47,88,.55), transparent 70%),
@@ -1179,6 +1179,7 @@ function OnboardingScreen({ account, token, onLogout }) {
     }}>
       {/* Kadife dokusu — sitedeki .vel katmanı */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", opacity: 0.35, zIndex: 1, background: THEME.kadife }} />
+      <UygulamaIndirSeridi />
       <OnboardingConfetti tetik={konfetiVar} />
 
       {/* Header */}
@@ -2029,97 +2030,305 @@ function BolumBasligi({ etiket, baslik, aciklama, ortala = false }) {
   );
 }
 
-function AdSection({ plan, books, wallet, adRequests, campaigns, onSubmitRequest, onStartCampaign }) {
-  const vip = plan === "vip";
-  const selfServe = PLANS[plan].selfServe;
-  const cap = PLANS[plan].budgetCap;
-  const [bookId, setBookId] = useState(books[0]?.id || "");
-  const [platform, setPlatform] = useState(AD_PLATFORMS[0]);
-  const [budget, setBudget] = useState(100);
-  const [duration, setDuration] = useState(7);
-  const [note, setNote] = useState("");
-  const [error, setError] = useState("");
-  const inputStyle = { padding: "9px 11px", border: `1px solid ${THEME.border}`, borderRadius: 0, fontSize: 16, boxSizing: "border-box", background: THEME.yuzeyDik, color: THEME.textLight };
+// ============ Uygulamayı indir şeridi ============
+// Sadece Android tarayıcıda görünür. Uygulamanın İÇİNDE açıldığında görünmez —
+// bunu display-mode:standalone ile anlıyoruz (TWA ve kurulu PWA ikisi de bunu bildirir).
+// Kapatan bir daha görmez (tercih cihazda saklanır).
+const PLAY_STORE_LINKI = ""; // Play Store yayına girince buraya adres yazılacak
 
-  const submit = (e) => {
-    e.preventDefault();
-    const book = books.find((b) => b.id === bookId);
-    if (!book) return;
-    if (selfServe) {
-      const b = Number(budget);
-      if (b > cap) { setError(`Bütçe paket tavanını (${tl(cap)}) aşıyor.`); return; }
-      if (b > wallet.balance) { setError("Yetersiz bakiye — önce ödeme bildirimi oluşturup yayınevi onayını bekleyin."); return; }
-      setError(""); onStartCampaign({ bookTitle: book.title, platform, budget: b, duration: Number(duration) });
-    } else onSubmitRequest({ bookTitle: book.title, budget: Number(budget), note });
-    setNote("");
+function uygulamaIcindeMi() {
+  try {
+    return window.matchMedia("(display-mode: standalone)").matches
+      || window.navigator.standalone === true
+      || document.referrer.startsWith("android-app://");
+  } catch { return false; }
+}
+
+function UygulamaIndirSeridi() {
+  const [gorunur, setGorunur] = useState(false);
+  const [kurulumOlayi, setKurulumOlayi] = useState(null);
+
+  useEffect(() => {
+    const android = /Android/i.test(navigator.userAgent);
+    let kapatilmis = false;
+    try { kapatilmis = localStorage.getItem("mst_uygulama_seridi_kapali") === "1"; } catch {}
+    if (android && !uygulamaIcindeMi() && !kapatilmis) setGorunur(true);
+
+    // Tarayıcı "kurulabilir" derse, Play Store olmadan da ana ekrana eklenebilir
+    const yakala = (e) => { e.preventDefault(); setKurulumOlayi(e); };
+    window.addEventListener("beforeinstallprompt", yakala);
+    return () => window.removeEventListener("beforeinstallprompt", yakala);
+  }, []);
+
+  if (!gorunur) return null;
+
+  const kapat = () => {
+    setGorunur(false);
+    try { localStorage.setItem("mst_uygulama_seridi_kapali", "1"); } catch {}
+  };
+
+  const kur = async () => {
+    if (PLAY_STORE_LINKI) { window.open(PLAY_STORE_LINKI, "_blank"); return; }
+    if (kurulumOlayi) { kurulumOlayi.prompt(); await kurulumOlayi.userChoice; kapat(); }
+  };
+
+  // Play linki de kurulum imkânı da yoksa şeridi hiç gösterme
+  if (!PLAY_STORE_LINKI && !kurulumOlayi) return null;
+
+  return (
+    <div style={{
+      position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 60,
+      background: "linear-gradient(180deg,#0C1730,#050A16)",
+      borderTop: "1px solid rgba(201,162,75,.32)",
+      padding: "12px clamp(14px,4vw,20px)",
+      display: "flex", alignItems: "center", gap: 12,
+    }}>
+      <img src={LOGO_GOLD} alt="" style={{ width: 30, height: "auto", flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13.5, color: "#F5F0E4", fontWeight: 500 }}>MST Yazar uygulaması</div>
+        <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.62)" }}>Ana ekranından tek dokunuşla aç</div>
+      </div>
+      <button onClick={kur} style={{
+        background: THEME.altinButon, color: "#0A1428", border: "none", padding: "9px 16px",
+        fontSize: 12.5, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
+      }}>KUR</button>
+      <button onClick={kapat} aria-label="Kapat" style={{
+        background: "none", border: "none", color: "rgba(245,240,228,.5)", fontSize: 20, cursor: "pointer", padding: "0 4px",
+      }}>×</button>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// REKLAM — yeni akış (29 Tem 2026)
+// Eski ekran "Kampanya Başlat" diyordu ama hiçbir kampanya açılmıyordu.
+// Yeni akış dürüst: yazar başvurur, MST kalem kalem teklif hazırlar,
+// yazar onaylar, iş yürütülür, sonuç raporu gelir.
+// Self-serve Meta kampanyaları (Hat 1) Meta altyapısı kurulunca eklenecek.
+// ═══════════════════════════════════════════════════════════════════
+const TEKLIF_GORUNUM = {
+  basvuru:      { ad: "Başvurunuz alındı",   renk: "#C9A24B", aciklama: "Ekibimiz teklifinizi hazırlıyor." },
+  teklif_hazir: { ad: "Teklifiniz hazır",     renk: "#F0D68A", aciklama: "İnceleyip onaylayabilirsiniz." },
+  onaylandi:    { ad: "Onayladınız",          renk: "#9FC7A8", aciklama: "Başlangıç için sizinle iletişime geçilecek." },
+  yurutuluyor:  { ad: "Yürütülüyor",          renk: "#9FC7A8", aciklama: "Çalışma devam ediyor." },
+  tamamlandi:   { ad: "Tamamlandı",           renk: "rgba(245,240,228,.62)", aciklama: "" },
+  reddedildi:   { ad: "Reddettiniz",          renk: "rgba(245,240,228,.48)", aciklama: "" },
+  iptal:        { ad: "İptal edildi",         renk: "rgba(245,240,228,.48)", aciklama: "" },
+};
+
+function AdSection({ books, token, onRefresh }) {
+  const [teklifler, setTeklifler] = useState(null);
+  const [bookId, setBookId] = useState(books[0]?.id || "");
+  const [hedef, setHedef] = useState("");
+  const [butce, setButce] = useState("");
+  const [sure, setSure] = useState("");
+  const [not, setNot] = useState("");
+  const [gonderiliyor, setGonderiliyor] = useState(false);
+  const [mesaj, setMesaj] = useState("");
+  const [formAcik, setFormAcik] = useState(false);
+
+  const api = async (yol, ayar = {}) => {
+    const r = await fetch(`${BACKEND_URL}${yol}`, {
+      ...ayar,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(ayar.headers || {}) },
+    });
+    return r.json();
+  };
+
+  const yukle = async () => {
+    try { const d = await api("/api/author/reklam-tekliflerim"); setTeklifler(d.teklifler || []); }
+    catch { setTeklifler([]); }
+  };
+  useEffect(() => { yukle(); }, []);
+
+  const basvur = async () => {
+    if (!hedef.trim() || gonderiliyor) return;
+    setGonderiliyor(true); setMesaj("");
+    try {
+      const d = await api("/api/author/reklam-basvuru", {
+        method: "POST",
+        body: JSON.stringify({ bookId: bookId || null, hedef: hedef.trim(), butceAraligi: butce, sureTercihi: sure, not }),
+      });
+      setMesaj(d.ok ? d.mesaj : (d.error || "Gönderilemedi."));
+      if (d.ok) { setHedef(""); setNot(""); setFormAcik(false); yukle(); }
+    } catch { setMesaj("Sunucuya ulaşılamadı."); }
+    finally { setGonderiliyor(false); }
+  };
+
+  const karar = async (id, k) => {
+    const d = await api(`/api/author/reklam-teklif/${id}/karar`, { method: "POST", body: JSON.stringify({ karar: k }) });
+    setMesaj(d.ok ? d.mesaj : (d.error || "İşlem yapılamadı."));
+    yukle();
+  };
+
+  const inputStyle = {
+    padding: "12px 14px", border: "1px solid rgba(201,162,75,.28)", borderRadius: 0, fontSize: 15,
+    boxSizing: "border-box", background: "rgba(255,255,255,.015)", color: THEME.textLight,
+    fontFamily: "'Jost', sans-serif", width: "100%",
   };
 
   return (
     <div>
-      {vip && (
-        <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, border: `1px solid ${THEME.vipBorder}`, borderRadius: 0, padding: "16px 18px", marginBottom: 18, color: THEME.textLight }}>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.vip }}>✦ VIP Reklam Stüdyosu</div>
-          <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 4, lineHeight: 1.6 }}>Aylık {tl(cap)}'ye kadar bütçe ve öncelikli destek VIP paketinize dahildir.</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Reklam &amp; Tanıtım</span>
+        <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
+      </div>
+
+      {/* Dürüst çerçeve — ne veriyoruz, ne vaat etmiyoruz */}
+      <div style={{ background: "rgba(201,162,75,.04)", border: "1px solid rgba(201,162,75,.28)", padding: "18px 20px", marginBottom: 24 }}>
+        <div style={{ fontSize: 15, color: THEME.textLight, lineHeight: 1.75, fontWeight: 300 }}>
+          Kitabınızı tanıtmak için bize başvurun. Hedefinizi ve bütçenizi yazın; size özel bir çalışma
+          hazırlayıp <b style={{ fontWeight: 500 }}>kalem kalem</b> teklif sunalım — hangi tutarın reklama,
+          hangisinin prodüksiyona gittiğini açıkça görürsünüz.
+        </div>
+        <div style={{ fontSize: 13.5, color: "rgba(245,240,228,.62)", marginTop: 12, lineHeight: 1.7, fontWeight: 300 }}>
+          Dürüst olalım: reklam satış <i>garantisi</i> değildir. Etkili bir çalışma için önerdiğimiz alt bütçe
+          <b style={{ color: "#F0D68A", fontWeight: 500 }}> 1.000 ₺</b> — bunun altındaki bütçeler yeterli
+          veriye ulaşamadan tükeniyor ve sonuç üretmiyor.
+        </div>
+      </div>
+
+      {!formAcik && (
+        <button onClick={() => setFormAcik(true)} style={{
+          background: THEME.altinButon, color: "#0A1428", border: "none", padding: "14px 26px",
+          fontSize: 15, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer",
+          fontFamily: "'Jost', sans-serif", marginBottom: 28,
+        }}>KİTABIMI TANITMAK İSTİYORUM</button>
+      )}
+
+      {formAcik && (
+        <div style={{ display: "grid", gap: 12, marginBottom: 28 }}>
+          {books.length > 0 && (
+            <div>
+              <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>HANGİ KİTAP</div>
+              <select value={bookId} onChange={(e) => setBookId(e.target.value)} style={inputStyle}>
+                {books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}
+              </select>
+            </div>
+          )}
+          <div>
+            <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>NE YAPMAK İSTİYORSUNUZ</div>
+            <textarea value={hedef} onChange={(e) => setHedef(e.target.value)} rows={3}
+              placeholder="Örn: Kitabımın tanıtım videosunu yaptırıp Instagram'da yayınlamak istiyorum"
+              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.7 }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>BÜTÇE ARALIĞI</div>
+              <select value={butce} onChange={(e) => setButce(e.target.value)} style={inputStyle}>
+                <option value="">Seçiniz</option>
+                <option value="1.000 - 2.500 ₺">1.000 - 2.500 ₺</option>
+                <option value="2.500 - 5.000 ₺">2.500 - 5.000 ₺</option>
+                <option value="5.000 - 10.000 ₺">5.000 - 10.000 ₺</option>
+                <option value="10.000 ₺ üzeri">10.000 ₺ üzeri</option>
+                <option value="Önerinizi bekliyorum">Önerinizi bekliyorum</option>
+              </select>
+            </div>
+            <div>
+              <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>SÜRE</div>
+              <select value={sure} onChange={(e) => setSure(e.target.value)} style={inputStyle}>
+                <option value="">Seçiniz</option>
+                <option value="Bir hafta">Bir hafta</option>
+                <option value="İki hafta">İki hafta</option>
+                <option value="Bir ay">Bir ay</option>
+                <option value="Fark etmez">Fark etmez</option>
+              </select>
+            </div>
+          </div>
+          <textarea value={not} onChange={(e) => setNot(e.target.value)} rows={2}
+            placeholder="Eklemek istediğiniz bir şey var mı? (opsiyonel)" style={{ ...inputStyle, resize: "vertical" }} />
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={basvur} disabled={gonderiliyor || !hedef.trim()} style={{
+              background: THEME.altinButon, color: "#0A1428", border: "none", padding: "13px 24px",
+              fontSize: 15, fontWeight: 600, letterSpacing: "0.05em",
+              cursor: gonderiliyor ? "default" : "pointer", opacity: !hedef.trim() ? 0.5 : 1,
+              fontFamily: "'Jost', sans-serif",
+            }}>{gonderiliyor ? "GÖNDERİLİYOR..." : "BAŞVURUYU GÖNDER"}</button>
+            <button onClick={() => setFormAcik(false)} style={{
+              background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
+              padding: "13px 20px", fontSize: 14, cursor: "pointer", fontFamily: "'Jost', sans-serif",
+            }}>Vazgeç</button>
+          </div>
         </div>
       )}
-      <div style={{ fontSize: 14, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 10 }}>{selfServe ? "YENİ KAMPANYA BAŞLAT" : "REKLAM TALEBİ OLUŞTUR"}</div>
-      <form onSubmit={submit} style={{ background: THEME.yuzey, border: vip ? `1px solid ${THEME.vipBorder}` : `1px solid ${THEME.border}`, borderRadius: 0, padding: 14, display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
-        <select value={bookId} onChange={(e) => setBookId(e.target.value)} style={inputStyle}>{books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}</select>
-        {selfServe && <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={inputStyle}>{AD_PLATFORMS.map((p) => <option key={p} value={p}>{p}</option>)}</select>}
-        <label style={{ fontSize: 15, color: THEME.textMuted }}>Bütçe (₺)<input type="number" min={0} max={cap || undefined} value={budget} onChange={(e) => setBudget(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4, ...inputStyle }} /></label>
-        {selfServe ? (
-          <label style={{ fontSize: 15, color: THEME.textMuted }}>Süre (gün)<input type="number" min={1} max={60} value={duration} onChange={(e) => setDuration(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4, ...inputStyle }} /></label>
-        ) : <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Yayınevine not (opsiyonel)" rows={2} style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }} />}
-        {error && <div style={{ color: THEME.danger, fontSize: 12.5 }}>{error}</div>}
-        <button type="submit" style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "10px 0", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>{selfServe ? "Kampanyayı Başlat" : "Talebi Gönder"}</button>
-      </form>
-      {selfServe ? (<>
-        {campaigns.length > 0 && (() => {
-          // Kampanya verisini grafik formatına çevir. Meta bağlandığında gerçek
-          // performance alanları (spend/impressions/conversions/gunluk) dolu gelir;
-          // yoksa mevcut reach/clicks/daily'den türetilir.
-          const kamps = campaigns.filter((c) => c.performance).map((c) => {
-            const p = c.performance;
-            const imp = p.impressions ?? p.reach ?? 0;
-            const gunluk = (p.gunluk && p.gunluk.length) ? p.gunluk
-              : (p.daily || []).map((d, i) => ({ tarih: `2026-06-${String(i + 1).padStart(2, "0")}`, spend: 0, impressions: d, clicks: 0, conversions: 0 }));
-            return { name: c.bookTitle, spend: p.spend ?? c.metaSpend ?? 0, impressions: imp, clicks: p.clicks ?? 0, conversions: p.conversions ?? 0, gunluk };
-          });
-          if (!kamps.length) return null;
-          return (
-            <div style={{ marginBottom: 48 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Reklam performansi</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
-              <ReklamDashboard kampanyalar={kamps} C={RG_YAZAR} />
-            </div>
-          );
-        })()}
-        <div style={{ fontSize: 14, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 10 }}>KAMPANYALARIM ({campaigns.length})</div>
-        {campaigns.length === 0 && <div style={{ fontSize: 14.5, color: THEME.textMuted }}>Henüz kampanya başlatmadınız.</div>}
-        {campaigns.map((c) => (
-          <div key={c.id} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "18px 20px", marginBottom: 18 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 15, color: THEME.textLight }}>{c.bookTitle}</span><span style={{ fontSize: 14, color: THEME.success }}>{c.status}</span></div>
-            <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 4 }}>{c.platform} · Bütçe {tl(c.budget)} · {c.duration} gün</div>
-            {c.performance && (<>
-              <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
-                <div><div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: THEME.textLight }}>{c.performance.reach.toLocaleString("tr-TR")}</div><div style={{ fontSize: 14.5, color: THEME.textMuted }}>erişim</div></div>
-                <div><div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: THEME.textLight }}>{c.performance.clicks.toLocaleString("tr-TR")}</div><div style={{ fontSize: 14.5, color: THEME.textMuted }}>tıklama</div></div>
-                <div><div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: THEME.textLight }}>{((c.performance.clicks / c.performance.reach) * 100).toFixed(1)}%</div><div style={{ fontSize: 14.5, color: THEME.textMuted }}>CTR</div></div>
-              </div>
-              <PerformanceChart daily={c.performance.daily} />
-              <div style={{ fontSize: 15, color: THEME.textMuted, marginTop: 4 }}>Meta'dan otomatik senkronize edildi</div>
-            </>)}
+
+      {mesaj && <div style={{ fontSize: 14, color: "#F0D68A", marginBottom: 20, lineHeight: 1.7 }}>{mesaj}</div>}
+
+      {/* Başvuru ve teklif geçmişi */}
+      {teklifler && teklifler.length > 0 && (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Başvurularınız</span>
+            <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
           </div>
-        ))}
-      </>) : (<>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Talepleri̇m</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
-        {adRequests.length === 0 && <div style={{ fontSize: 14.5, color: THEME.textMuted }}>Henüz reklam talebi oluşturmadınız.</div>}
-        {adRequests.map((r) => (
-          <div key={r.id} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "12px 14px", marginBottom: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 15, color: THEME.textLight }}>{r.bookTitle}</span><span style={{ fontSize: 14, color: r.status === "açık" ? THEME.warn : THEME.success }}>{r.status === "açık" ? "Onay bekliyor" : "Onaylandı"}</span></div>
-            <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 4 }}>Talep edilen bütçe: {tl(r.budget)}</div>
+          <div style={{ display: "grid", gap: 2, background: "rgba(201,162,75,.16)", border: "1px solid rgba(201,162,75,.24)" }}>
+            {teklifler.map((t) => {
+              const g = TEKLIF_GORUNUM[t.durum] || TEKLIF_GORUNUM.basvuru;
+              const kalemler = Array.isArray(t.kalemler) ? t.kalemler : [];
+              return (
+                <div key={t.id} style={{ background: "rgba(12,23,48,.55)", padding: "22px 24px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      {t.kitap && <div style={{ fontSize: 15, color: THEME.textLight, fontWeight: 500 }}>{t.kitap}</div>}
+                      <div style={{ fontSize: 14, color: "rgba(245,240,228,.72)", marginTop: 5, lineHeight: 1.7, fontWeight: 300 }}>{t.hedef}</div>
+                    </div>
+                    <div style={{ fontSize: 10.5, letterSpacing: "0.16em", color: g.renk, border: `1px solid ${g.renk}`, padding: "4px 10px", height: "fit-content", whiteSpace: "nowrap" }}>
+                      {g.ad.toLocaleUpperCase("tr-TR")}
+                    </div>
+                  </div>
+                  {g.aciklama && <div style={{ fontSize: 13, color: "rgba(245,240,228,.58)", marginTop: 8, fontWeight: 300 }}>{g.aciklama}</div>}
+
+                  {kalemler.length > 0 && (
+                    <div style={{ marginTop: 16, borderTop: "1px solid rgba(201,162,75,.20)", paddingTop: 14 }}>
+                      <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 10 }}>TEKLİF</div>
+                      {kalemler.map((k, i) => (
+                        <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 12, fontSize: 14, marginBottom: 8 }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ color: THEME.textLight }}>{k.ad}</div>
+                            {k.aciklama && <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.52)", fontWeight: 300 }}>{k.aciklama}</div>}
+                          </div>
+                          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: "#F0D68A", whiteSpace: "nowrap" }}>
+                            {Number(k.tutar).toLocaleString("tr-TR")} ₺
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(201,162,75,.20)", paddingTop: 10, marginTop: 10 }}>
+                        <span style={{ fontSize: 14, color: THEME.textLight }}>Toplam</span>
+                        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 600,
+                          background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                          {Number(t.toplam).toLocaleString("tr-TR")} ₺
+                        </span>
+                      </div>
+                      {t.teklif_notu && <div style={{ fontSize: 13.5, color: "rgba(245,240,228,.62)", marginTop: 12, lineHeight: 1.7, fontWeight: 300 }}>{t.teklif_notu}</div>}
+                      {t.gecerlilik && <div style={{ fontSize: 12, color: "rgba(245,240,228,.48)", marginTop: 8 }}>Geçerlilik: {new Date(t.gecerlilik).toLocaleDateString("tr-TR")}</div>}
+
+                      {t.durum === "teklif_hazir" && (
+                        <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+                          <button onClick={() => karar(t.id, "onayla")} style={{
+                            background: THEME.altinButon, color: "#0A1428", border: "none", padding: "11px 22px",
+                            fontSize: 14, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
+                          }}>ONAYLIYORUM</button>
+                          <button onClick={() => karar(t.id, "reddet")} style={{
+                            background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
+                            padding: "11px 18px", fontSize: 13.5, cursor: "pointer", fontFamily: "'Jost', sans-serif",
+                          }}>Şimdilik hayır</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {t.rapor_metni && (
+                    <div style={{ marginTop: 16, background: "rgba(201,162,75,.04)", border: "1px solid rgba(201,162,75,.24)", padding: "14px 16px" }}>
+                      <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 8 }}>SONUÇ RAPORU</div>
+                      <div style={{ fontSize: 14, color: THEME.textLight, lineHeight: 1.75, fontWeight: 300, whiteSpace: "pre-wrap" }}>{t.rapor_metni}</div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </>)}
+        </>
+      )}
     </div>
   );
 }
@@ -2273,7 +2482,7 @@ function EarningsSection({ account }) {
     <div>
       {/* Telif levhası — sitedeki .rtop deseni: dört hücre, aralarında altın saç teli */}
       <div style={{
-        display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 1,
+        display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 1,
         background: "rgba(201,162,75,.22)", border: "1px solid rgba(201,162,75,.30)", marginBottom: 56,
       }}>
         {[
@@ -2282,9 +2491,9 @@ function EarningsSection({ account }) {
           { deger: tl(totalKilitli), etiket: "KİLİTLİ TELİF", alt: "Stok tükenince açılır" },
           { deger: formatDate(account.nextPayoutDate), etiket: "SONRAKİ ÖDEME", alt: "Planlanan tarih", kucuk: true },
         ].map((k) => (
-          <div key={k.etiket} style={{ background: "rgba(12,23,48,.62)", padding: "34px 26px", textAlign: "center" }}>
+          <div key={k.etiket} style={{ background: "rgba(12,23,48,.62)", padding: "clamp(22px, 5vw, 34px) clamp(14px, 3vw, 26px)", textAlign: "center" }}>
             <div style={{
-              fontFamily: "'Cormorant Garamond', serif", fontSize: k.kucuk ? 26 : 44, fontWeight: 600, lineHeight: 1,
+              fontFamily: "'Cormorant Garamond', serif", fontSize: k.kucuk ? "clamp(19px, 4vw, 26px)" : "clamp(30px, 6vw, 44px)", fontWeight: 600, lineHeight: 1,
               background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent",
             }}>{k.deger}</div>
             <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", fontWeight: 600, margin: "11px 0 9px" }}>{k.etiket}</div>
@@ -2553,10 +2762,10 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
             { deger: totalBooksSold, etiket: "TOPLAM SATIŞ", alt: "Tüm zamanlar" },
             { deger: `%${avgFill}`, etiket: "ORT. DOLULUK", alt: "Stok kapasitesi" },
           ].map((c) => (
-            <div key={c.etiket} style={{ background: "rgba(12,23,48,.62)", padding: "38px 34px", textAlign: "center" }}>
+            <div key={c.etiket} style={{ background: "rgba(12,23,48,.62)", padding: "clamp(22px, 5vw, 38px) clamp(14px, 3vw, 34px)", textAlign: "center" }}>
               {/* .rcell .rnum — dev serif rakam, altın gradyan metin */}
               <div style={{
-                fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 600, lineHeight: 1,
+                fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(34px, 7vw, 52px)", fontWeight: 600, lineHeight: 1,
                 background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}>{c.deger}</div>
@@ -2580,7 +2789,7 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
           {/* toplam hero rakam + trend */}
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${VTHEME.divider}` }}>
             <div>
-              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, fontSize: 58, lineHeight: 1,
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, fontSize: "clamp(38px, 9vw, 58px)", lineHeight: 1,
                 background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>{totalStock}</div>
               <div style={{ fontSize: 10.5, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(201,162,75,.82)", fontWeight: 600, marginTop: 11 }}>TOPLAM SATIŞ</div>
               <div style={{ fontSize: 14, color: "rgba(245,240,228,.70)", fontWeight: 300, marginTop: 5 }}>{book.title}</div>
@@ -3331,7 +3540,7 @@ export default function App() {
 
   return (
     <div style={{
-      position: "fixed", inset: 0, overflowY: "auto",
+      position: "fixed", inset: 0, overflowY: "auto", overflowX: "hidden",
       // Sitedeki .hero katmanlaması: üstten altın spot, alttan lacivert derinlik
       background: `radial-gradient(760px 460px at 50% 0%, rgba(201,162,75,.13), transparent 66%),
                    radial-gradient(1200px 700px at 50% 100%, rgba(26,47,88,.55), transparent 70%),
@@ -3341,12 +3550,13 @@ export default function App() {
     }}>
       {/* Kadife dokusu — sitedeki .vel katmanı */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", opacity: 0.35, zIndex: 1, background: THEME.kadife }} />
+      <UygulamaIndirSeridi />
       {aktifKutlamalar.length > 0 && <KutlamaOverlay kutlamalar={aktifKutlamalar} onKapat={kutlamaKapat} />}
       <GridBackdrop />
       <ScanLine />
       <div style={{ position: "relative", zIndex: 2 }}>
       <div style={{ background: THEME.headerBg, padding: "22px 0 16px", color: THEME.textLight, borderBottom: `1px solid rgba(201,162,75,0.28)` }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src={LOGO_HEADER} alt="MST" style={{ width: 54, height: "auto", flexShrink: 0 }} />
             <div>
@@ -3364,7 +3574,7 @@ export default function App() {
           </div>
         </div>
       </div>
-      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "30px 40px 130px", width: "100%" }}>
+      <div style={{ maxWidth: 1080, margin: "0 auto", padding: "30px clamp(16px, 4vw, 40px) 130px", width: "100%", boxSizing: "border-box" }}>
         {tab === "kitaplar" && (<>
           {(() => {
             const kitapSayisi = account.books.length;
@@ -3438,7 +3648,7 @@ export default function App() {
         {tab === "stok" && <StockOrbitTab books={account.books} account={account} token={session.token} onQuickAction={(t) => setTab(t)} />}
         {tab === "kariyer" && <GameSection oyun={oyun} token={session.token} onRefresh={oyunCek} katman={katman} />}
         {tab === "magaza" && <StoreSection plan={account.plan} books={account.books} wallet={account.wallet} notices={myNotices} orders={myOrders} onOrder={placeOrder} onSubmitNotice={submitNotice} token={session.token} />}
-        {tab === "reklam" && <AdSection plan={account.plan} books={account.books} wallet={account.wallet} adRequests={myAdRequests} campaigns={myCampaigns} onSubmitRequest={submitAdRequest} onStartCampaign={startCampaign} />}
+        {tab === "reklam" && <AdSection books={account.books} token={token} onRefresh={refreshAccount} />}
         {tab === "ek" && vip && <ExtrasSection books={account.books} requests={myTranslations} onSubmit={submitTranslation} />}
         {tab === "kazanc" && <EarningsSection account={account} />}
         {tab === "egitim" && <EducationSection unlocked={account.unlocked["egitim-pro"]} onUnlock={unlockEgitimDirect} wallet={account.wallet} />}

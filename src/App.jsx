@@ -203,7 +203,7 @@ function AICocKarti({ token, onAc }) {
   return (
     <div
       onClick={() => onAc && onAc()}
-      style={{ background: "linear-gradient(135deg, rgba(45,106,79,.08), rgba(201,162,75,.08))", border: `1px solid ${THEME.cyan}`, borderRadius: 0, padding: 16, marginBottom: 16, cursor: "pointer", position: "relative", overflow: "hidden" }}>
+      style={{ background: THEME.yuzey, border: "1px solid rgba(201,162,75,.30)", borderRadius: 0, padding: "20px 22px", marginBottom: 24, cursor: "pointer", position: "relative", overflow: "hidden" }}>
       <style>{`
         @keyframes mgrAura { 0%,100% { opacity:.5; transform: scale(1);} 50% { opacity:.9; transform: scale(1.06);} }
         .mgr-card-arrow { transition: transform .2s ease; }
@@ -222,32 +222,25 @@ function AICocKarti({ token, onAc }) {
         <span className="mgr-card-arrow" style={{ fontSize: 18, color: THEME.cyan }}>→</span>
       </div>
 
-      {/* Kişisel karşılama */}
-      {karsilama && (
-        <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.cyan}`, borderRadius: 0, padding: "12px 14px", marginBottom: hedef || bildirim ? 10 : 0, fontSize: 14.5, color: THEME.textLight, lineHeight: 1.5 }}>
-          {karsilama}
+      {/* Tek mesaj — karşılama varsa o, yoksa sıradaki adım.
+          Üçü birden gösterilince kart şişiyor ve aynı şey tekrarlanıyordu. */}
+      {(karsilama || hedef) && (
+        <div style={{ background: "rgba(255,255,255,.015)", border: "1px solid rgba(201,162,75,.24)", padding: "16px 18px", fontSize: 14.5, color: THEME.textLight, lineHeight: 1.75, fontWeight: 300 }}>
+          {karsilama || hedef}
         </div>
       )}
 
-      {/* Akıllı bildirim */}
-      {bildirim && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: THEME.yuzey, border: `1px solid ${THEME.gold}`, borderRadius: 0, padding: "10px 12px", marginBottom: hedef ? 10 : 0 }}>
-          <span style={{ fontSize: 20 }}>{bildirim.ikon}</span>
-          <span style={{ fontSize: 14, color: THEME.textLight, lineHeight: 1.4 }}>{bildirim.metin}</span>
-        </div>
-      )}
-
-      {/* Kişisel hedef */}
-      {hedef && (
-        <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "10px 12px" }}>
-          <div style={{ fontSize: 14.5, letterSpacing: "0.05em", color: THEME.cyan, marginBottom: 4 }}>🎯 SIRADAKİ ADIMIN</div>
-          <div style={{ fontSize: 14, color: THEME.textLight, lineHeight: 1.5 }}>{hedef}</div>
+      {/* Sıradaki adım — karşılamadan farklıysa ve kısa bir satır olarak */}
+      {karsilama && hedef && (
+        <div style={{ marginTop: 10, paddingTop: 12, borderTop: "1px solid rgba(201,162,75,.16)" }}>
+          <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>SIRADAKİ ADIM</div>
+          <div style={{ fontSize: 14, color: "rgba(245,240,228,.80)", lineHeight: 1.7, fontWeight: 300 }}>{hedef}</div>
         </div>
       )}
 
       {/* Sohbete davet */}
       <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 15, fontWeight: 600, color: THEME.cyan }}>
-        <span>💬 Menajerimle konuşmak için dokun</span>
+        <span style={{ fontSize: 10.5, letterSpacing: "0.28em", textTransform: "uppercase" }}>Menajerimle konuşmak için dokun</span>
       </div>
     </div>
   );
@@ -275,7 +268,7 @@ function SeriKarti({ katman }) {
       {/* Günlük hedef */}
       {hedef && (
         <div style={{ flex: "2 1 200px", background: hedef.tamamlandi ? "rgba(45,106,79,.08)" : THEME.panelBg, border: `1px solid ${hedef.tamamlandi ? THEME.success : THEME.border}`, borderRadius: 0, padding: "12px 14px" }}>
-          <div style={{ fontSize: 14.5, letterSpacing: "0.05em", color: THEME.cyan, marginBottom: 4 }}>🎯 BUGÜNKÜ HEDEFİN</div>
+          <div style={{ fontSize: 14.5, letterSpacing: "0.05em", color: THEME.cyan, marginBottom: 4 }}>BUGÜNKÜ HEDEFİN</div>
           <div style={{ fontSize: 14, color: THEME.textLight, lineHeight: 1.4 }}>{hedef.hedef_metin || hedef.hedefMetin}</div>
           {hedef.tamamlandi ? <div style={{ fontSize: 14, color: THEME.success, marginTop: 6, fontWeight: 600 }}>✓ Tamamlandı</div>
             : <div style={{ fontSize: 15, color: THEME.textMuted, marginTop: 6 }}>Tamamlayınca +{hedef.xp_odul || 50} XP</div>}
@@ -312,7 +305,7 @@ function GameSection({ oyun, token, onRefresh, katman }) {
     );
   }
 
-  const seviye = oyun.seviye || { no: 1, unvan: "Yeni Yazar", rozet: "Tomurcuk", gorsel: "🌱", xp: 0 };
+  const seviye = oyun.seviye || { no: 1, unvan: "Yeni Yazar", rozet: "Tomurcuk", gorsel: "◈", xp: 0 };
   const sonraki = oyun.sonrakiSeviye;
   const xp = oyun.xp || 0;
   const ilerlemePct = sonraki ? Math.min(100, Math.round(((xp - seviye.xp) / (sonraki.xp - seviye.xp)) * 100)) : 100;
@@ -450,7 +443,7 @@ function GorevKart({ g, token, onRefresh }) {
         <div style={{ textAlign: "right", flexShrink: 0 }}>
           {tamam ? <span style={{ fontSize: 15, color: THEME.success, fontWeight: 700 }}>✓ Tamam</span>
             : bekliyor ? <span style={{ fontSize: 14, color: THEME.gold }}>⏳ Onayda</span>
-            : g.tip === "hizmet" ? <span style={{ fontSize: 15, color: THEME.cyan, textAlign: "right", lineHeight: 1.3 }}>🎓 MST ile<br/>gerçekleşir</span>
+            : g.tip === "hizmet" ? <span style={{ fontSize: 15, color: THEME.cyan, textAlign: "right", lineHeight: 1.3 }}>MST ile<br/>gerçekleşir</span>
             : g.tip === "kanit" ? <button onClick={() => setKanitAcik((v) => !v)} style={{ fontSize: 14, background: THEME.gold, color: "#0C1730", border: "none", borderRadius: 0, padding: "5px 10px", cursor: "pointer", fontWeight: 600 }}>Kanıt Yükle</button>
             : <span style={{ fontSize: 14, color: THEME.textMuted, fontFamily: "monospace" }}>{g.ilerleme}/{g.hedef_deger}</span>}
         </div>
@@ -617,7 +610,7 @@ function ToplulukBolumu({ token }) {
             <span style={{ fontFamily: "monospace", color: THEME.cyan }}>{hedef.guncel.toLocaleString("tr-TR")} / {hedef.hedefDeger.toLocaleString("tr-TR")}</span>
             <span>%{hedef.yuzde}</span>
           </div>
-          {hedef.odul && <div style={{ fontSize: 14.5, color: THEME.success, marginTop: 8 }}>🎁 Ulaşınca herkese: {hedef.odul}</div>}
+          {hedef.odul && <div style={{ fontSize: 14.5, color: THEME.success, marginTop: 8 }}>Ulaşınca herkese: {hedef.odul}</div>}
         </div>
       )}
 
@@ -971,24 +964,24 @@ const FAIRS = [
 const EVENT_SERVICE_MARGIN = 0.2;
 
 const SERVICES = [
-  { key: "analitik", title: "Detaylı Satış Analitiği", icon: "📊", plans: ["standart", "profesyonel", "vip"], pricing: "fixed", price: 349, period: "aylık",
+  { key: "analitik", title: "Detaylı Satış Analitiği", icon: "▤", plans: ["standart", "profesyonel", "vip"], pricing: "fixed", price: 349, period: "aylık",
     desc: "Hangi şehirden, hangi saatte, hangi cihazdan satış geldiğini gösteren derinlemesine rapor." },
   { key: "sesli-kitap", title: "Sesli Kitap Prodüksiyonu", icon: "🎧", plans: ["standart", "profesyonel", "vip"], pricing: "per-page",
     desc: "Kitabınız profesyonel yapay zeka seslendirmesiyle sesli kitaba dönüştürülür." },
-  { key: "podcast", title: "Podcast Tanıtım Bölümü", icon: "🎙️", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: PODCAST_TIERS,
+  { key: "podcast", title: "Podcast Tanıtım Bölümü", icon: "◉", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: PODCAST_TIERS,
     desc: "Kitabınız için söyleşi formatında bir tanıtım podcast bölümü prodüksiyonu." },
-  { key: "influencer", title: "Influencer / BookTok Eşleştirme", icon: "🤝", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: INFLUENCER_TIERS,
+  { key: "influencer", title: "Influencer / BookTok Eşleştirme", icon: "◈", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: INFLUENCER_TIERS,
     desc: "Kitap içerikli sosyal medya hesaplarına ürün gönderimi ve içerik iş birliği organizasyonu." },
-  { key: "etkinlik", title: "Kitap Fuarı & Lansman Organizasyonu", icon: "🏛️", plans: ["standart", "profesyonel", "vip"], pricing: "fairs",
+  { key: "etkinlik", title: "Kitap Fuarı & Lansman Organizasyonu", icon: "▣", plans: ["standart", "profesyonel", "vip"], pricing: "fairs",
     desc: "Yaklaşan kitap fuarlarına katılım ve imza günü organizasyonu; katılım ve stand ücretleri otomatik takip edilir." },
-  { key: "egitim-pro", title: "Yazar Kariyer Eğitim Programı", icon: "🎓", plans: ["standart", "profesyonel", "vip"], pricing: "fixed", price: 899, period: "tek seferlik",
+  { key: "egitim-pro", title: "Yazar Kariyer Eğitim Programı", icon: "◉", plans: ["standart", "profesyonel", "vip"], pricing: "fixed", price: 899, period: "tek seferlik",
     desc: "7 bölümlük tam program: reklam stratejisi, sosyal medya, Instagram, BookTok iş birliği, PR, e-posta bülteni ve lansman planlaması." },
-  { key: "pr", title: "Haber & PR Çalışması", icon: "📰", plans: ["standart"], pricing: "fixed", price: 2200, period: "kampanya başı",
+  { key: "pr", title: "Haber & PR Çalışması", icon: "▤", plans: ["standart"], pricing: "fixed", price: 2200, period: "kampanya başı",
     desc: "Kitabınız için medya bülteni ve haber yerleştirme çalışması. Profesyonel ve VIP paketlerde bu hizmet zaten dahildir." },
-  { key: "film", title: "Film & Dizi Uyarlama Başvurusu", icon: "🎬", plans: ["standart", "profesyonel", "vip"], pricing: "info",
+  { key: "film", title: "Film & Dizi Uyarlama Başvurusu", icon: "▶", plans: ["standart", "profesyonel", "vip"], pricing: "info",
     desc: "Kitabınızın görsel içeriğe uyarlanması için ön değerlendirmeye başvurun.",
     infoNote: "Uyarlama bedelleri kitabın kapsamına göre değişir; ön bilgilendirme olarak minimum 100.000 ₺'den başlar." },
-  { key: "marka-magazasi", title: "Yazar Marka Mağazası", icon: "🏷️", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: BRAND_STORE_TIERS,
+  { key: "marka-magazasi", title: "Yazar Marka Mağazası", icon: "◇", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: BRAND_STORE_TIERS,
     desc: "İmzalı özel baskı, markalı yer imi ve poster gibi ürünlerinizi okuyucularınıza satışa sunun." },
 ];
 
@@ -1640,7 +1633,7 @@ function MiniRingNode({ count, maxCount, badgeBg, badgeFg, tag, locked }) {
         }}
       />
       <div style={{ position: "absolute", inset: thickness + 2, borderRadius: "50%", background: THEME.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 14, fontWeight: 800, fontFamily: "'Cormorant Garamond', serif", color: locked ? THEME.textFaint : THEME.textLight }}>{locked ? "🔒" : count}</span>
+        <span style={{ fontSize: 14, fontWeight: 800, fontFamily: "'Cormorant Garamond', serif", color: locked ? THEME.textFaint : THEME.textLight }}>{locked ? "▪" : count}</span>
       </div>
       {!locked && (
         <div style={{ position: "absolute", top: -7, left: "50%", transform: "translateX(-50%)", width: 18, height: 18, borderRadius: "50%", background: badgeBg, border: `1.5px solid ${THEME.bg}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1793,7 +1786,7 @@ function BookCard({ book, plan, expanded, onToggle, onApproveCover }) {
                 )}
                 {book.hediyeDusulen > 0 && (
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5, color: THEME.textMuted, marginBottom: 7 }}>
-                    <span>🎁 Hediye gönderilen</span>
+                    <span>Hediye gönderilen</span>
                     <span style={{ fontFamily: "'Cormorant Garamond', serif" }}>− {book.hediyeDusulen} adet</span>
                   </div>
                 )}
@@ -2824,10 +2817,10 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
 
         {/* Hızlı işlemler */}
         <div style={{ display: "flex", background: THEME.yuzey, border: `1px solid ${VTHEME.divider}`, borderRadius: 0, padding: "14px 4px", marginBottom: 14 }}>
-          {[["🏷️", "İndirimli\nTalep", "indirim"], ["🛍️", "Mağaza", "magaza"], ["📣", "Reklam", "reklam"], ["🎓", "Eğitim", "egitim"]].map(([icon, label, target]) => (
+          {[["◇", "İndirimli\nTalep", "indirim"], ["◫", "Mağaza", "magaza"], ["◈", "Reklam", "reklam"], ["◉", "Eğitim", "egitim"]].map(([icon, label, target]) => (
             <button key={label} onClick={() => target === "indirim" ? setDiscountOpen(true) : (onQuickAction && onQuickAction(target))} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "0 2px", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-              <div style={{ width: 34, height: 34, borderRadius: "50%", border: `1px solid ${VTHEME.divider}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>{icon}</div>
-              <span style={{ fontSize: 14.5, color: VTHEME.textDark, fontWeight: 600, textAlign: "center", lineHeight: 1.2, whiteSpace: "pre-line" }}>{label}</span>
+              <div style={{ width: 38, height: 38, border: "1px solid rgba(201,162,75,.32)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, color: "#C9A24B" }}>{icon}</div>
+              <span style={{ fontSize: 10.5, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(245,240,228,.80)", fontWeight: 500, textAlign: "center", lineHeight: 1.5, whiteSpace: "pre-line" }}>{label}</span>
             </button>
           ))}
         </div>
@@ -3092,9 +3085,9 @@ function AISubscribeScreen({ accountName, wallet, onSubscribe }) {
   const [error, setError] = useState("");
   const firstName = accountName.split(" ")[0];
   const roles = [
-    { icon: "🎓", title: "Eğitimci", desc: "Kariyer programındaki konuları sizin durumunuza göre özetler, neyi önce öğrenmeniz gerektiğini söyler." },
-    { icon: "📣", title: "Reklam Uzmanı", desc: "Bütçenizi, kampanya zamanlamanızı ve performansınızı yorumlar." },
-    { icon: "📊", title: "Analiz Uzmanı", desc: "Satış ve stok verinizi okuyup neyin işe yaradığını açıklar." },
+    { icon: "◉", title: "Eğitimci", desc: "Kariyer programındaki konuları sizin durumunuza göre özetler, neyi önce öğrenmeniz gerektiğini söyler." },
+    { icon: "◈", title: "Reklam Uzmanı", desc: "Bütçenizi, kampanya zamanlamanızı ve performansınızı yorumlar." },
+    { icon: "▤", title: "Analiz Uzmanı", desc: "Satış ve stok verinizi okuyup neyin işe yaradığını açıklar." },
     { icon: "💼", title: "Satış Uzmanı", desc: "Platform stratejisi ve fiyatlandırma konusunda yönlendirir." },
     { icon: "🗂️", title: "Program Yöneticisi", desc: "İsteğinizde haftalık/aylık somut bir içerik ve pazarlama programı yazar." },
   ];
@@ -3304,7 +3297,7 @@ function EducationSection({ unlocked, onUnlock, wallet }) {
           <div key={i} style={{ borderRadius: 0, overflow: "hidden", marginBottom: 14, border: `1px solid ${THEME.border}`, opacity: locked ? 0.6 : 1, boxShadow: "0 4px 14px rgba(0,0,0,0.35)" }}>
             {locked ? (
               <div style={{ padding: "18px 20px", background: m.color, color: THEME.textLight, display: "flex", alignItems: "center", gap: 14 }}>
-                <FilmFrameIcon glyph="🔒" tint={m.color} />
+                <FilmFrameIcon glyph="▪" tint={m.color} />
                 <div>
                   <div style={{ fontSize: 14.5, letterSpacing: "0.18em", color: "rgba(231,236,255,0.55)" }}>BÖLÜM {i + 1} · PROGRAM GEREKLİ</div>
                   <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15.5, marginTop: 2 }}>{m.title}</div>
@@ -3527,7 +3520,7 @@ export default function App() {
   const submitReferral = ({ name, contact }) => setReferralData((prev) => ({ ...prev, [account.id]: [{ id: Date.now(), name, contact, status: "Beklemede" }, ...(prev[account.id] || [])] }));
 
   const tabs = [["kitaplar", "Kitaplarım"], ["stok", "Stok Takip"], ["kariyer", "Kariyer & Görevler"], ["magaza", "Mağaza"], ["reklam", "Reklam"], ...(vip ? [["ek", "Ek Hizmetler"]] : []), ["kazanc", "Kazanç"], ["egitim", "Eğitim"], ["ai", "Yazar Danışmanım"], ["destek", "Duyuru & Destek"], ["hesabim", "Hesabım"]];
-  const OTHER_ITEMS = [["kitaplar", "Kitaplarım", "◫"], ["magaza", "Mağaza", "🛍️"], ["reklam", "Reklam", "📣"], ...(vip ? [["ek", "Ek Hizmetler", "✨"]] : []), ["egitim", "Eğitim", "🎓"], ["destek", "Duyuru & Destek", "🔔"]];
+  const OTHER_ITEMS = [["kitaplar", "Kitaplarım", "◫"], ["magaza", "Mağaza", "◫"], ["reklam", "Reklam", "◈"], ...(vip ? [["ek", "Ek Hizmetler", "✦"]] : []), ["egitim", "Eğitim", "◉"], ["destek", "Duyuru & Destek", "◔"]];
   // Kariyer alt menüye alındı — oyunlaştırma en büyük yatırım, arka planda kalmamalı.
   // İkonlar emoji değil: paket sayfasının geometrik/eşkenar dörtgen dili.
   const BOTTOM_NAV = [
@@ -3648,7 +3641,7 @@ export default function App() {
         {tab === "stok" && <StockOrbitTab books={account.books} account={account} token={session.token} onQuickAction={(t) => setTab(t)} />}
         {tab === "kariyer" && <GameSection oyun={oyun} token={session.token} onRefresh={oyunCek} katman={katman} />}
         {tab === "magaza" && <StoreSection plan={account.plan} books={account.books} wallet={account.wallet} notices={myNotices} orders={myOrders} onOrder={placeOrder} onSubmitNotice={submitNotice} token={session.token} />}
-        {tab === "reklam" && <AdSection books={account.books} token={token} onRefresh={refreshAccount} />}
+        {tab === "reklam" && <AdSection books={account.books} token={session.token} onRefresh={refreshAccount} />}
         {tab === "ek" && vip && <ExtrasSection books={account.books} requests={myTranslations} onSubmit={submitTranslation} />}
         {tab === "kazanc" && <EarningsSection account={account} />}
         {tab === "egitim" && <EducationSection unlocked={account.unlocked["egitim-pro"]} onUnlock={unlockEgitimDirect} wallet={account.wallet} />}

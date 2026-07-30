@@ -235,13 +235,7 @@ function OkunmamisDuyurular({ duyurular, yazarId }) {
           <span style={{ height: 1, flex: 1, background: "linear-gradient(90deg,rgba(201,162,75,.6),transparent)" }} />
         </div>
 
-        <button onClick={okundu} style={{
-          marginTop: 20, width: "100%", background: THEME.altinButon, color: "#0A1428",
-          border: "none", padding: "14px 0", fontSize: 14, fontWeight: 600,
-          letterSpacing: "0.08em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
-        }}>
-          {sonuncu ? "ANLADIM" : "SONRAKİ"}
-        </button>
+        <Dugme tur="asil" onClick={okundu}>{sonuncu ? "ANLADIM" : "SONRAKİ"}</Dugme>
       </div>
     </div>
   );
@@ -959,6 +953,88 @@ function ReklamDashboard({ kampanyalar = [], C, baslik = "Reklam Performansı" }
 
 
 // ---- Shared design tokens ----
+// ═══════════════════════════════════════════════════════════════════
+// ANA BUTON — 09 numaralı tasarım (Mustafa'nın seçimi, 29 Tem 2026)
+// Dolgu yok: versal metin + ok + altın çizgi. Tüm uygulamada tek dil.
+// tur="asil"  → altın metin, kalın çizgi (ekranın ana eylemi)
+// tur="orta"  → fildişi metin, ince çizgi
+// tur="sessiz"→ soluk metin, oksuz (vazgeç, kapat)
+// ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// GİRİŞ ANİMASYONU — F tasarımı (Mustafa'nın seçimi, 29 Tem 2026)
+// Harf harf yanan MST + altın ilerleme çubuğu.
+// Giriş yanıtı ~550 ms sürüyor; animasyon yarım kalmasın diye en az
+// 1,2 saniye ekranda tutuluyor.
+// ═══════════════════════════════════════════════════════════════════
+function GirisAnimasyonu({ gorunur }) {
+  if (!gorunur) return null;
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      background: `radial-gradient(420px 240px at 50% 45%, rgba(201,162,75,.12), transparent 70%), #070D1B`,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 22,
+    }}>
+      <style>{`
+        @keyframes gaHarf  { 0%,100% { opacity:.22 } 50% { opacity:1 } }
+        @keyframes gaCubuk { 0% { width:0 } 100% { width:100% } }
+        .ga-harf { animation: gaHarf 1.5s ease-in-out infinite }
+      `}</style>
+
+      <div style={{ display: "flex", gap: 12, fontFamily: "'Cormorant Garamond', serif", fontSize: 40, letterSpacing: "0.12em", color: "#F0D68A" }}>
+        <span className="ga-harf">M</span>
+        <span className="ga-harf" style={{ animationDelay: ".25s" }}>S</span>
+        <span className="ga-harf" style={{ animationDelay: ".5s" }}>T</span>
+      </div>
+
+      <div style={{ width: 150, height: 1, background: "rgba(201,162,75,.20)", overflow: "hidden" }}>
+        <div style={{ height: "100%", background: "linear-gradient(90deg,#8C6A22,#F0D68A)", animation: "gaCubuk 1.8s ease-in-out infinite" }} />
+      </div>
+
+      <div style={{ fontSize: 10, letterSpacing: "0.3em", color: "rgba(201,162,75,.7)", fontFamily: "'Jost', sans-serif" }}>
+        GİRİŞ YAPILIYOR
+      </div>
+    </div>
+  );
+}
+
+function Dugme({ children, onClick, disabled, tur = "asil", tamGenislik = true, kucuk = false, type }) {
+  const [uzerinde, setUzerinde] = useState(false);
+  const renk = disabled
+    ? "rgba(245,240,228,.32)"
+    : tur === "asil" ? "#F0D68A" : tur === "orta" ? "#F5F0E4" : "rgba(245,240,228,.62)";
+  const cizgi = disabled
+    ? "rgba(245,240,228,.14)"
+    : tur === "sessiz"
+      ? "rgba(201,162,75,.28)"
+      : `linear-gradient(90deg,transparent,rgba(201,162,75,${uzerinde ? ".95" : tur === "asil" ? ".8" : ".5"}),transparent)`;
+
+  return (
+    <div style={{ width: tamGenislik ? "100%" : "auto", display: tamGenislik ? "block" : "inline-block" }}>
+      <button
+        type={type || "button"}
+        onClick={disabled ? undefined : onClick}
+        disabled={disabled}
+        onMouseEnter={() => setUzerinde(true)}
+        onMouseLeave={() => setUzerinde(false)}
+        style={{
+          width: "100%", background: "transparent", border: "none", borderRadius: 0,
+          color: renk, padding: kucuk ? "10px 14px" : "14px 18px",
+          fontSize: kucuk ? 12.5 : 14, fontWeight: 500,
+          letterSpacing: kucuk ? "0.14em" : "0.2em",
+          fontFamily: "'Jost', sans-serif",
+          cursor: disabled ? "default" : "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+          transition: "color .2s",
+        }}
+      >
+        {children}
+        {tur !== "sessiz" && <span style={{ fontSize: kucuk ? 14 : 17, transform: uzerinde ? "translateX(3px)" : "none", transition: "transform .2s" }}>→</span>}
+      </button>
+      <div style={{ height: 1, background: cizgi }} />
+    </div>
+  );
+}
+
 const PLATFORMS = [
   { key: "mst", label: "MST Yayıncılık", tag: "MST", badgeBg: THEME.cyan, badgeFg: "#0A0E1A" },
   { key: "trendyol", label: "Trendyol", tag: "TY", badgeBg: "#0A0A0A", badgeFg: "#FF6A00" },
@@ -1505,6 +1581,7 @@ function LoginScreen({ onLogin }) {
     if (loading) return;
     setError("");
     setLoading(true);
+    const baslangic = Date.now();
     try {
       const res = await fetch(`${BACKEND_URL}/api/author/login`, {
         method: "POST",
@@ -1518,7 +1595,9 @@ function LoginScreen({ onLogin }) {
         return;
       }
       setExiting(true);
-      setTimeout(() => onLogin({ token: data.token, account: data.account }), 680);
+      // Animasyon yarım kalmasın: yanıt hızlı gelse de en az 1,2 sn oynasın
+      const gecen = Date.now() - baslangic;
+      setTimeout(() => onLogin({ token: data.token, account: data.account }), Math.max(680, 1200 - gecen));
     } catch {
       setError("Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.");
       setLoading(false);
@@ -1622,20 +1701,7 @@ function LoginScreen({ onLogin }) {
         </div>
       )}
 
-      {exiting && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 90, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", animation: "mstFadeIn 0.3s ease 0.3s forwards" }}>
-          {[
-            { fx: "-220px", fy: "-160px", fr: "-40deg", delay: "0s", color: LT.gold },
-            { fx: "210px", fy: "-180px", fr: "35deg", delay: "0.04s", color: LT.goldSoft },
-            { fx: "-180px", fy: "190px", fr: "-25deg", delay: "0.08s", color: LT.gold },
-            { fx: "230px", fy: "170px", fr: "30deg", delay: "0.02s", color: LT.goldSoft },
-            { fx: "0px", fy: "-260px", fr: "10deg", delay: "0.1s", color: LT.gold },
-            { fx: "0px", fy: "260px", fr: "-10deg", delay: "0.06s", color: LT.goldSoft },
-          ].map((p, i) => (
-            <div key={i} style={{ position: "absolute", width: 54, height: 76, borderRadius: 0, background: p.color, boxShadow: "0 4px 14px rgba(0,0,0,0.5)", "--fx": p.fx, "--fy": p.fy, "--fr": p.fr, animation: `mstPageFly 0.62s cubic-bezier(0.3,0,0.6,1) ${p.delay} forwards` }} />
-          ))}
-        </div>
-      )}
+      <GirisAnimasyonu gorunur={exiting} />
 
       <div style={{
         position: "relative", zIndex: 2, width: "100%", maxWidth: 380,
@@ -1667,11 +1733,7 @@ function LoginScreen({ onLogin }) {
             </label>
             <span onClick={() => setError("Bu işlem için yayınevi ile iletişime geçin.")} style={{ color: LT.gold, cursor: "pointer" }}>Şifremi unuttum</span>
           </div>
-          <button type="submit" disabled={loading} style={{
-            marginTop: 6, background: THEME.altinButon, color: "#0A1428",
-            border: "none", borderRadius: 0, padding: "13px 0", fontSize: 15, fontWeight: 700, cursor: loading ? "default" : "pointer",
-            fontFamily: "'Jost', sans-serif", letterSpacing: "0.05em", boxShadow: "0 10px 36px rgba(201,162,75,.30)", opacity: loading ? 0.7 : 1,
-          }}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</button>
+          <Dugme type="submit" tur="asil" disabled={loading}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</Dugme>
         </form>
       </div>
     </div>
@@ -1776,7 +1838,7 @@ function PipelineTimeline({ pipeline, onApproveCover }) {
                 <span style={{ fontSize: 15, color: THEME.textMuted, fontFamily: "'Cormorant Garamond', serif", whiteSpace: "nowrap" }}>{stage.status === "tamamlandi" ? "✓ Tamam" : stage.eta ? `Tahmini ${formatDate(stage.eta)}` : ""}</span>
               </div>
               {stage.key === "kapak" && stage.approved && <div style={{ fontSize: 14.5, color: THEME.success, marginTop: 4 }}>✓ Kapağı onayladınız</div>}
-              {showApprove && <button onClick={onApproveCover} style={{ marginTop: 8, background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "8px 14px", fontSize: 14, cursor: "pointer", fontWeight: 600 }}>Kapak Tasarımını Onayla</button>}
+              {showApprove && <Dugme tur="asil" onClick={onApproveCover}>Kapak Tasarımını Onayla</Dugme>}
             </div>
           </div>
         );
@@ -1946,7 +2008,7 @@ function SupportSection({ requests, onSubmit }) {
       <form onSubmit={submit} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: 14, display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
         <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Konu" style={{ padding: "9px 11px", border: `1px solid ${THEME.border}`, borderRadius: 0, fontSize: 16, boxSizing: "border-box", background: THEME.yuzeyDik, color: THEME.textLight }} />
         <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Mesajınız" rows={3} style={{ padding: "9px 11px", border: `1px solid ${THEME.border}`, borderRadius: 0, fontSize: 16, boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", background: THEME.yuzeyDik, color: THEME.textLight }} />
-        <button type="submit" style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "10px 0", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>Gönder</button>
+        <Dugme type="submit" tur="asil">Gönder</Dugme>
       </form>
       {requests.length > 0 && (<>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Talepleri̇m</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
@@ -2019,11 +2081,7 @@ function PaymentNotice({ wallet, notices, onSubmit, label, token }) {
             <input type="number" min={50} step={50} value={amount} onChange={(e) => setAmount(e.target.value)} style={{ display: "block", width: "100%", marginTop: 4, ...inputStyle }} />
           </label>
           {kartHata && <div style={{ fontSize: 15, color: THEME.danger, marginTop: 8 }}>{kartHata}</div>}
-          <button onClick={kartlaOde} disabled={kartYukleniyor} style={{
-            width: "100%", marginTop: 12, background: THEME.altinButon, color: "#0A1428", border: "none",
-            borderRadius: 0, padding: "11px 0", fontSize: 15, cursor: kartYukleniyor ? "default" : "pointer",
-            fontWeight: 700, opacity: kartYukleniyor ? 0.7 : 1,
-          }}>{kartYukleniyor ? "Ödeme sayfası açılıyor..." : `${tl(Number(amount) || 0)} Kartla Öde`}</button>
+          <Dugme tur="asil" onClick={kartlaOde} disabled={kartYukleniyor}>{kartYukleniyor ? "Ödeme sayfası açılıyor..." : `${tl(Number(amount) || 0)} Kartla Öde`}</Dugme>
           <div style={{ fontSize: 15, color: THEME.textFaint, textAlign: "center", marginTop: 8 }}>
             Güvenli ödeme · mstyayincilik.com üzerinden
           </div>
@@ -2043,7 +2101,7 @@ function PaymentNotice({ wallet, notices, onSubmit, label, token }) {
             </label>
             {file && <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: THEME.success }}>{file.isImage ? <img src={file.dataUrl} alt="" style={{ width: 40, height: 40, objectFit: "cover", borderRadius: 0, border: `1px solid ${THEME.border}` }} /> : <span>📄</span>}{file.name} eklendi</div>}
             <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Not (opsiyonel)" style={inputStyle} />
-            <button type="submit" style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "10px 0", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>Ödeme Bildirimini Gönder</button>
+            <Dugme type="submit" tur="asil">Ödeme Bildirimini Gönder</Dugme>
           </form>
         </>
       )}
@@ -2178,10 +2236,7 @@ function UygulamaIndirSeridi() {
         <div style={{ fontSize: 13.5, color: "#F5F0E4", fontWeight: 500 }}>MST Yazar uygulaması</div>
         <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.62)" }}>Ana ekranından tek dokunuşla aç</div>
       </div>
-      <button onClick={kur} style={{
-        background: THEME.altinButon, color: "#0A1428", border: "none", padding: "9px 16px",
-        fontSize: 12.5, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
-      }}>KUR</button>
+      <Dugme tur="asil" onClick={kur}>KUR</Dugme>
       <button onClick={kapat} aria-label="Kapat" style={{
         background: "none", border: "none", color: "rgba(245,240,228,.5)", fontSize: 20, cursor: "pointer", padding: "0 4px",
       }}>×</button>
@@ -2286,10 +2341,7 @@ function ReklamSimulasyonu({ books }) {
             "{kitapAdi}" için 1.500 ₺ bütçeyle 14 günlük bir kampanya açtığınızı varsayalım.
             Ekranınız gün gün nasıl dolar, kampanya bitince danışmanınız ne söyler — izleyin.
           </div>
-          <button onClick={() => setOynuyor(true)} style={{
-            background: THEME.altinButon, color: "#0A1428", border: "none", padding: "13px 26px",
-            fontSize: 14.5, fontWeight: 600, letterSpacing: "0.06em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
-          }}>▶ SİMÜLASYONU OYNAT</button>
+          <Dugme tur="asil" onClick={() => setOynuyor(true)}>▶ SİMÜLASYONU OYNAT</Dugme>
         </>
       ) : (
         <>
@@ -2461,11 +2513,7 @@ function KendiKampanyam({ books, token }) {
       </div>
 
       {!acik && (
-        <button onClick={() => setAcik(true)} style={{
-          background: THEME.altinButon, color: "#0A1428", border: "none", padding: "14px 26px",
-          fontSize: 15, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer",
-          fontFamily: "'Jost', sans-serif", marginBottom: 24,
-        }}>KİTABIMI REKLAMA AÇ</button>
+        <Dugme tur="asil" onClick={() => setAcik(true)}>KİTABIMI REKLAMA AÇ</Dugme>
       )}
 
       {acik && (
@@ -2546,10 +2594,7 @@ function KendiKampanyam({ books, token }) {
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={gonder} disabled={calisiyor || !bookId} style={{
-              background: THEME.altinButon, color: "#0A1428", border: "none", padding: "13px 24px",
-              fontSize: 15, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
-            }}>{calisiyor ? "GÖNDERİLİYOR..." : "KAMPANYAYI BAŞLAT"}</button>
+            <Dugme tur="asil" onClick={gonder} disabled={calisiyor || !bookId}>{calisiyor ? "GÖNDERİLİYOR..." : "KAMPANYAYI BAŞLAT"}</Dugme>
             <button onClick={() => setAcik(false)} style={{
               background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
               padding: "13px 20px", fontSize: 14, cursor: "pointer", fontFamily: "'Jost', sans-serif",
@@ -2713,11 +2758,7 @@ function AdSection({ books, token, onRefresh }) {
       </div>
 
       {!formAcik && (
-        <button onClick={() => setFormAcik(true)} style={{
-          background: THEME.altinButon, color: "#0A1428", border: "none", padding: "14px 26px",
-          fontSize: 15, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer",
-          fontFamily: "'Jost', sans-serif", marginBottom: 28,
-        }}>KİTABIMI TANITMAK İSTİYORUM</button>
+        <Dugme tur="asil" onClick={() => setFormAcik(true)}>KİTABIMI TANITMAK İSTİYORUM</Dugme>
       )}
 
       {formAcik && (
@@ -2762,12 +2803,7 @@ function AdSection({ books, token, onRefresh }) {
           <textarea value={not} onChange={(e) => setNot(e.target.value)} rows={2}
             placeholder="Eklemek istediğiniz bir şey var mı? (opsiyonel)" style={{ ...inputStyle, resize: "vertical" }} />
           <div style={{ display: "flex", gap: 10 }}>
-            <button onClick={basvur} disabled={gonderiliyor || !hedef.trim()} style={{
-              background: THEME.altinButon, color: "#0A1428", border: "none", padding: "13px 24px",
-              fontSize: 15, fontWeight: 600, letterSpacing: "0.05em",
-              cursor: gonderiliyor ? "default" : "pointer", opacity: !hedef.trim() ? 0.5 : 1,
-              fontFamily: "'Jost', sans-serif",
-            }}>{gonderiliyor ? "GÖNDERİLİYOR..." : "BAŞVURUYU GÖNDER"}</button>
+            <Dugme tur="asil" onClick={basvur} disabled={gonderiliyor || !hedef.trim()}>{gonderiliyor ? "GÖNDERİLİYOR..." : "BAŞVURUYU GÖNDER"}</Dugme>
             <button onClick={() => setFormAcik(false)} style={{
               background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
               padding: "13px 20px", fontSize: 14, cursor: "pointer", fontFamily: "'Jost', sans-serif",
@@ -2828,10 +2864,7 @@ function AdSection({ books, token, onRefresh }) {
 
                       {t.durum === "teklif_hazir" && (
                         <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
-                          <button onClick={() => karar(t.id, "onayla")} style={{
-                            background: THEME.altinButon, color: "#0A1428", border: "none", padding: "11px 22px",
-                            fontSize: 14, fontWeight: 600, letterSpacing: "0.05em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
-                          }}>ONAYLIYORUM</button>
+                          <Dugme tur="asil" onClick={() => karar(t.id, "onayla")}>ONAYLIYORUM</Dugme>
                           <button onClick={() => karar(t.id, "reddet")} style={{
                             background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
                             padding: "11px 18px", fontSize: 13.5, cursor: "pointer", fontFamily: "'Jost', sans-serif",
@@ -2949,9 +2982,7 @@ function ServiceCard({ service, books, wallet, onOrder, expanded, onToggle, orde
           )}
           {price !== null && service.pricing !== "info" && <div style={{ fontSize: 15, color: THEME.textLight, marginBottom: 8 }}>Toplam: <strong style={{ color: THEME.cyan }}>{tl(price)}</strong></div>}
           {error && <div style={{ color: THEME.danger, fontSize: 14, marginBottom: 8 }}>{error}</div>}
-          <button onClick={handleAction} style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "9px 16px", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>
-            {service.pricing === "info" ? "Başvuru Gönder" : "Satın Al"}
-          </button>
+          <Dugme tur="asil" onClick={handleAction}>{service.pricing === "info" ? "Başvuru Gönder" : "Satın Al"}</Dugme>
 
           {ordersForService.length > 0 && (
             <div style={{ marginTop: 14 }}>
@@ -3107,7 +3138,7 @@ function NewBookForm({ onSubmit, submissions }) {
   return (
     <div style={{ marginBottom: 18 }}>
       {!open ? (
-        <button onClick={() => setOpen(true)} style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "10px 16px", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>+ Yeni Kitap Teslim Et</button>
+        <Dugme tur="asil" onClick={() => setOpen(true)}>+ Yeni Kitap Teslim Et</Dugme>
       ) : (
         <form onSubmit={submit} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.textLight }}>Yeni Eser Teslimi</div>
@@ -3120,7 +3151,7 @@ function NewBookForm({ onSubmit, submissions }) {
           <textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Yayınevine not (opsiyonel)" rows={2} style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }} />
           <div style={{ fontSize: 14.5, color: THEME.textMuted, background: THEME.headerBg, borderRadius: 0, padding: "8px 10px", lineHeight: 1.5, border: `1px solid ${THEME.border}` }}>Dosyanız yüklendiğinde <strong style={{ color: THEME.cyan }}>dosyakontrol@mstyayincilik.com</strong> adresine otomatik bildirim gönderilir; yayınevi başvurunuzu inceleyip kabul ettiğinde kitabınız otomatik olarak yayın sürecine girer.</div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button type="submit" style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "9px 16px", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>Gönder</button>
+            <Dugme type="submit" tur="asil">Gönder</Dugme>
             <button type="button" onClick={() => setOpen(false)} style={{ background: "none", border: `1px solid ${THEME.border}`, color: THEME.textMuted, borderRadius: 0, padding: "9px 16px", fontSize: 14.5, cursor: "pointer" }}>Vazgeç</button>
           </div>
         </form>
@@ -3472,7 +3503,7 @@ function AccountSection({ account, token, referrals, onRefer, otherItems, onNavi
       <form onSubmit={submitReferral} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: 14, display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
         <input value={refName} onChange={(e) => setRefName(e.target.value)} placeholder="Önereceğiniz yazarın adı" style={inputStyle} />
         <input value={refContact} onChange={(e) => setRefContact(e.target.value)} placeholder="Telefon veya e-posta" style={inputStyle} />
-        <button type="submit" style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "9px 0", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>Öner</button>
+        <Dugme type="submit" tur="asil">Öner</Dugme>
       </form>
       {referrals.length > 0 && (
         <div style={{ marginBottom: 48 }}>
@@ -3491,7 +3522,7 @@ function AccountSection({ account, token, referrals, onRefer, otherItems, onNavi
         <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Yeni şifre (tekrar)" style={inputStyle} />
         {pwError && <div style={{ fontSize: 14, color: THEME.danger }}>{pwError}</div>}
         {saved && <div style={{ fontSize: 14, color: THEME.success }}>Şifreniz güncellendi.</div>}
-        <button type="submit" disabled={pwBusy} style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "9px 0", fontSize: 14.5, cursor: pwBusy ? "default" : "pointer", fontWeight: 600, opacity: pwBusy ? 0.7 : 1 }}>{pwBusy ? "Kaydediliyor..." : "Kaydet"}</button>
+        <Dugme type="submit" tur="asil" disabled={pwBusy}>{pwBusy ? "Kaydediliyor..." : "Kaydet"}</Dugme>
       </form>
 
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Sikça sorulan sorular</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
@@ -3940,11 +3971,7 @@ function AISubscribeScreen({ account, accountName, wallet, onSubscribe }) {
           İstediğiniz zaman durdurabilirsiniz
         </div>
 
-        <button onClick={handle} style={{
-          marginTop: 22, width: "100%", maxWidth: 320, background: THEME.altinButon, color: "#0A1428",
-          border: "none", padding: "15px 0", fontSize: 15, fontWeight: 600, letterSpacing: "0.08em",
-          cursor: "pointer", fontFamily: "'Jost', sans-serif",
-        }}>DANIŞMANIMI BAŞLAT</button>
+        <Dugme tur="asil" onClick={handle}>DANIŞMANIMI BAŞLAT</Dugme>
 
         {error && <div style={{ fontSize: 13.5, color: "#E09080", marginTop: 14 }}>{error}</div>}
 
@@ -4090,7 +4117,7 @@ function AIAssistant({ account, token, onSubscribe }) {
                 <div style={{ fontSize: 14, color: THEME.textMuted, lineHeight: 1.5, marginBottom: 4 }}>{m.taslakTalep.detay}</div>
                 {m.taslakTalep.kitap && <div style={{ fontSize: 15, color: THEME.textMuted, marginBottom: 10 }}>Kitap: {m.taslakTalep.kitap}</div>}
                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                  <button onClick={() => onayla(i, m.taslakTalep)} disabled={sendingReq} style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "8px 14px", fontSize: 14, fontWeight: 600, cursor: sendingReq ? "default" : "pointer" }}>{sendingReq ? "Gönderiliyor…" : "✓ MST'ye İlet"}</button>
+                  <Dugme tur="asil" onClick={() => onayla(i, m.taslakTalep)} disabled={sendingReq}>{sendingReq ? "Gönderiliyor…" : "✓ MST'ye İlet"}</Dugme>
                   <button onClick={() => vazgec(i)} disabled={sendingReq} style={{ background: "transparent", color: THEME.textMuted, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "8px 14px", fontSize: 14, cursor: "pointer" }}>✗ Vazgeç</button>
                 </div>
               </div>
@@ -4106,7 +4133,7 @@ function AIAssistant({ account, token, onSubscribe }) {
 
       <form onSubmit={(e) => { e.preventDefault(); send(input); }} style={{ display: "flex", gap: 8 }}>
         <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Sorunuzu yazın..." style={{ flex: 1, padding: "10px 12px", border: `1px solid ${THEME.border}`, borderRadius: 0, fontSize: 16, boxSizing: "border-box", background: THEME.yuzeyDik, color: THEME.textLight }} />
-        <button type="submit" disabled={loading} style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "10px 16px", fontSize: 14.5, cursor: loading ? "default" : "pointer", fontWeight: 600 }}>Gönder</button>
+        <Dugme type="submit" tur="asil" disabled={loading}>Gönder</Dugme>
       </form>
     </div>
   );
@@ -4123,7 +4150,7 @@ function EducationSection({ unlocked, onUnlock, wallet }) {
         <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, borderRadius: 0, padding: "16px 18px", marginBottom: 16, color: THEME.textLight, border: `1px solid ${THEME.cyan}` }}>
           <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15 }}>Tüm programa erişim</div>
           <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 4, marginBottom: 10, lineHeight: 1.6 }}>İlk bölüm (uygulama kullanımı) ücretsiz. Reklam stratejisi, sosyal medya, Instagram, BookTok/Bookstagram iş birliği, PR, e-posta bülteni ve kitap lansmanı planlaması dahil kalan {MODULES.length - 1} bölüm için tek seferlik {tl(program.price)}.</div>
-          <button onClick={onUnlock} style={{ background: THEME.altinButon, color: "#0A1428", border: "none", borderRadius: 0, padding: "9px 16px", fontSize: 14.5, cursor: "pointer", fontWeight: 600 }}>Programı Satın Al — {tl(program.price)}</button>
+          <Dugme tur="asil" onClick={onUnlock}>Programı Satın Al — {tl(program.price)}</Dugme>
         </div>
       )}
       {MODULES.map((m, i) => {

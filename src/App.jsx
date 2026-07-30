@@ -1703,38 +1703,57 @@ function LoginScreen({ onLogin }) {
 
       <GirisAnimasyonu gorunur={exiting} />
 
+      {/* GİRİŞ PANELİ — 03 arka planı (üstte logo alanı, altta form)
+          + 09 çerçevesi (altın kenar, elmas köşeler). Logo giriş sonrası
+          üstte görünenle AYNI: MST Yayıncılık. Önceden MST Ajans Production
+          logosu vardı, iki farklı marka görünüyordu. */}
       <div style={{
-        position: "relative", zIndex: 2, width: "100%", maxWidth: 380,
-        background: "rgba(11,15,28,0.72)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)",
-        border: `1px solid ${LT.border}`, borderRadius: 0, padding: "32px 26px 24px",
-        boxShadow: "0 24px 60px rgba(0,0,0,0.5)",
+        position: "relative", zIndex: 2, width: "100%", maxWidth: 400,
         opacity: exiting ? 0 : 1, transition: "opacity 0.35s ease",
         animation: "mstFadeUp 0.8s ease 0.25s both",
       }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 48 }}>
-          <img src={LOGO_GOLD} alt="MST Ajans Production" style={{ width: 150, height: "auto", filter: "drop-shadow(0 4px 14px rgba(201,162,75,0.35))" }} />
-          <div style={{ width: 44, height: 1, background: LT.border, margin: "14px 0 12px" }} />
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: LT.textLight }}>Yazar Giriş Paneli</div>
+        {[{ top: -5, left: -5 }, { top: -5, right: -5 }, { bottom: -5, left: -5 }, { bottom: -5, right: -5 }].map((k, i) => (
+          <span key={i} style={{ position: "absolute", ...k, width: 9, height: 9, background: LT.gold, transform: "rotate(45deg)", zIndex: 3 }} />
+        ))}
+
+        <div style={{ border: `1px solid rgba(201,162,75,.45)`, background: "rgba(7,13,27,.55)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
+          {/* Üst bölüm — marka */}
+          <div style={{
+            background: "radial-gradient(320px 160px at 50% 0%, rgba(201,162,75,.16), transparent 70%), linear-gradient(172deg, #132445, #070D1B)",
+            borderBottom: "1px solid rgba(201,162,75,.35)",
+            padding: "34px 26px 26px", display: "flex", flexDirection: "column", alignItems: "center",
+          }}>
+            <img src={LOGO_HEADER} alt="MST Yayıncılık" style={{ width: 86, height: "auto", filter: "drop-shadow(0 4px 14px rgba(201,162,75,0.3))" }} />
+            <div style={{ fontSize: 10, letterSpacing: "0.32em", color: "rgba(201,162,75,.85)", marginTop: 14, fontFamily: "'Jost', sans-serif" }}>
+              MST YAYINCILIK
+            </div>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: LT.textLight, marginTop: 8 }}>
+              Yazar Giriş Paneli
+            </div>
+          </div>
+
+          {/* Alt bölüm — form */}
+          <div style={{ padding: "24px 26px 22px" }}>
+            {error && (
+              <div style={{ background: "rgba(251,113,133,0.1)", border: `1px solid ${LT.danger}`, borderRadius: 0, padding: "9px 11px", fontSize: 13.5, color: LT.danger, marginBottom: 14, lineHeight: 1.5 }}>
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <input className="mst-input" value={user} onChange={(e) => setUser(e.target.value)} placeholder="Kullanıcı Adı" autoComplete="username" />
+              <input className="mst-input" type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Şifre" autoComplete="current-password" />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, color: LT.goldSoft }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                  <input type="checkbox" checked={remember} onChange={() => setRemember(!remember)} style={{ accentColor: LT.gold }} />
+                  Beni hatırla
+                </label>
+                <span onClick={() => setError("Bu işlem için yayınevi ile iletişime geçin.")} style={{ color: LT.gold, cursor: "pointer" }}>Şifremi unuttum</span>
+              </div>
+              <Dugme type="submit" tur="asil" disabled={loading}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</Dugme>
+            </form>
+          </div>
         </div>
-
-        {error && (
-          <div style={{ background: "rgba(251,113,133,0.1)", border: `1px solid ${LT.danger}`, borderRadius: 0, padding: "8px 10px", color: LT.danger, fontSize: 14, textAlign: "center", marginBottom: 14 }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <input className="mst-input" value={user} onChange={(e) => setUser(e.target.value)} placeholder="Kullanıcı Adı" autoComplete="username" style={fieldStyle} />
-          <input className="mst-input" type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Şifre" autoComplete="current-password" style={fieldStyle} />
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 15, color: LT.goldSoft }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-              <input type="checkbox" checked={remember} onChange={() => setRemember(!remember)} style={{ accentColor: LT.gold }} />
-              Beni hatırla
-            </label>
-            <span onClick={() => setError("Bu işlem için yayınevi ile iletişime geçin.")} style={{ color: LT.gold, cursor: "pointer" }}>Şifremi unuttum</span>
-          </div>
-          <Dugme type="submit" tur="asil" disabled={loading}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</Dugme>
-        </form>
       </div>
     </div>
   );

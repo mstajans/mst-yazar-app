@@ -3468,12 +3468,162 @@ const AI_SUGGESTIONS = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════
+// A.I. FRAGMANI
+// Fikir: filmin en kritik sahnesini oynatıp tam orada kesmek.
+// Ama sahte demo değil — yazarın GERÇEK verisiyle oynuyor. Kendi kitabını,
+// kendi satış rakamını, kendi kilitli telifini görüyor. Cümle en değerli
+// bilginin başladığı yerde kesiliyor.
+// Rakamlar doğru olduğu için bu bir vaat değil, kanıt.
+// ═══════════════════════════════════════════════════════════════════
+function AIFragman({ account, onBitti }) {
+  const [adim, setAdim] = useState(0);
+  const [yazilan, setYazilan] = useState("");
+  const [kesildi, setKesildi] = useState(false);
+  const [atlandi, setAtlandi] = useState(false);
+
+  // ---- Yazarın gerçek verisinden sahne kurgusu ----
+  const sahne = useMemo(() => {
+    const ad = String(account?.name || "").split(" ")[0] || "";
+    const kitaplar = account?.books || [];
+    const enIyi = [...kitaplar].sort((a, b) => (b.totalSold || 0) - (a.totalSold || 0))[0];
+    const toplamSatis = kitaplar.reduce((t, b) => t + (b.totalSold || 0), 0);
+    const kilitli = kitaplar.reduce((t, b) => t + (b.telif?.kilitli || 0), 0);
+    const stok = enIyi?.stock || {};
+    const platformlar = Object.entries(stok)
+      .map(([k, v]) => ({ ad: (PLATFORMS.find((p) => p.key === k) || {}).label || k, satis: Number(v) || 0 }))
+      .filter((x) => x.satis > 0)
+      .sort((a, b) => b.satis - a.satis);
+    const lider = platformlar[0];
+    const olu = Object.keys(stok).filter((k) => !Number(stok[k])).length;
+    return { ad, enIyi, toplamSatis, kilitli, lider, olu, kitapSayisi: kitaplar.length };
+  }, [account]);
+
+  const t = (x) => Number(x || 0).toLocaleString("tr-TR");
+
+  // ---- Replikler: hepsi gerçek veriden türetilmiş ----
+  const replikler = useMemo(() => {
+    const r = [];
+    r.push({ kim: "ai", metin: `${sahne.ad}, verilerine baktım.` });
+
+    if (sahne.enIyi) {
+      r.push({
+        kim: "ai",
+        metin: `"${sahne.enIyi.title}" şu ana kadar ${t(sahne.toplamSatis)} adet satmış` +
+               (sahne.lider ? ` ve satışın en çok ${sahne.lider.ad}'da yoğunlaşmış — ${t(sahne.lider.satis)} adet.` : "."),
+      });
+    } else {
+      r.push({ kim: "ai", metin: "Henüz yayında kitabın yok — o zaman ilk kitabını nasıl konumlandıracağını konuşmalıyız." });
+    }
+
+    if (sahne.olu > 0) {
+      r.push({ kim: "ai", metin: `${sahne.olu} platformda ise hiç satış görünmüyor. Burada bir sorun var ve çözülebilir.` });
+    }
+    if (sahne.kilitli > 0) {
+      r.push({ kim: "ai", metin: `Ayrıca ${t(sahne.kilitli)} ₺ telifin stok tükenmediği için kilitli duruyor.` });
+    }
+
+    r.push({ kim: "ai", metin: "Şimdi sana üç şey söyleyeceğim. Bunları yaparsan satışın artar." });
+    r.push({ kim: "ai", metin: "Birincisi —", kes: true });
+    return r;
+  }, [sahne]);
+
+  // ---- Daktilo etkisi ----
+  useEffect(() => {
+    if (atlandi || adim >= replikler.length) return;
+    const hedef = replikler[adim].metin;
+    if (yazilan.length < hedef.length) {
+      const zaman = setTimeout(() => setYazilan(hedef.slice(0, yazilan.length + 1)), 22);
+      return () => clearTimeout(zaman);
+    }
+    if (replikler[adim].kes) {
+      const zaman = setTimeout(() => setKesildi(true), 700);
+      return () => clearTimeout(zaman);
+    }
+    const zaman = setTimeout(() => { setAdim(adim + 1); setYazilan(""); }, 950);
+    return () => clearTimeout(zaman);
+  }, [adim, yazilan, atlandi, replikler]);
+
+  if (atlandi) return null;
+
+  const gecmis = replikler.slice(0, adim);
+
+  return (
+    <div style={{
+      background: `radial-gradient(620px 300px at 50% 0%, rgba(201,162,75,.14), transparent 70%),
+                   linear-gradient(172deg, #101E3A, #060B17)`,
+      border: "1px solid rgba(201,162,75,.34)", padding: "26px 22px 22px", marginBottom: 26, position: "relative", overflow: "hidden",
+    }}>
+      <style>{`
+        @keyframes fgImlec { 0%,49% { opacity: 1 } 50%,100% { opacity: 0 } }
+        @keyframes fgGir   { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+        @keyframes fgNabiz { 0%,100% { opacity: .35 } 50% { opacity: .9 } }
+        .fg-imlec { display:inline-block; width:2px; height:1em; background:#F0D68A; margin-left:3px; vertical-align:-2px; animation: fgImlec 1s step-end infinite }
+        .fg-satir { animation: fgGir .35s ease-out both }
+        .fg-nokta { animation: fgNabiz 1.6s ease-in-out infinite }
+      `}</style>
+
+      {/* Başlık şeridi */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+          <span className="fg-nokta" style={{ width: 7, height: 7, background: "#C9A24B", borderRadius: "50%" }} />
+          <span style={{ fontSize: 10, letterSpacing: "0.34em", color: "rgba(201,162,75,.85)", fontWeight: 600 }}>
+            A . I .&nbsp;&nbsp;CANLI
+          </span>
+        </div>
+        <button onClick={() => { setAtlandi(true); onBitti && onBitti(); }} style={{
+          background: "none", border: "none", color: "rgba(245,240,228,.45)", fontSize: 12,
+          cursor: "pointer", fontFamily: "'Jost', sans-serif", letterSpacing: "0.08em",
+        }}>ATLA ›</button>
+      </div>
+
+      {/* Konuşma */}
+      <div style={{ display: "grid", gap: 12, minHeight: 190 }}>
+        {gecmis.map((x, i) => (
+          <div key={i} className="fg-satir" style={{
+            fontSize: 15.5, color: "rgba(245,240,228,.86)", lineHeight: 1.8, fontWeight: 300,
+          }}>{x.metin}</div>
+        ))}
+
+        {adim < replikler.length && (
+          <div style={{
+            fontSize: replikler[adim].kes ? 19 : 15.5,
+            color: replikler[adim].kes ? "#F0D68A" : "rgba(245,240,228,.86)",
+            lineHeight: 1.8, fontWeight: replikler[adim].kes ? 500 : 300,
+            fontFamily: replikler[adim].kes ? "'Cormorant Garamond', serif" : "'Jost', sans-serif",
+          }}>
+            {yazilan}<span className="fg-imlec" />
+          </div>
+        )}
+      </div>
+
+      {/* Kesme perdesi */}
+      {kesildi && (
+        <div style={{ marginTop: 22, paddingTop: 20, borderTop: "1px solid rgba(201,162,75,.24)", textAlign: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 16 }}>
+            <span style={{ height: 1, flex: 1, maxWidth: 90, background: "linear-gradient(90deg,transparent,rgba(201,162,75,.8))" }} />
+            <span style={{ width: 6, height: 6, background: "#C9A24B", transform: "rotate(45deg)" }} />
+            <span style={{ height: 1, flex: 1, maxWidth: 90, background: "linear-gradient(90deg,rgba(201,162,75,.8),transparent)" }} />
+          </div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 23, color: "#fff", fontWeight: 500, lineHeight: 1.35 }}>
+            Devamı danışmanınızda
+          </div>
+          <div style={{ fontSize: 14, color: "rgba(245,240,228,.68)", marginTop: 10, lineHeight: 1.75, fontWeight: 300, maxWidth: 400, margin: "10px auto 0" }}>
+            Yukarıdaki rakamlar uydurma değil — sizin verinizden okundu.
+            Danışmanınız her gün bu veriyi izler ve ne yapmanız gerektiğini söyler.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // A.I. TANITIM SAYFASI
 // Bu sayfa bir menü değil, bir satış sayfası. Yazar buraya girdiğinde
 // "bu bende olmalı" demeli. Yapı: kanca → yetenek → kanıt → mahremiyet
 // → fiyat. Teknolojik ama soğuk değil; paket sayfası dilinde.
 // ═══════════════════════════════════════════════════════════════════
-function AISubscribeScreen({ accountName, wallet, onSubscribe }) {
+function AISubscribeScreen({ account, accountName, wallet, onSubscribe }) {
   const [error, setError] = useState("");
   const [acikRol, setAcikRol] = useState(0);
   const firstName = String(accountName || "").split(" ")[0];
@@ -3525,6 +3675,9 @@ function AISubscribeScreen({ accountName, wallet, onSubscribe }) {
 
   return (
     <div>
+      {/* Fragman — yazarın gerçek verisiyle oynayan canlı sahne */}
+      <AIFragman account={account} />
+
       {/* ── KANCA ── */}
       <div style={{
         background: `radial-gradient(680px 320px at 50% -10%, rgba(201,162,75,.16), transparent 68%),
@@ -3651,7 +3804,7 @@ function AIAssistant({ account, token, onSubscribe }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (!account.aiSubscription?.active) return <AISubscribeScreen accountName={account.name} wallet={account.wallet} onSubscribe={onSubscribe} />;
+  if (!account.aiSubscription?.active) return <AISubscribeScreen account={account} accountName={account.name} wallet={account.wallet} onSubscribe={onSubscribe} />;
 
   const firstName = account.name.split(" ")[0];
   const bookSummary = account.books.map((b) => `${b.title} (${b.totalSold} satış, ${getActiveStage(b.pipeline).label} aşamasında)`).join("; ") || "henüz kitap yok";

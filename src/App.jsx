@@ -1007,6 +1007,62 @@ function GirisAnimasyonu({ gorunur }) {
 // Rakamlar örnek ve HER ADIMDA işaretli. Gerçek sanılan demo, ilk gerçek
 // raporda güveni yıkar.
 // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// DEMO SİMÜLASYONU — yazar adayı için
+//
+// Bu bir slayt gösterisi DEĞİL. Aday burada bir şeyler YAPAR:
+// kitabının adını yazar, satış kaydırıcısını oynatır, paketleri
+// karşılaştırır, uygulamanın içinde gezer.
+//
+// Tasarım ilkesi: anlatma, YAŞAT. Aday kendini altı ay sonraki hâlinde
+// görmeli — kendi kitabının kapağıyla, kendi rakamlarıyla.
+//
+// Rakamlar örnek ve her ekranda işaretli (Kural: gerçek sanılan demo,
+// ilk gerçek raporda güveni yıkar).
+// ═══════════════════════════════════════════════════════════════════
+
+// Sayı sayacı — hedefe doğru animasyonla çıkar
+function Sayac({ hedef, sure = 1200, sonEk = "", basEk = "", stil }) {
+  const [deger, setDeger] = useState(0);
+  useEffect(() => {
+    let iptal = false;
+    const bas = performance.now();
+    const adim = (t) => {
+      if (iptal) return;
+      const o = Math.min(1, (t - bas) / sure);
+      const yumusak = 1 - Math.pow(1 - o, 3);
+      setDeger(Math.round(hedef * yumusak));
+      if (o < 1) requestAnimationFrame(adim);
+    };
+    requestAnimationFrame(adim);
+    return () => { iptal = true; };
+  }, [hedef, sure]);
+  return <span style={stil}>{basEk}{deger.toLocaleString("tr-TR")}{sonEk}</span>;
+}
+
+// Kitap kapağı maketi — adayın kendi kitap adıyla
+function KapakMaketi({ baslik, yazar, boyut = 1 }) {
+  const g = 150 * boyut, y = 225 * boyut;
+  return (
+    <div style={{
+      width: g, height: y, flexShrink: 0, position: "relative",
+      background: "linear-gradient(145deg,#1A2F58,#0C1730)",
+      border: "1px solid rgba(201,162,75,.4)",
+      boxShadow: "6px 8px 26px rgba(0,0,0,.5)",
+      display: "flex", flexDirection: "column", justifyContent: "space-between",
+      padding: 14 * boyut, boxSizing: "border-box",
+    }}>
+      <div style={{ position: "absolute", left: 6 * boyut, top: 0, bottom: 0, width: 2, background: "rgba(201,162,75,.35)" }} />
+      <div style={{ fontSize: 8 * boyut, letterSpacing: "0.24em", color: "rgba(201,162,75,.8)" }}>MST</div>
+      <div style={{
+        fontFamily: "'Cormorant Garamond',serif", fontSize: 19 * boyut, lineHeight: 1.2,
+        color: "#F0D68A", fontWeight: 600, textAlign: "center",
+      }}>{baslik}</div>
+      <div style={{ fontSize: 9 * boyut, color: "rgba(245,240,228,.6)", textAlign: "center", letterSpacing: "0.1em" }}>{yazar}</div>
+    </div>
+  );
+}
+
 function DemoDeneyimi({ kod }) {
   const [veri, setVeri] = useState(null);
   const [hata, setHata] = useState("");
@@ -1015,25 +1071,31 @@ function DemoDeneyimi({ kod }) {
   const [gonderiliyor, setGonderiliyor] = useState(false);
   const [tamamlandi, setTamamlandi] = useState(false);
 
+  // Etkileşim durumları
+  const [kitapAdi, setKitapAdi] = useState("");
+  const [satisTahmin, setSatisTahmin] = useState(500);
+  const [seciliPaket, setSeciliPaket] = useState("profesyonel");
+  const [uygulamaSekme, setUygulamaSekme] = useState("pano");
+  const [surecAdim, setSurecAdim] = useState(0);
+
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/demo/${kod}`)
       .then((r) => r.json())
       .then((d) => {
-        if (d.ok) {
-          setVeri(d);
-          setForm((f) => ({
-            ...f,
-            adSoyad: d.demo.adayAd || "",
-            kitapAdi: d.demo.kitapAdi === "Kitabınız" ? "" : d.demo.kitapAdi || "",
-            kitapTuru: d.demo.kitapTuru || "",
-            paket: d.demo.hedefPaket || "profesyonel",
-          }));
-        } else setHata(d.error || "Demo açılamadı.");
+        if (!d.ok) { setHata(d.error || "Demo açılamadı."); return; }
+        setVeri(d);
+        setKitapAdi(d.demo.kitapAdi && d.demo.kitapAdi !== "Kitabınız" ? d.demo.kitapAdi : "");
+        setSatisTahmin(d.senaryo.tahminiSatis || 500);
+        setSeciliPaket(d.demo.hedefPaket || "profesyonel");
+        setForm((f) => ({
+          ...f, adSoyad: d.demo.adayAd || "",
+          kitapAdi: d.demo.kitapAdi === "Kitabınız" ? "" : d.demo.kitapAdi || "",
+          kitapTuru: d.demo.kitapTuru || "", paket: d.demo.hedefPaket || "profesyonel",
+        }));
       })
       .catch(() => setHata("Bağlantı kurulamadı."));
   }, [kod]);
 
-  // Adım ilerlemesini bildir — satış ekibi nereye kadar geldiğini görsün
   useEffect(() => {
     if (!veri || adim === 0) return;
     fetch(`${BACKEND_URL}/api/demo/${kod}/adim`, {
@@ -1041,6 +1103,14 @@ function DemoDeneyimi({ kod }) {
       body: JSON.stringify({ adim }),
     }).catch(() => {});
   }, [adim, veri, kod]);
+
+  // Yayın süreci animasyonu — 2. adımda otomatik ilerler
+  useEffect(() => {
+    if (adim !== 2) { setSurecAdim(0); return; }
+    if (surecAdim >= 7) return;
+    const z = setTimeout(() => setSurecAdim(surecAdim + 1), 620);
+    return () => clearTimeout(z);
+  }, [adim, surecAdim]);
 
   if (hata) return (
     <div style={{ minHeight: "100vh", background: "#070D1B", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
@@ -1054,26 +1124,38 @@ function DemoDeneyimi({ kod }) {
   );
 
   const d = veri.demo;
-  const sn = veri.senaryo;
   const ilkAd = String(d.adayAd).split(" ")[0];
+  const eserAdi = kitapAdi.trim() || d.kitapAdi || "Kitabınız";
   const t = (x) => Number(x || 0).toLocaleString("tr-TR");
-  const toplamSatis = sn.platformlar.reduce((a, p) => a + p.satis, 0);
-  const secili = veri.paketler.find((p) => p.kod === form.paket) || veri.paketler[1];
-  const baslangic = veri.paketler[0];
-  const fark = secili.tahminiTelif - baslangic.tahminiTelif;
+  const fiyat = veri.senaryo.kitapFiyati || 250;
+
+  // Canlı telif hesabı — kaydırıcı oynadıkça değişir
+  const telifHesapla = (paketKod, satis) => {
+    const p = veri.paketler.find((x) => x.kod === paketKod) || veri.paketler[1];
+    return Math.round((satis / 2) * fiyat * (p.mstYuzde / 100) + (satis / 2) * fiyat * (p.digerYuzde / 100));
+  };
+  const secili = veri.paketler.find((p) => p.kod === seciliPaket) || veri.paketler[1];
+  const seciliTelif = telifHesapla(seciliPaket, satisTahmin);
+  const baslangicTelif = telifHesapla("standart", satisTahmin);
+  const fark = seciliTelif - baslangicTelif;
+
+  const platformDagilim = [
+    { ad: "MST Yayıncılık", oran: 0.34 }, { ad: "Trendyol", oran: 0.24 },
+    { ad: "Hepsiburada", oran: 0.16 }, { ad: "N11", oran: 0.11 },
+    { ad: "İdefix", oran: 0.09 }, { ad: "Pazarama", oran: 0.06 },
+  ].map((p) => ({ ...p, satis: Math.round(satisTahmin * p.oran) }));
 
   const etiket = { fontSize: 10, letterSpacing: "0.3em", color: "rgba(201,162,75,.85)", fontWeight: 600 };
-  const baslik = { fontFamily: "'Cormorant Garamond', serif", fontSize: 30, fontWeight: 600, lineHeight: 1.2, color: "#fff", marginTop: 14 };
-  const govde = { fontSize: 15.5, color: "rgba(245,240,228,.82)", lineHeight: 1.85, fontWeight: 300, marginTop: 16 };
+  const baslik = { fontFamily: "'Cormorant Garamond', serif", fontSize: 29, fontWeight: 600, lineHeight: 1.2, color: "#fff", marginTop: 12 };
+  const govde = { fontSize: 15, color: "rgba(245,240,228,.82)", lineHeight: 1.85, fontWeight: 300, marginTop: 14 };
   const inputStyle = {
-    padding: "13px 15px", border: "1px solid rgba(201,162,75,.28)", borderRadius: 0, fontSize: 15,
-    boxSizing: "border-box", background: "rgba(255,255,255,.02)", color: "#F5F0E4",
+    padding: "13px 15px", border: "1px solid rgba(201,162,75,.32)", borderRadius: 0, fontSize: 15,
+    boxSizing: "border-box", background: "rgba(255,255,255,.03)", color: "#F5F0E4",
     fontFamily: "'Jost', sans-serif", width: "100%",
   };
+  const altinYazi = { background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" };
   const ornekRozet = (
-    <span style={{ fontSize: 9, letterSpacing: "0.16em", color: "rgba(245,240,228,.5)", border: "1px solid rgba(245,240,228,.24)", padding: "3px 7px", whiteSpace: "nowrap" }}>
-      ÖRNEK
-    </span>
+    <span style={{ fontSize: 9, letterSpacing: "0.16em", color: "rgba(245,240,228,.5)", border: "1px solid rgba(245,240,228,.24)", padding: "3px 7px", whiteSpace: "nowrap" }}>ÖRNEK</span>
   );
 
   const gonder = async () => {
@@ -1082,7 +1164,7 @@ function DemoDeneyimi({ kod }) {
     try {
       const r = await fetch(`${BACKEND_URL}/api/demo/${kod}/form`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, kitapAdi: eserAdi, paket: seciliPaket }),
       });
       const j = await r.json();
       if (j.ok) setTamamlandi(true); else setHata(j.error || "Gönderilemedi.");
@@ -1090,270 +1172,386 @@ function DemoDeneyimi({ kod }) {
     finally { setGonderiliyor(false); }
   };
 
-  // ── ADIMLAR ──
+  const surecAdimlari = [
+    ["Eser değerlendirme", "Editörümüz metninizi okur"],
+    ["Redaksiyon", "Dil ve anlatım düzeltmeleri"],
+    ["Mizanpaj", "Sayfa tasarımı ve dizgi"],
+    ["Kapak tasarımı", "Türüne uygun özgün kapak"],
+    ["ISBN & bandrol", "Yasal kayıt işlemleri"],
+    ["Matbaa", "Baskı ve ciltleme"],
+    ["Dağıtım", "Altı pazaryerinde listeleme"],
+  ];
+
   const adimlar = [
-    // 0 — Karşılama
+    // ══ 0 · KARŞILAMA + KİŞİSELLEŞTİRME ══
     {
-      ad: "Karşılama",
       icerik: (
         <div style={{ textAlign: "center" }}>
           <div style={etiket}>MST YAYINCILIK</div>
-          <div style={{ ...baslik, fontSize: 34 }}>Merhaba {ilkAd}</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, margin: "22px auto", maxWidth: 200 }}>
+          <div style={{ ...baslik, fontSize: 33 }}>Merhaba {ilkAd}</div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, margin: "20px auto", maxWidth: 190 }}>
             <span style={{ height: 1, flex: 1, background: "linear-gradient(90deg,transparent,rgba(201,162,75,.8))" }} />
             <span style={{ width: 6, height: 6, background: "#C9A24B", transform: "rotate(45deg)" }} />
             <span style={{ height: 1, flex: 1, background: "linear-gradient(90deg,rgba(201,162,75,.8),transparent)" }} />
           </div>
-          <div style={{ ...govde, maxWidth: 440, margin: "0 auto" }}>
-            Size bir tanıtım göstermeyeceğiz. Bunun yerine, <b style={{ fontWeight: 500, color: "#F0D68A" }}>"{d.kitapAdi}"</b> yayınlandıktan
-            altı ay sonra ekranınızın nasıl görüneceğini birlikte gezeceğiz.
-            <br /><br />
-            Satışlarınızı, telifinizi, tanıtımınızı — hepsini kendi kitabınızın adıyla.
+          <div style={{ ...govde, maxWidth: 430, margin: "0 auto 24px" }}>
+            Size bir sunum yapmayacağız. Bunun yerine kitabınızı yayınlamış hâlinizi
+            <b style={{ fontWeight: 500, color: "#F0D68A" }}> birlikte kullanacağız.</b>
           </div>
-          <div style={{ fontSize: 13, color: "rgba(245,240,228,.5)", marginTop: 24, lineHeight: 1.7, fontWeight: 300, maxWidth: 400, margin: "24px auto 0" }}>
-            Göreceğiniz rakamlar örnektir ve her ekranda işaretlidir. Size gerçek verinizi
-            göstereceğimiz güne kadar hiçbir rakamı vaat olarak sunmuyoruz.
-          </div>
-        </div>
-      ),
-    },
-    // 1 — Pano
-    {
-      ad: "Panonuz",
-      icerik: (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-            <div><div style={etiket}>1 · PANONUZ</div><div style={baslik}>Kitabınız nerede,<br />kaç sattı?</div></div>
-            {ornekRozet}
-          </div>
-          <div style={govde}>
-            Altı pazaryerindeki satışınız tek ekranda toplanır. Her sabah açıp bakarsınız —
-            hangi platform çalışıyor, hangisi durgun.
-          </div>
-          <div style={{ marginTop: 24, background: "linear-gradient(160deg,rgba(201,162,75,.07),rgba(10,20,40,.5))", border: "1px solid rgba(201,162,75,.3)", padding: "24px 22px" }}>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 46, fontWeight: 600, lineHeight: 1, background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              {t(toplamSatis)}
-            </div>
-            <div style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(201,162,75,.8)", marginTop: 6 }}>TOPLAM SATIŞ</div>
-            <div style={{ fontSize: 14, color: "rgba(245,240,228,.7)", marginTop: 4, fontWeight: 300 }}>{d.kitapAdi}</div>
 
-            <div style={{ marginTop: 20, display: "grid", gap: 1, background: "rgba(201,162,75,.14)" }}>
-              {sn.platformlar.map((p) => (
-                <div key={p.ad} style={{ background: "rgba(12,23,48,.6)", padding: "12px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 14.5, color: "#F5F0E4", fontWeight: 300 }}>{p.ad}</span>
-                  <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, color: "#F0D68A" }}>{t(p.satis)}</span>
-                </div>
-              ))}
+          <div style={{ maxWidth: 340, margin: "0 auto", textAlign: "left" }}>
+            <div style={{ fontSize: 10, letterSpacing: "0.28em", color: "rgba(201,162,75,.85)", marginBottom: 8 }}>ESERİNİZİN ADI</div>
+            <input style={inputStyle} value={kitapAdi} onChange={(e) => setKitapAdi(e.target.value)}
+              placeholder="Kitabınızın adını yazın" />
+            <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.5)", marginTop: 8, lineHeight: 1.6 }}>
+              Yazdığınız isim bundan sonraki her ekranda görünecek — kapakta, panonuzda, telif hesabınızda.
             </div>
           </div>
-        </div>
-      ),
-    },
-    // 2 — Yayın süreci
-    {
-      ad: "Yayın süreci",
-      icerik: (
-        <div>
-          <div style={etiket}>2 · YAYIN SÜRECİ</div>
-          <div style={baslik}>Kitabınız hangi<br />adımlardan geçer?</div>
-          <div style={govde}>
-            Her adımı uygulamadan izlersiniz. "Ne oldu acaba" diye telefon açmanıza gerek kalmaz.
-          </div>
-          <div style={{ marginTop: 22, display: "grid", gap: 1, background: "rgba(201,162,75,.14)", border: "1px solid rgba(201,162,75,.24)" }}>
-            {[
-              ["Eser değerlendirme", "Editörümüz metninizi okur"],
-              ["Redaksiyon", "Dil ve anlatım düzeltmeleri"],
-              ["Mizanpaj", "Sayfa tasarımı ve dizgi"],
-              ["Kapak tasarımı", "Türüne uygun özgün kapak"],
-              ["ISBN & bandrol", "Yasal kayıt işlemleri"],
-              ["Matbaa", "Baskı ve ciltleme"],
-              ["Dağıtım", "Altı pazaryerinde listeleme"],
-            ].map(([b, a], i) => (
-              <div key={b} style={{ background: "rgba(12,23,48,.55)", padding: "14px 16px", display: "flex", alignItems: "center", gap: 14 }}>
-                <span style={{ width: 26, height: 26, flexShrink: 0, border: "1px solid rgba(201,162,75,.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "#C9A24B", fontFamily: "'Cormorant Garamond',serif" }}>{i + 1}</span>
-                <div>
-                  <div style={{ fontSize: 14.5, color: "#F5F0E4", fontWeight: 500 }}>{b}</div>
-                  <div style={{ fontSize: 13, color: "rgba(245,240,228,.6)", fontWeight: 300, marginTop: 1 }}>{a}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ),
-    },
-    // 3 — Telif
-    {
-      ad: "Telifiniz",
-      icerik: (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-            <div><div style={etiket}>3 · TELİFİNİZ</div><div style={baslik}>Kaç lira<br />kazanırsınız?</div></div>
-            {ornekRozet}
-          </div>
-          <div style={govde}>
-            Telif hesabınız kalem kalem açık. Hangi kitaptan, hangi platformdan ne kazandığınızı
-            görürsünüz — gizli kesinti yok.
-          </div>
-          <div style={{ marginTop: 22, background: "rgba(201,162,75,.05)", border: "1px solid rgba(201,162,75,.3)", padding: "22px 20px" }}>
-            <div style={{ fontSize: 10, letterSpacing: "0.24em", color: "rgba(201,162,75,.8)" }}>
-              {t(toplamSatis)} SATIŞTA · {secili.ad.toLocaleUpperCase("tr-TR")} PAKETİ
-            </div>
-            <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 44, fontWeight: 600, lineHeight: 1.05, marginTop: 10, background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              {t(secili.tahminiTelif)} ₺
-            </div>
-            <div style={{ fontSize: 13.5, color: "rgba(245,240,228,.66)", marginTop: 10, lineHeight: 1.7, fontWeight: 300 }}>
-              MST mağazasından satışta telifiniz <b style={{ color: "#F0D68A", fontWeight: 500 }}>%{secili.mstYuzde}</b>,
-              diğer pazaryerlerinde <b style={{ color: "#F0D68A", fontWeight: 500 }}>%{secili.digerYuzde}</b>.
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    // 4 — Tanıtım
-    {
-      ad: "Tanıtım",
-      icerik: (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-            <div><div style={etiket}>4 · TANITIM</div><div style={baslik}>Kitabınızı<br />nasıl duyururuz?</div></div>
-            {ornekRozet}
-          </div>
-          <div style={govde}>
-            Instagram ve Facebook'ta reklam verirsiniz. Kaç kişiye ulaştığınızı, kaç kişinin
-            kitabınıza baktığını ve satışınıza etkisini gün gün izlersiniz.
-          </div>
-          <div style={{ marginTop: 22, background: "rgba(12,23,48,.6)", border: "1px solid rgba(201,162,75,.24)", padding: "20px 18px" }}>
-            <div style={{ fontSize: 14.5, color: "#F5F0E4", fontWeight: 500 }}>{d.kitapAdi}</div>
-            <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", marginTop: 3, fontWeight: 300 }}>1.500 ₺ · 14 gün · kitap okurları</div>
-            <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(84px,1fr))", gap: 14 }}>
-              {[["ULAŞILAN", "11.800"], ["TIKLAMA", "340"], ["HARCANAN", "1.500 ₺"], ["SATIŞ", "+14"]].map(([e, v]) => (
-                <div key={e}>
-                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 22, fontWeight: 600, background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent" }}>{v}</div>
-                  <div style={{ fontSize: 9.5, letterSpacing: "0.18em", color: "rgba(201,162,75,.75)", marginTop: 3 }}>{e}</div>
-                </div>
-              ))}
-            </div>
-            <div style={{ fontSize: 12, color: "rgba(245,240,228,.5)", marginTop: 14, lineHeight: 1.6, fontWeight: 300 }}>
-              Bu rakamlar doğrudan Meta'nın reklam sisteminden gelir — biz hesaplamayız.
-            </div>
-          </div>
-          <div style={{ ...govde, fontSize: 14.5 }}>
-            Reklamdan anlamıyorsanız sorun değil: "Uzmanınız yapsın" dersiniz, biz kurarız.
-          </div>
-        </div>
-      ),
-    },
-    // 5 — A.I.
-    {
-      ad: "Danışmanınız",
-      icerik: (
-        <div>
-          <div style={etiket}>5 · A . I . DANIŞMANINIZ</div>
-          <div style={baslik}>Yazarlığın<br />yalnız yürünmez</div>
-          <div style={govde}>
-            Kitabınızı yazdınız. Şimdi onu tanıtmak, satmak, doğru fiyatlamak ve bir sonrakini
-            planlamak var. Bunların hepsi ayrı uzmanlık.
-          </div>
-          <div style={{ marginTop: 20, display: "grid", gap: 1, background: "rgba(201,162,75,.14)", border: "1px solid rgba(201,162,75,.24)" }}>
-            {[
-              ["Eğitmen", "Kurgu, karakter, ritim üzerine rehberlik"],
-              ["Analist", "Satış verinizi okur, ne olduğunu söyler"],
-              ["Reklam uzmanı", "Bütçenizi nereye koyacağınızı bilir"],
-              ["Satış danışmanı", "Fiyat ve platform stratejisi"],
-              ["Program yöneticisi", "Haftalık plan çıkarır"],
-            ].map(([b, a]) => (
-              <div key={b} style={{ background: "rgba(12,23,48,.55)", padding: "13px 16px" }}>
-                <div style={{ fontSize: 14.5, color: "#F0D68A", fontWeight: 500 }}>{b}</div>
-                <div style={{ fontSize: 13, color: "rgba(245,240,228,.66)", marginTop: 2, fontWeight: 300 }}>{a}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginTop: 16, lineHeight: 1.7, fontWeight: 300 }}>
-            Yayınevine soru sormak için buna gerek yok — destek bölümü her zaman ücretsizdir.
-          </div>
-        </div>
-      ),
-    },
-    // 6 — Paket karşılaştırması
-    {
-      ad: "Paketler",
-      icerik: (
-        <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-            <div><div style={etiket}>6 · PAKETLER</div><div style={baslik}>Hangisi size<br />ne kazandırır?</div></div>
-            {ornekRozet}
-          </div>
-          <div style={govde}>
-            Vaat değil aritmetik: aynı kitap, aynı satış, farklı telif oranı.
-            <b style={{ fontWeight: 500 }}> {t(toplamSatis)} satış</b> varsayımıyla:
-          </div>
-          <div style={{ marginTop: 20, display: "grid", gap: 1, background: "rgba(201,162,75,.16)", border: "1px solid rgba(201,162,75,.28)" }}>
-            {veri.paketler.map((p) => {
-              const s = p.kod === form.paket;
-              return (
-                <div key={p.kod} onClick={() => setForm({ ...form, paket: p.kod })} style={{
-                  background: s ? "rgba(201,162,75,.10)" : "rgba(12,23,48,.55)",
-                  padding: "18px 18px", cursor: "pointer",
-                  display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
-                }}>
-                  <div>
-                    <div style={{ fontSize: 16, color: s ? "#F0D68A" : "#F5F0E4", fontWeight: 500 }}>{p.ad}</div>
-                    <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", marginTop: 3, fontWeight: 300 }}>
-                      MST %{p.mstYuzde} · diğer %{p.digerYuzde}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, fontWeight: 600, color: s ? "#F0D68A" : "rgba(245,240,228,.78)" }}>
-                      {t(p.tahminiTelif)} ₺
-                    </div>
-                    <div style={{ fontSize: 9.5, letterSpacing: "0.16em", color: "rgba(201,162,75,.7)", marginTop: 2 }}>TAHMİNİ TELİF</div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          {fark > 0 && (
-            <div style={{ marginTop: 16, background: "rgba(201,162,75,.06)", border: "1px solid rgba(201,162,75,.3)", padding: "16px 18px" }}>
-              <div style={{ fontSize: 14.5, color: "rgba(245,240,228,.84)", lineHeight: 1.8, fontWeight: 300 }}>
-                <b style={{ color: "#F0D68A", fontWeight: 500 }}>{secili.ad}</b> paketi,
-                Başlangıç'a göre bu senaryoda <b style={{ color: "#F0D68A", fontWeight: 500 }}>{t(fark)} ₺</b> daha fazla
-                telif getiriyor. Fark tek seferlik paket ücretinden değil, her satıştan geliyor.
-              </div>
+
+          {kitapAdi.trim() && (
+            <div style={{ marginTop: 26, display: "flex", justifyContent: "center" }}>
+              <KapakMaketi baslik={eserAdi} yazar={d.adayAd} boyut={0.85} />
             </div>
           )}
         </div>
       ),
     },
-    // 7 — Form
+
+    // ══ 1 · PANO — animasyonlu, canlı ══
     {
-      ad: "Başvuru",
+      icerik: (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div><div style={etiket}>PANONUZ</div><div style={baslik}>Altı ay sonra<br />ekranınız</div></div>
+            {ornekRozet}
+          </div>
+
+          <div style={{ marginTop: 20, background: "linear-gradient(160deg,rgba(201,162,75,.07),rgba(10,20,40,.5))", border: "1px solid rgba(201,162,75,.3)", padding: "22px 20px" }}>
+            <div style={{ display: "flex", gap: 18, alignItems: "flex-start", flexWrap: "wrap" }}>
+              <KapakMaketi baslik={eserAdi} yazar={d.adayAd} boyut={0.62} />
+              <div style={{ flex: 1, minWidth: 150 }}>
+                <Sayac hedef={satisTahmin} sonEk="" stil={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 46, fontWeight: 600, lineHeight: 1, ...altinYazi }} />
+                <div style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(201,162,75,.8)", marginTop: 6 }}>TOPLAM SATIŞ</div>
+                <div style={{ marginTop: 14 }}>
+                  <Sayac hedef={seciliTelif} sonEk=" ₺" stil={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 27, fontWeight: 600, ...altinYazi }} />
+                  <div style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(201,162,75,.8)", marginTop: 4 }}>TELİFİNİZ</div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 20, display: "grid", gap: 8 }}>
+              {platformDagilim.map((p, i) => (
+                <div key={p.ad}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5, marginBottom: 4 }}>
+                    <span style={{ color: "rgba(245,240,228,.82)", fontWeight: 300 }}>{p.ad}</span>
+                    <span style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 17, color: "#F0D68A" }}>{t(p.satis)}</span>
+                  </div>
+                  <div style={{ height: 3, background: "rgba(245,240,228,.08)" }}>
+                    <div style={{
+                      height: "100%", width: `${p.oran * 100 / 0.34 * 100}%`, maxWidth: "100%",
+                      background: "linear-gradient(90deg,#8C6A22,#F0D68A)",
+                      transition: `width 900ms ease ${i * 110}ms`,
+                    }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ ...govde, fontSize: 14.5 }}>
+            Her sabah açıp bakarsınız: hangi platform çalışıyor, hangisi durgun.
+            Rakamlar pazaryerlerinden otomatik gelir — elle giriş yok.
+          </div>
+        </div>
+      ),
+    },
+
+    // ══ 2 · YAYIN SÜRECİ — canlı ilerleyen ══
+    {
+      icerik: (
+        <div>
+          <div style={etiket}>YAYIN SÜRECİ</div>
+          <div style={baslik}>"{eserAdi}"<br />yola çıkıyor</div>
+          <div style={{ ...govde, fontSize: 14.5 }}>
+            Her adımı uygulamadan izlersiniz. "Ne oldu acaba" diye telefon açmanıza gerek kalmaz.
+          </div>
+
+          <div style={{ marginTop: 20, display: "grid", gap: 1, background: "rgba(201,162,75,.14)", border: "1px solid rgba(201,162,75,.24)" }}>
+            {surecAdimlari.map(([b, a], i) => {
+              const tamam = i < surecAdim;
+              const suanki = i === surecAdim;
+              return (
+                <div key={b} style={{
+                  background: suanki ? "rgba(201,162,75,.10)" : "rgba(12,23,48,.55)",
+                  padding: "13px 15px", display: "flex", alignItems: "center", gap: 13,
+                  transition: "background 400ms ease",
+                }}>
+                  <span style={{
+                    width: 24, height: 24, flexShrink: 0,
+                    border: `1px solid ${tamam || suanki ? "#C9A24B" : "rgba(201,162,75,.25)"}`,
+                    background: tamam ? "#C9A24B" : "transparent",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 11, color: tamam ? "#0A1428" : "rgba(201,162,75,.7)",
+                    fontFamily: "'Cormorant Garamond',serif", transition: "all 400ms ease",
+                  }}>{tamam ? "✓" : i + 1}</span>
+                  <div style={{ flex: 1, opacity: tamam || suanki ? 1 : 0.42, transition: "opacity 400ms" }}>
+                    <div style={{ fontSize: 14, color: "#F5F0E4", fontWeight: 500 }}>{b}</div>
+                    <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", fontWeight: 300, marginTop: 1 }}>{a}</div>
+                  </div>
+                  {suanki && <span style={{ fontSize: 10, letterSpacing: "0.14em", color: "#F0D68A" }}>ŞİMDİ</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {surecAdim >= 7 && (
+            <div style={{ marginTop: 16, textAlign: "center", fontSize: 14.5, color: "#9FC7A8", fontWeight: 300 }}>
+              Kitabınız altı pazaryerinde yayında.
+            </div>
+          )}
+        </div>
+      ),
+    },
+
+    // ══ 3 · CANLI TELİF HESAPLAYICI — asıl etkileşim ══
+    {
+      icerik: (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div><div style={etiket}>TELİF HESABI</div><div style={baslik}>Kaydırın,<br />kendiniz görün</div></div>
+            {ornekRozet}
+          </div>
+          <div style={{ ...govde, fontSize: 14.5 }}>
+            Kaç adet satarsanız ne kazanırsınız? Kaydırıcıyı oynatın — rakam anında değişir.
+          </div>
+
+          <div style={{ marginTop: 22, background: "linear-gradient(160deg,rgba(201,162,75,.08),rgba(10,20,40,.55))", border: "1px solid rgba(201,162,75,.34)", padding: "24px 22px" }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 50, fontWeight: 600, lineHeight: 1, ...altinYazi }}>
+                {t(seciliTelif)} ₺
+              </div>
+              <div style={{ fontSize: 10, letterSpacing: "0.24em", color: "rgba(201,162,75,.85)", marginTop: 8 }}>
+                {secili.ad.toLocaleUpperCase("tr-TR")} PAKETİ · {t(satisTahmin)} SATIŞTA
+              </div>
+            </div>
+
+            <div style={{ marginTop: 26 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "rgba(245,240,228,.55)", marginBottom: 8 }}>
+                <span>100 adet</span><span>2.000 adet</span>
+              </div>
+              <input type="range" min={100} max={2000} step={50} value={satisTahmin}
+                onChange={(e) => setSatisTahmin(Number(e.target.value))}
+                style={{ width: "100%", accentColor: "#C9A24B", height: 4, cursor: "pointer" }} />
+              <div style={{ textAlign: "center", fontSize: 13.5, color: "rgba(245,240,228,.7)", marginTop: 10, fontWeight: 300 }}>
+                <b style={{ color: "#F0D68A", fontWeight: 500 }}>{t(satisTahmin)}</b> adet satış varsayımı
+              </div>
+            </div>
+
+            <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid rgba(201,162,75,.2)", display: "grid", gap: 9 }}>
+              {veri.paketler.map((p) => {
+                const tl = telifHesapla(p.kod, satisTahmin);
+                const s = p.kod === seciliPaket;
+                return (
+                  <div key={p.kod} onClick={() => { setSeciliPaket(p.kod); setForm({ ...form, paket: p.kod }); }}
+                    style={{
+                      display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10,
+                      padding: "12px 14px", cursor: "pointer",
+                      background: s ? "rgba(201,162,75,.12)" : "rgba(255,255,255,.02)",
+                      border: `1px solid ${s ? "rgba(201,162,75,.5)" : "rgba(201,162,75,.16)"}`,
+                      transition: "all 200ms",
+                    }}>
+                    <div>
+                      <div style={{ fontSize: 14.5, color: s ? "#F0D68A" : "#F5F0E4", fontWeight: 500 }}>{p.ad}</div>
+                      <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.55)", marginTop: 2 }}>MST %{p.mstYuzde} · diğer %{p.digerYuzde}</div>
+                    </div>
+                    <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 21, color: s ? "#F0D68A" : "rgba(245,240,228,.72)", fontWeight: 600 }}>
+                      {t(tl)} ₺
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {fark > 0 && (
+              <div style={{ marginTop: 16, fontSize: 14, color: "rgba(245,240,228,.84)", lineHeight: 1.8, fontWeight: 300, textAlign: "center" }}>
+                <b style={{ color: "#F0D68A", fontWeight: 500 }}>{secili.ad}</b>, Başlangıç'a göre
+                bu satışta <b style={{ color: "#F0D68A", fontWeight: 500 }}>{t(fark)} ₺</b> fazla getiriyor.
+                <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.5)", marginTop: 6 }}>
+                  Fark tek seferlik ücretten değil, her satıştan geliyor.
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+
+    // ══ 4 · UYGULAMA SİMÜLASYONU — dokunulabilir ══
+    {
+      icerik: (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+            <div><div style={etiket}>UYGULAMANIZ</div><div style={baslik}>Dokunun,<br />gezinin</div></div>
+            {ornekRozet}
+          </div>
+          <div style={{ ...govde, fontSize: 14.5 }}>
+            Alt menüden bölümler arasında gezin — gerçek uygulamanız aynen böyle çalışıyor.
+          </div>
+
+          <div style={{ marginTop: 20, border: "1px solid rgba(201,162,75,.34)", background: "linear-gradient(172deg,#0C1730,#070D1B)", overflow: "hidden" }}>
+            <div style={{ padding: "18px 18px 20px", minHeight: 250 }}>
+              {uygulamaSekme === "pano" && (
+                <div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.26em", color: "rgba(201,162,75,.8)" }}>PANO</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 40, fontWeight: 600, marginTop: 10, ...altinYazi }}>{t(satisTahmin)}</div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "rgba(201,162,75,.75)" }}>TOPLAM SATIŞ · 6 KANAL</div>
+                  <div style={{ marginTop: 16, display: "grid", gap: 7 }}>
+                    {platformDagilim.slice(0, 4).map((p) => (
+                      <div key={p.ad} style={{ display: "flex", justifyContent: "space-between", fontSize: 13.5 }}>
+                        <span style={{ color: "rgba(245,240,228,.78)", fontWeight: 300 }}>{p.ad}</span>
+                        <span style={{ color: "#F0D68A", fontFamily: "'Cormorant Garamond',serif", fontSize: 16 }}>{t(p.satis)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {uygulamaSekme === "kazanc" && (
+                <div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.26em", color: "rgba(201,162,75,.8)" }}>KAZANÇ</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "rgba(201,162,75,.16)", marginTop: 14 }}>
+                    {[["TOPLAM TELİF", t(seciliTelif) + " ₺"], ["ÇEKİLEBİLİR", t(Math.round(seciliTelif * 0.4)) + " ₺"],
+                      ["KİLİTLİ", t(Math.round(seciliTelif * 0.6)) + " ₺"], ["BU AY", t(Math.round(seciliTelif / 6)) + " ₺"]].map(([e, v]) => (
+                      <div key={e} style={{ background: "rgba(12,23,48,.6)", padding: "14px 12px" }}>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 600, ...altinYazi }}>{v}</div>
+                        <div style={{ fontSize: 9, letterSpacing: "0.18em", color: "rgba(201,162,75,.75)", marginTop: 3 }}>{e}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", marginTop: 12, lineHeight: 1.6, fontWeight: 300 }}>
+                    Kilitli telif, baskı stoğunuz tükendiğinde çekilebilir hale gelir. Gizli kesinti yok.
+                  </div>
+                </div>
+              )}
+              {uygulamaSekme === "reklam" && (
+                <div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.26em", color: "rgba(201,162,75,.8)" }}>REKLAM</div>
+                  <div style={{ fontSize: 14.5, color: "#F5F0E4", marginTop: 12, fontWeight: 500 }}>{eserAdi}</div>
+                  <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", marginTop: 3, fontWeight: 300 }}>1.500 ₺ · 14 gün · yayında</div>
+                  <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(72px,1fr))", gap: 12 }}>
+                    {[["ULAŞILAN", "11.800"], ["TIKLAMA", "340"], ["SATIŞ", "+14"]].map(([e, v]) => (
+                      <div key={e}>
+                        <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 20, fontWeight: 600, ...altinYazi }}>{v}</div>
+                        <div style={{ fontSize: 9, letterSpacing: "0.16em", color: "rgba(201,162,75,.75)", marginTop: 3 }}>{e}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(245,240,228,.5)", marginTop: 14, lineHeight: 1.6, fontWeight: 300 }}>
+                    Bu rakamlar doğrudan Meta'nın sisteminden gelir — biz hesaplamayız.
+                  </div>
+                </div>
+              )}
+              {uygulamaSekme === "ai" && (
+                <div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.26em", color: "rgba(201,162,75,.8)" }}>A . I .  DANIŞMANINIZ</div>
+                  <div style={{ marginTop: 14, background: "rgba(255,255,255,.02)", border: "1px solid rgba(201,162,75,.22)", padding: "14px 16px", fontSize: 14, color: "rgba(245,240,228,.86)", lineHeight: 1.8, fontWeight: 300 }}>
+                    {ilkAd}, "{eserAdi}" en çok MST mağazasında satıyor ama Trendyol'da
+                    ivme yakalamış. Bu ay Trendyol'a küçük bir tanıtım bütçesi ayırmanı öneririm —
+                    orada ivme varken desteklemek, sıfırdan başlatmaktan ucuz.
+                  </div>
+                  <div style={{ fontSize: 12, color: "rgba(245,240,228,.5)", marginTop: 12, lineHeight: 1.6, fontWeight: 300 }}>
+                    Danışmanınız sizin verinizi okur. Genel tavsiye vermez.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", borderTop: "1px solid rgba(201,162,75,.28)", background: "rgba(7,13,27,.7)" }}>
+              {[["pano", "PANO", "◉"], ["kazanc", "KAZANÇ", "₺"], ["reklam", "REKLAM", "◈"], ["ai", "A . I .", "✦"]].map(([k, ad, ik]) => (
+                <div key={k} onClick={() => setUygulamaSekme(k)} style={{
+                  padding: "12px 4px", textAlign: "center", cursor: "pointer",
+                  borderTop: `2px solid ${uygulamaSekme === k ? "#C9A24B" : "transparent"}`,
+                  background: uygulamaSekme === k ? "rgba(201,162,75,.07)" : "transparent",
+                  transition: "all 200ms",
+                }}>
+                  <div style={{ fontSize: 15, color: uygulamaSekme === k ? "#F0D68A" : "rgba(201,162,75,.5)" }}>{ik}</div>
+                  <div style={{ fontSize: 8.5, letterSpacing: "0.12em", color: uygulamaSekme === k ? "#F0D68A" : "rgba(245,240,228,.45)", marginTop: 3 }}>{ad}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+
+    // ══ 5 · KARŞILAŞTIRMA — kendi başına vs MST ══
+    {
+      icerik: (
+        <div>
+          <div style={etiket}>KARAR</div>
+          <div style={baslik}>Kendi başınıza mı,<br />bizimle mi?</div>
+          <div style={{ ...govde, fontSize: 14.5 }}>
+            Dürüst olalım: kitabınızı kendiniz de bastırabilirsiniz. Farkı görün.
+          </div>
+
+          <div style={{ marginTop: 20, display: "grid", gap: 1, background: "rgba(201,162,75,.14)", border: "1px solid rgba(201,162,75,.24)" }}>
+            {[
+              ["Matbaa ve baskı", "Kendiniz bulursunuz", "Biz hallederiz"],
+              ["ISBN & bandrol", "Kendiniz başvurursunuz", "Biz alırız"],
+              ["Editör & redaksiyon", "Ayrıca ödersiniz", "Pakete dahil"],
+              ["Kapak tasarımı", "Ayrıca ödersiniz", "Pakete dahil"],
+              ["6 pazaryerinde satış", "Her biri ayrı başvuru", "Otomatik"],
+              ["Satış takibi", "Excel tutarsınız", "Uygulamada canlı"],
+              ["Tanıtım", "Kendiniz öğrenirsiniz", "Uzman ekip"],
+            ].map(([konu, tek, biz]) => (
+              <div key={konu} style={{ background: "rgba(12,23,48,.55)", padding: "12px 14px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div>
+                  <div style={{ fontSize: 13.5, color: "#F5F0E4", fontWeight: 500 }}>{konu}</div>
+                  <div style={{ fontSize: 12, color: "rgba(245,240,228,.5)", marginTop: 3, fontWeight: 300 }}>{tek}</div>
+                </div>
+                <div style={{ fontSize: 13, color: "#9FC7A8", fontWeight: 300, alignSelf: "center" }}>{biz}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 18, background: "rgba(201,162,75,.05)", border: "1px solid rgba(201,162,75,.28)", padding: "16px 18px", fontSize: 14, color: "rgba(245,240,228,.82)", lineHeight: 1.8, fontWeight: 300 }}>
+            Kendi başınıza yayınlarsanız telifin tamamı sizde kalır — ama dağıtım, tanıtım
+            ve takip de sizde kalır. Biz bu işleri üstlenip telifin
+            <b style={{ color: "#F0D68A", fontWeight: 500 }}> %{secili.mstYuzde}'ini</b> size bırakıyoruz.
+          </div>
+        </div>
+      ),
+    },
+
+    // ══ 6 · BAŞVURU ══
+    {
       icerik: tamamlandi ? (
-        <div style={{ textAlign: "center", paddingTop: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 20 }}>
+        <div style={{ textAlign: "center", paddingTop: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 18 }}>
             <span style={{ height: 1, flex: 1, maxWidth: 70, background: "linear-gradient(90deg,transparent,rgba(201,162,75,.8))" }} />
             <span style={{ width: 8, height: 8, background: "#C9A24B", transform: "rotate(45deg)" }} />
             <span style={{ height: 1, flex: 1, maxWidth: 70, background: "linear-gradient(90deg,rgba(201,162,75,.8),transparent)" }} />
           </div>
           <div style={{ ...baslik, marginTop: 0 }}>Teşekkürler {ilkAd}</div>
-          <div style={{ ...govde, maxWidth: 400, margin: "16px auto 0" }}>
-            Bilgileriniz bize ulaştı. Ekibimiz en kısa sürede sizinle iletişime geçip
-            eserinizi değerlendirecek ve süreci birlikte planlayacak.
+          <div style={{ ...govde, maxWidth: 380, margin: "14px auto 0" }}>
+            Bilgileriniz bize ulaştı. Ekibimiz kısa sürede sizinle iletişime geçip
+            "{eserAdi}"i değerlendirecek ve süreci birlikte planlayacak.
+          </div>
+          <div style={{ marginTop: 26, display: "flex", justifyContent: "center" }}>
+            <KapakMaketi baslik={eserAdi} yazar={d.adayAd} boyut={0.7} />
           </div>
         </div>
       ) : (
         <div>
-          <div style={etiket}>7 · BAŞVURU</div>
-          <div style={baslik}>Eserinizi<br />değerlendirelim</div>
+          <div style={etiket}>BAŞVURU</div>
+          <div style={baslik}>"{eserAdi}"i<br />değerlendirelim</div>
           <div style={{ ...govde, fontSize: 14.5 }}>
-            Bilgilerinizi bırakın, ekibimiz sizinle iletişime geçsin. Bu bir taahhüt değil —
-            önce eserinizi okuyup birlikte konuşuyoruz.
+            Bu bir taahhüt değil — önce eserinizi okuyup birlikte konuşuyoruz.
           </div>
-          <div style={{ display: "grid", gap: 11, marginTop: 22 }}>
+          <div style={{ display: "grid", gap: 10, marginTop: 20 }}>
             <input style={inputStyle} placeholder="Ad soyad" value={form.adSoyad || ""} onChange={(e) => setForm({ ...form, adSoyad: e.target.value })} />
             <input style={inputStyle} placeholder="Telefon" value={form.telefon || ""} onChange={(e) => setForm({ ...form, telefon: e.target.value })} />
             <input style={inputStyle} placeholder="E-posta (opsiyonel)" value={form.eposta || ""} onChange={(e) => setForm({ ...form, eposta: e.target.value })} />
-            <input style={inputStyle} placeholder="Eserinizin adı" value={form.kitapAdi || ""} onChange={(e) => setForm({ ...form, kitapAdi: e.target.value })} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 11 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <input style={inputStyle} placeholder="Türü" value={form.kitapTuru || ""} onChange={(e) => setForm({ ...form, kitapTuru: e.target.value })} />
               <input style={inputStyle} placeholder="Sayfa sayısı" value={form.sayfaSayisi || ""} onChange={(e) => setForm({ ...form, sayfaSayisi: e.target.value.replace(/[^0-9]/g, "") })} />
             </div>
@@ -1363,15 +1561,15 @@ function DemoDeneyimi({ kod }) {
               <option value="yaziliyor">Yazımı devam ediyor</option>
               <option value="planlama">Henüz planlama aşamasında</option>
             </select>
-            <select style={inputStyle} value={form.paket || ""} onChange={(e) => setForm({ ...form, paket: e.target.value })}>
-              {veri.paketler.map((p) => <option key={p.kod} value={p.kod}>{p.ad} paketi ile ilgileniyorum</option>)}
-              <option value="karar_vermedim">Henüz karar vermedim</option>
-            </select>
+            <div style={{ background: "rgba(201,162,75,.05)", border: "1px solid rgba(201,162,75,.24)", padding: "12px 14px", fontSize: 13.5, color: "rgba(245,240,228,.78)", lineHeight: 1.7, fontWeight: 300 }}>
+              Seçtiğiniz paket: <b style={{ color: "#F0D68A", fontWeight: 500 }}>{secili.ad}</b>
+              {" · "}{t(satisTahmin)} satışta tahmini telif <b style={{ color: "#F0D68A", fontWeight: 500 }}>{t(seciliTelif)} ₺</b>
+            </div>
             <textarea style={{ ...inputStyle, resize: "vertical", lineHeight: 1.7 }} rows={3}
               placeholder="Eklemek istediğiniz bir şey var mı?" value={form.mesaj || ""}
               onChange={(e) => setForm({ ...form, mesaj: e.target.value })} />
           </div>
-          <div style={{ marginTop: 20 }}>
+          <div style={{ marginTop: 18 }}>
             <Dugme tur="asil" disabled={gonderiliyor || !form.adSoyad || !form.telefon} onClick={gonder}>
               {gonderiliyor ? "GÖNDERİLİYOR" : "BİLGİLERİMİ GÖNDER"}
             </Dugme>
@@ -1382,6 +1580,7 @@ function DemoDeneyimi({ kod }) {
   ];
 
   const son = adim >= adimlar.length - 1;
+  const ilerleyebilir = adim !== 0 || kitapAdi.trim().length > 1;
 
   return (
     <div style={{
@@ -1389,22 +1588,21 @@ function DemoDeneyimi({ kod }) {
       background: `radial-gradient(700px 340px at 50% -8%, rgba(201,162,75,.13), transparent 68%), linear-gradient(172deg,#0C1730,#070D1B)`,
       fontFamily: "'Jost', sans-serif", padding: "0 0 40px",
     }}>
-      {/* İlerleme şeridi */}
-      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(7,13,27,.92)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(201,162,75,.2)", padding: "14px 20px" }}>
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "rgba(7,13,27,.94)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(201,162,75,.2)", padding: "13px 20px" }}>
         <div style={{ maxWidth: 560, margin: "0 auto", display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontSize: 10, letterSpacing: "0.26em", color: "rgba(201,162,75,.85)", whiteSpace: "nowrap" }}>MST YAYINCILIK</span>
           <div style={{ flex: 1, height: 1, background: "rgba(201,162,75,.18)" }}>
-            <div style={{ height: "100%", width: `${((adim + 1) / adimlar.length) * 100}%`, background: "linear-gradient(90deg,#8C6A22,#F0D68A)", transition: "width .4s ease" }} />
+            <div style={{ height: "100%", width: `${((adim + 1) / adimlar.length) * 100}%`, background: "linear-gradient(90deg,#8C6A22,#F0D68A)", transition: "width .45s ease" }} />
           </div>
           <span style={{ fontSize: 11, color: "rgba(245,240,228,.5)", whiteSpace: "nowrap" }}>{adim + 1}/{adimlar.length}</span>
         </div>
       </div>
 
-      <div style={{ maxWidth: 560, margin: "0 auto", padding: "34px 22px 0" }}>
+      <div style={{ maxWidth: 560, margin: "0 auto", padding: "30px 22px 0" }}>
         {adimlar[adim].icerik}
 
         {!tamamlandi && (
-          <div style={{ marginTop: 34, display: "flex", gap: 14, alignItems: "center" }}>
+          <div style={{ marginTop: 32, display: "flex", gap: 14, alignItems: "center" }}>
             {adim > 0 && (
               <div style={{ flex: "0 0 auto" }}>
                 <Dugme tur="sessiz" tamGenislik={false} kucuk onClick={() => setAdim(adim - 1)}>GERİ</Dugme>
@@ -1412,11 +1610,17 @@ function DemoDeneyimi({ kod }) {
             )}
             {!son && (
               <div style={{ flex: 1 }}>
-                <Dugme tur="asil" onClick={() => setAdim(adim + 1)}>
+                <Dugme tur="asil" disabled={!ilerleyebilir} onClick={() => setAdim(adim + 1)}>
                   {adim === 0 ? "BAŞLAYALIM" : "DEVAM"}
                 </Dugme>
               </div>
             )}
+          </div>
+        )}
+
+        {adim === 0 && !ilerleyebilir && (
+          <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.45)", textAlign: "center", marginTop: 10 }}>
+            Devam etmek için eserinizin adını yazın
           </div>
         )}
       </div>

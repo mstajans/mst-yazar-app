@@ -2,43 +2,8 @@
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>MST Yazar Uygulaması</title>
-
-    <!-- Uygulama olarak kurulabilmesi için gerekli tanımlar -->
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#070D1B" />
-    <link rel="icon" type="image/png" sizes="64x64" href="/icons/favicon-64.png" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="MST Yazar" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="MST Yayıncılık yazar uygulaması — satışlarını, telifini ve yayın sürecini tek yerden takip et." />
-    <style>
-      /* Uygulama davranışı: sadece dikey kaydırma.
-         Telefonda sola-sağa kayma, bir öğenin ekran genişliğini aşmasından olur.
-         Aşağıdaki üç kural bunu kaynağında keser. */
-      *, *::before, *::after { box-sizing: border-box; }
-
-      html, body, #root {
-        max-width: 100%;
-        overflow-x: hidden;        /* yatay kaydırma kapalı */
-        overscroll-behavior-x: none; /* kenarda sağa-sola çekme jesti kapalı */
-        margin: 0;
-      }
-
-      body {
-        background: #070D1B;
-        -webkit-text-size-adjust: 100%;
-        text-rendering: optimizeLegibility;
-      }
-
-      /* Taşmaya en sık sebep olanlar: uzun kelimeler, geniş görseller, tablolar */
-      img, svg, video, canvas { max-width: 100%; height: auto; }
-      table { max-width: 100%; }
-      * { overflow-wrap: anywhere; word-break: normal; }
-    </style>
   </head>
   <body>
     <div id="root"></div>

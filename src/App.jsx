@@ -3180,7 +3180,25 @@ function StockOrbitTab({ books, account, token, onQuickAction }) {
           })}
         </div>
 
-        {/* Menajerin — satış tablosunun hemen altında, tıklayınca sohbete gider */}
+        {/* Yayınevi desteği — ücretsiz ve A.I. kartının ÜSTÜNDE.
+            Yazarlar ikisini karıştırıp destek istemekten çekiniyordu. */}
+        <div onClick={() => onQuickAction && onQuickAction("destek")} style={{
+          background: THEME.yuzey, border: "1px solid rgba(201,162,75,.30)",
+          padding: "18px 20px", marginBottom: 16, cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 16,
+        }}>
+          <span style={{ width: 40, height: 40, flexShrink: 0, border: "1px solid rgba(201,162,75,.32)",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17, color: "#C9A24B" }}>◔</span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 15, color: THEME.textLight, fontWeight: 500 }}>Yayınevinden destek talep et</div>
+            <div style={{ fontSize: 13, color: "rgba(245,240,228,.66)", marginTop: 3, fontWeight: 300 }}>
+              Kitabınız, telifiniz, siparişiniz — her konuda. <b style={{ fontWeight: 400, color: "#F0D68A" }}>Ücretsiz.</b>
+            </div>
+          </div>
+          <span style={{ color: "rgba(201,162,75,.7)", fontSize: 18 }}>→</span>
+        </div>
+
+        {/* A.I. — satış tablosunun altında, tıklayınca sohbete gider */}
         <AICocKarti token={token} onAc={() => onQuickAction && onQuickAction("ai")} />
 
         {/* Hızlı işlemler */}
@@ -3449,45 +3467,179 @@ const AI_SUGGESTIONS = [
   "Reklam bütçemi nasıl planlamalıyım?",
 ];
 
+// ═══════════════════════════════════════════════════════════════════
+// A.I. TANITIM SAYFASI
+// Bu sayfa bir menü değil, bir satış sayfası. Yazar buraya girdiğinde
+// "bu bende olmalı" demeli. Yapı: kanca → yetenek → kanıt → mahremiyet
+// → fiyat. Teknolojik ama soğuk değil; paket sayfası dilinde.
+// ═══════════════════════════════════════════════════════════════════
 function AISubscribeScreen({ accountName, wallet, onSubscribe }) {
   const [error, setError] = useState("");
-  const firstName = accountName.split(" ")[0];
-  const roles = [
-    { icon: "◉", title: "Eğitimci", desc: "Kariyer programındaki konuları sizin durumunuza göre özetler, neyi önce öğrenmeniz gerektiğini söyler." },
-    { icon: "◈", title: "Reklam Uzmanı", desc: "Bütçenizi, kampanya zamanlamanızı ve performansınızı yorumlar." },
-    { icon: "▤", title: "Analiz Uzmanı", desc: "Satış ve stok verinizi okuyup neyin işe yaradığını açıklar." },
-    { icon: "💼", title: "Satış Uzmanı", desc: "Platform stratejisi ve fiyatlandırma konusunda yönlendirir." },
-    { icon: "🗂️", title: "Program Yöneticisi", desc: "İsteğinizde haftalık/aylık somut bir içerik ve pazarlama programı yazar." },
+  const [acikRol, setAcikRol] = useState(0);
+  const firstName = String(accountName || "").split(" ")[0];
+
+  const roller = [
+    {
+      kod: "◉", ad: "Eğitmen",
+      vaat: "Yazma tekniğini birlikte çalışır",
+      detay: "Kurgu, karakter, ritim, diyalog. Takıldığınız yerde ne yapacağınızı söyler, " +
+             "genel tavsiye değil sizin metninize göre yönlendirir.",
+      ornek: "İkinci bölümde ritim düşüyor gibi hissediyorum, ne yapmalıyım?",
+    },
+    {
+      kod: "▤", ad: "Analist",
+      vaat: "Satış verinizi okur, ne olduğunu söyler",
+      detay: "Hangi platformda neden sattığınızı, hangi ayın neden zayıf geçtiğini rakamlarla açıklar. " +
+             "Tahmin etmez — sizin gerçek verinizi okur.",
+      ornek: "Trendyol'da satışım neden düştü?",
+    },
+    {
+      kod: "◈", ad: "Reklam Uzmanı",
+      vaat: "Bütçenizi nereye koyacağınızı bilir",
+      detay: "Kampanya bütçesi, zamanlama, hedef kitle. Biten kampanyanızı analiz eder, " +
+             "bir sonrakinde neyi değiştirmeniz gerektiğini söyler.",
+      ornek: "1.000 lira bütçem var, nasıl kullanmalıyım?",
+    },
+    {
+      kod: "₺", ad: "Satış Danışmanı",
+      vaat: "Fiyat ve platform stratejisi kurar",
+      detay: "Hangi platformda hangi fiyat, ne zaman indirim, hangi kitap öne çıkmalı. " +
+             "Telif oranlarınızı bilerek konuşur.",
+      ornek: "Kitabımın fiyatı doğru mu?",
+    },
+    {
+      kod: "◇", ad: "Program Yöneticisi",
+      vaat: "Size haftalık plan çıkarır",
+      detay: "Ne zaman ne yapacağınızı gösteren somut bir takvim. Sosyal medya, tanıtım, " +
+             "yazma seansları — dağınık işleri sıraya koyar.",
+      ornek: "Önümüzdeki ay için bana bir tanıtım programı hazırla",
+    },
   ];
-  const handle = () => { if (AI_PRICE > wallet.balance) { setError("Yetersiz bakiye — Mağaza veya Reklam sekmesinden ödeme bildirimi oluşturup yayınevi onayını bekleyin."); return; } onSubscribe(); };
+
+  const handle = () => {
+    if (AI_PRICE > wallet.balance) { setError("Bakiyeniz yetersiz — Mağaza bölümünden yükleyebilirsiniz."); return; }
+    onSubscribe();
+  };
+
+  const r = roller[acikRol];
+
   return (
     <div>
-      <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, borderRadius: 0, padding: "20px 20px 18px", marginBottom: 16, color: THEME.textLight, border: `1px solid ${THEME.cyan}` }}>
-        <div style={{ fontSize: 14.5, letterSpacing: "0.2em", color: THEME.cyan }}>MST YAZAR DANIŞMANI</div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, marginTop: 6 }}>{firstName}, size özel bir danışman ekibiniz olsun</div>
-        <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 6, lineHeight: 1.6 }}>Tek bir asistan, beş farklı uzmanlık alanıyla — sadece yazarlık kariyerinizle ilgili sorularda, sizi adınızla tanıyarak yanıt verir.</div>
+      {/* ── KANCA ── */}
+      <div style={{
+        background: `radial-gradient(680px 320px at 50% -10%, rgba(201,162,75,.16), transparent 68%),
+                     linear-gradient(172deg, #132445, #070D1B)`,
+        border: "1px solid rgba(201,162,75,.32)", padding: "40px 26px 34px", textAlign: "center", marginBottom: 26,
+      }}>
+        <div style={{ fontSize: 11, letterSpacing: "0.42em", color: "rgba(201,162,75,.85)", fontWeight: 600 }}>
+          M S T&nbsp;&nbsp;A . I .
+        </div>
+
+        <div style={{
+          fontFamily: "'Cormorant Garamond', serif", fontSize: 38, fontWeight: 600, lineHeight: 1.12, marginTop: 16,
+          background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent",
+        }}>
+          Yazarlığın<br />yalnız yürünmez
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, margin: "20px auto 18px", maxWidth: 220 }}>
+          <span style={{ height: 1, flex: 1, background: "linear-gradient(90deg,transparent,rgba(201,162,75,.8))" }} />
+          <span style={{ width: 6, height: 6, background: "#C9A24B", transform: "rotate(45deg)" }} />
+          <span style={{ height: 1, flex: 1, background: "linear-gradient(90deg,rgba(201,162,75,.8),transparent)" }} />
+        </div>
+
+        <div style={{ fontSize: 15.5, color: "rgba(245,240,228,.84)", lineHeight: 1.85, fontWeight: 300, maxWidth: 460, margin: "0 auto" }}>
+          {firstName ? `${firstName}, ` : ""}kitabınızı yazdınız. Şimdi onu tanıtmak, satmak, doğru fiyatlamak
+          ve bir sonrakini planlamak var. Bunların hepsi ayrı uzmanlık — ve hiçbiri yazarlıkla aynı şey değil.
+          <br /><br />
+          <b style={{ fontWeight: 500, color: "#F0D68A" }}>MST A.I.</b>, sizin verinizi bilen bir danışman.
+          Genel tavsiye vermez; kitabınızın satışını, teliflerinizi, reklamınızı okur ve size göre konuşur.
+        </div>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 18 }}>
-        {roles.map((r) => (
-          <div key={r.title} style={{ display: "flex", gap: 12, background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "10px 12px" }}>
-            <div style={{ fontSize: 20 }}>{r.icon}</div>
-            <div>
-              <div style={{ fontSize: 15, color: THEME.textLight, fontFamily: "'Cormorant Garamond', serif" }}>{r.title}</div>
-              <div style={{ fontSize: 15, color: THEME.textMuted, marginTop: 2 }}>{r.desc}</div>
+      {/* ── YETENEKLER ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Beş uzman, tek sohbet</span>
+        <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
+      </div>
+
+      <div style={{ display: "grid", gap: 2, background: "rgba(201,162,75,.16)", border: "1px solid rgba(201,162,75,.24)", marginBottom: 12 }}>
+        {roller.map((x, i) => (
+          <div key={x.ad} onClick={() => setAcikRol(i)} style={{
+            background: i === acikRol ? "rgba(201,162,75,.09)" : "rgba(12,23,48,.55)",
+            padding: "16px 18px", cursor: "pointer", display: "flex", alignItems: "center", gap: 14,
+          }}>
+            <span style={{
+              width: 34, height: 34, flexShrink: 0, border: `1px solid ${i === acikRol ? "#C9A24B" : "rgba(201,162,75,.3)"}`,
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15,
+              color: i === acikRol ? "#F0D68A" : "rgba(201,162,75,.7)",
+            }}>{x.kod}</span>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 15, color: i === acikRol ? "#F0D68A" : THEME.textLight, fontWeight: 500 }}>{x.ad}</div>
+              <div style={{ fontSize: 13, color: "rgba(245,240,228,.66)", fontWeight: 300, marginTop: 2 }}>{x.vaat}</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.vipBorder}`, borderRadius: 0, padding: "14px 16px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
-          <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 17, color: THEME.textLight }}>{tl(AI_PRICE)}</span>
-          <span style={{ fontSize: 15, color: THEME.textMuted }}>/ ay</span>
+      {/* Seçilen rolün detayı + örnek soru */}
+      <div style={{ background: THEME.yuzey, border: "1px solid rgba(201,162,75,.28)", padding: "20px 22px", marginBottom: 30 }}>
+        <div style={{ fontSize: 14.5, color: "rgba(245,240,228,.84)", lineHeight: 1.8, fontWeight: 300 }}>{r.detay}</div>
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(201,162,75,.18)" }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.28em", color: "rgba(201,162,75,.8)", marginBottom: 8 }}>ÖRNEK SORU</div>
+          <div style={{ fontSize: 14.5, color: "#F0D68A", fontStyle: "italic", lineHeight: 1.7, fontWeight: 300 }}>“{r.ornek}”</div>
         </div>
-        {error && <div style={{ fontSize: 14, color: THEME.danger, marginBottom: 8 }}>{error}</div>}
-        <button onClick={handle} style={{ width: "100%", background: THEME.vip, color: "#140A22", border: "none", borderRadius: 0, padding: "11px 0", fontSize: 15, cursor: "pointer", fontWeight: 600 }}>Abone Ol — {tl(AI_PRICE)}/ay</button>
-        <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 8 }}>Bakiyenizden tahsil edilir, istediğiniz zaman iptal edebilirsiniz.</div>
+      </div>
+
+      {/* ── FARK ── */}
+      <div style={{ display: "grid", gap: 2, background: "rgba(201,162,75,.16)", border: "1px solid rgba(201,162,75,.24)", marginBottom: 30 }}>
+        {[
+          ["Sizin verinizi okur", "Satışınız, telifiniz, stoğunuz, reklamınız. Genel bilgi değil, sizin rakamlarınız."],
+          ["Her an açık", "Gece üçte aklınıza gelen soruyu sormak için randevu gerekmez."],
+          ["Kayıt tutmaz", "Yazdıklarınız saklanmaz. Yayınevi sohbetlerinizi göremez."],
+        ].map(([b, a]) => (
+          <div key={b} style={{ background: "rgba(12,23,48,.55)", padding: "16px 18px" }}>
+            <div style={{ fontSize: 14.5, color: THEME.textLight, fontWeight: 500 }}>{b}</div>
+            <div style={{ fontSize: 13.5, color: "rgba(245,240,228,.70)", marginTop: 4, lineHeight: 1.7, fontWeight: 300 }}>{a}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── FİYAT ── */}
+      <div style={{
+        position: "relative",
+        background: "linear-gradient(160deg, rgba(201,162,75,.08), rgba(10,20,40,.55))",
+        border: "1px solid rgba(201,162,75,.42)", padding: "34px 26px", textAlign: "center", marginBottom: 20,
+      }}>
+        {[{ top: -5, left: -5 }, { top: -5, right: -5 }, { bottom: -5, left: -5 }, { bottom: -5, right: -5 }].map((k, i) => (
+          <span key={i} style={{ position: "absolute", ...k, width: 9, height: 9, background: "#C9A24B", transform: "rotate(45deg)" }} />
+        ))}
+
+        <div style={{ fontSize: 10.5, letterSpacing: "0.3em", color: "rgba(201,162,75,.85)" }}>AYLIK ABONELİK</div>
+        <div style={{
+          fontFamily: "'Cormorant Garamond', serif", fontSize: 52, fontWeight: 600, lineHeight: 1, marginTop: 10,
+          background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent",
+        }}>{AI_PRICE} ₺</div>
+        <div style={{ fontSize: 13.5, color: "rgba(245,240,228,.66)", marginTop: 8, fontWeight: 300 }}>
+          İstediğiniz zaman durdurabilirsiniz
+        </div>
+
+        <button onClick={handle} style={{
+          marginTop: 22, width: "100%", maxWidth: 320, background: THEME.altinButon, color: "#0A1428",
+          border: "none", padding: "15px 0", fontSize: 15, fontWeight: 600, letterSpacing: "0.08em",
+          cursor: "pointer", fontFamily: "'Jost', sans-serif",
+        }}>DANIŞMANIMI BAŞLAT</button>
+
+        {error && <div style={{ fontSize: 13.5, color: "#E09080", marginTop: 14 }}>{error}</div>}
+
+        <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.5)", marginTop: 14, lineHeight: 1.6, fontWeight: 300 }}>
+          Bakiyeniz: {wallet.balance} ₺ · Uygulama içi kullanım hakkınızdan düşer
+        </div>
+      </div>
+
+      <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.5)", textAlign: "center", lineHeight: 1.7, fontWeight: 300, marginBottom: 10 }}>
+        Yayınevine soru sormak için aboneliğe gerek yok —
+        <b style={{ fontWeight: 400, color: "rgba(245,240,228,.7)" }}> Destek bölümü ücretsizdir.</b>
       </div>
     </div>
   );
@@ -3894,7 +4046,7 @@ export default function App() {
   const BOTTOM_NAV = [
     { key: "stok", label: "PANO", icon: "◎" },
     { key: "kariyer", label: "KARİYER", icon: "◈" },
-    { key: "ai", label: "MENAJER", center: true },
+    { key: "ai", label: "A . I .", center: true },
     { key: "kazanc", label: "KAZANÇ", icon: "₺" },
     { key: "hesabim", label: "PROFİL", icon: "◐" },
   ];

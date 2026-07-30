@@ -2197,6 +2197,167 @@ function UygulamaIndirSeridi() {
 // Self-serve Meta kampanyaları (Hat 1) Meta altyapısı kurulunca eklenecek.
 // ═══════════════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════════════
+// REKLAM SİMÜLASYONU
+// Yazar kampanya açmadan önce ne göreceğini yaşasın. Rakamlar örnek —
+// bu ekranda "SİMÜLASYON" etiketi kalıcı olarak duruyor, gerçek sanılmasın.
+// Kitap adı yazarın kendi kitabı, çünkü kendini o ekranda görmesi gerekiyor.
+// Sadece hiç kampanyası olmayan yazara gösterilir.
+// ═══════════════════════════════════════════════════════════════════
+function ReklamSimulasyonu({ books }) {
+  const [oynuyor, setOynuyor] = useState(false);
+  const [ilerleme, setIlerleme] = useState(0);      // 0-1 arası
+  const [analiz, setAnaliz] = useState("");
+  const [bitti, setBitti] = useState(false);
+
+  const kitap = (books && books[0]) || null;
+  const kitapAdi = kitap?.title || "Kitabınız";
+  const mevcutSatis = Number(kitap?.totalSold || 0);
+
+  // Örnek senaryo: 1.500 ₺ · 14 gün
+  const hedef = useMemo(() => ({
+    butce: 1500, gun: 14,
+    erisim: 11800, gosterim: 27400, tiklama: 340,
+    harcanan: 1500, satisArtisi: 14,
+  }), []);
+
+  const analizMetni =
+    `${hedef.gun} günde ${hedef.erisim.toLocaleString("tr-TR")} kişiye ulaştın ve ${hedef.tiklama} kişi ` +
+    `kitabına baktı. Tıklama başına ${(hedef.harcanan / hedef.tiklama).toFixed(2)} ₺ ödedin — bu, kitap ` +
+    `reklamlarında iyi bir seviye. Bu dönemde satışın ${hedef.satisArtisi} adet arttı. ` +
+    `Bir sonraki kampanyada aynı kitleyle devam etmeni, bütçeyi biraz artırmanı öneriyorum.`;
+
+  // Sayaçlar dolsun, sonra analiz yazılsın
+  useEffect(() => {
+    if (!oynuyor || ilerleme >= 1) return;
+    const z = setTimeout(() => setIlerleme(Math.min(1, ilerleme + 0.02)), 26);
+    return () => clearTimeout(z);
+  }, [oynuyor, ilerleme]);
+
+  useEffect(() => {
+    if (ilerleme < 1 || bitti) return;
+    if (analiz.length < analizMetni.length) {
+      const z = setTimeout(() => setAnaliz(analizMetni.slice(0, analiz.length + 1)), 16);
+      return () => clearTimeout(z);
+    }
+    setBitti(true);
+  }, [ilerleme, analiz, bitti, analizMetni]);
+
+  const p = ilerleme;
+  const sayi = (x) => Math.round(x * p).toLocaleString("tr-TR");
+  const t = (x) => Number(x).toLocaleString("tr-TR");
+
+  const kutu = (etiket, deger) => (
+    <div key={etiket}>
+      <div style={{
+        fontFamily: "'Cormorant Garamond', serif", fontSize: 23, fontWeight: 600, lineHeight: 1.1,
+        background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent",
+      }}>{deger}</div>
+      <div style={{ fontSize: 9.5, letterSpacing: "0.2em", color: "rgba(201,162,75,.75)", marginTop: 4 }}>{etiket}</div>
+    </div>
+  );
+
+  return (
+    <div style={{
+      background: `radial-gradient(560px 260px at 50% 0%, rgba(201,162,75,.12), transparent 70%),
+                   linear-gradient(172deg, #101E3A, #060B17)`,
+      border: "1px solid rgba(201,162,75,.32)", padding: "24px 22px", marginBottom: 26,
+    }}>
+      <style>{`
+        @keyframes rsImlec { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+        .rs-imlec { display:inline-block; width:2px; height:1em; background:#F0D68A; margin-left:3px; vertical-align:-2px; animation: rsImlec 1s step-end infinite }
+        .rs-bar { transition: width .1s linear }
+      `}</style>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 18 }}>
+        <div>
+          <div style={{ fontSize: 10, letterSpacing: "0.3em", color: "rgba(201,162,75,.85)", fontWeight: 600 }}>SİMÜLASYON</div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#fff", fontWeight: 600, marginTop: 8, lineHeight: 1.25 }}>
+            Reklam verdiğinizde<br />bunları göreceksiniz
+          </div>
+        </div>
+        <span style={{ fontSize: 9.5, letterSpacing: "0.14em", color: "rgba(245,240,228,.5)", border: "1px solid rgba(245,240,228,.22)", padding: "4px 8px", whiteSpace: "nowrap" }}>
+          ÖRNEK VERİ
+        </span>
+      </div>
+
+      {!oynuyor ? (
+        <>
+          <div style={{ fontSize: 14.5, color: "rgba(245,240,228,.80)", lineHeight: 1.8, fontWeight: 300, marginBottom: 18 }}>
+            "{kitapAdi}" için 1.500 ₺ bütçeyle 14 günlük bir kampanya açtığınızı varsayalım.
+            Ekranınız gün gün nasıl dolar, kampanya bitince danışmanınız ne söyler — izleyin.
+          </div>
+          <button onClick={() => setOynuyor(true)} style={{
+            background: THEME.altinButon, color: "#0A1428", border: "none", padding: "13px 26px",
+            fontSize: 14.5, fontWeight: 600, letterSpacing: "0.06em", cursor: "pointer", fontFamily: "'Jost', sans-serif",
+          }}>▶ SİMÜLASYONU OYNAT</button>
+        </>
+      ) : (
+        <>
+          {/* Kampanya kartı — sayaçlar doluyor */}
+          <div style={{ background: "rgba(12,23,48,.6)", border: "1px solid rgba(201,162,75,.22)", padding: "18px 20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 15, color: THEME.textLight, fontWeight: 500 }}>{kitapAdi}</div>
+                <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", marginTop: 3, fontWeight: 300 }}>
+                  Kitap okurları — geniş · {hedef.gun} gün · {t(hedef.butce)} ₺
+                </div>
+              </div>
+              <span style={{ fontSize: 10, letterSpacing: "0.16em", color: p < 1 ? "#9FC7A8" : "rgba(245,240,228,.62)", border: `1px solid ${p < 1 ? "#9FC7A8" : "rgba(245,240,228,.3)"}`, padding: "4px 9px", height: "fit-content" }}>
+                {p < 1 ? "YAYINDA" : "TAMAMLANDI"}
+              </span>
+            </div>
+
+            {/* İlerleme çubuğu */}
+            <div style={{ height: 3, background: "rgba(245,240,228,.10)", margin: "16px 0 18px" }}>
+              <div className="rs-bar" style={{ height: "100%", width: `${p * 100}%`, background: "linear-gradient(90deg,#8C6A22,#F0D68A)" }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(84px,1fr))", gap: 14 }}>
+              {kutu("ULAŞILAN", sayi(hedef.erisim))}
+              {kutu("TIKLAMA", sayi(hedef.tiklama))}
+              {kutu("HARCANAN", sayi(hedef.harcanan) + " ₺")}
+              {kutu("KALAN", t(Math.round(hedef.butce - hedef.harcanan * p)) + " ₺")}
+            </div>
+
+            {p > 0.35 && (
+              <div style={{ fontSize: 14, color: "#9FC7A8", marginTop: 16, fontWeight: 300 }}>
+                Kampanya başladığından beri satış: {t(mevcutSatis)} → {t(mevcutSatis + Math.round(hedef.satisArtisi * p))}
+                {p > 0.4 ? ` (+${Math.round(hedef.satisArtisi * p)})` : ""}
+              </div>
+            )}
+          </div>
+
+          {/* Danışman analizi */}
+          {p >= 1 && (
+            <div style={{ marginTop: 18, background: "rgba(201,162,75,.05)", border: "1px solid rgba(201,162,75,.28)", padding: "18px 20px" }}>
+              <div style={{ fontSize: 10, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 10 }}>
+                A . I .&nbsp;&nbsp;DANIŞMANINIZIN ANALİZİ
+              </div>
+              <div style={{ fontSize: 14.5, color: "rgba(245,240,228,.86)", lineHeight: 1.85, fontWeight: 300 }}>
+                {analiz}{!bitti && <span className="rs-imlec" />}
+              </div>
+            </div>
+          )}
+
+          {bitti && (
+            <div style={{ marginTop: 18, textAlign: "center" }}>
+              <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", lineHeight: 1.7, fontWeight: 300, marginBottom: 14 }}>
+                Yukarıdaki rakamlar örnektir. Gerçek sonuç kitabınıza, görselinize ve
+                bütçenize göre değişir — ama ekranınız aynen böyle görünür.
+              </div>
+              <button onClick={() => { setOynuyor(false); setIlerleme(0); setAnaliz(""); setBitti(false); }} style={{
+                background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
+                padding: "10px 18px", fontSize: 13, cursor: "pointer", fontFamily: "'Jost', sans-serif",
+              }}>Tekrar oynat</button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // KENDİ KAMPANYAM — yazar kitabını doğrudan reklama açar
 // Bütçe bloke edilir, harcanmaz. Onaydan sonra Meta'da gerçek kampanya
 // kurulur. Kampanya bitince harcanmayan tutar iade edilir.
@@ -2288,6 +2449,8 @@ function KendiKampanyam({ books, token }) {
         <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Kendi Kampanyam</span>
         <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
       </div>
+
+      {liste && liste.length === 0 && <ReklamSimulasyonu books={books} />}
 
       <div style={{ background: "rgba(201,162,75,.04)", border: "1px solid rgba(201,162,75,.28)", padding: "18px 20px", marginBottom: 20 }}>
         <div style={{ fontSize: 14.5, color: THEME.textLight, lineHeight: 1.75, fontWeight: 300 }}>

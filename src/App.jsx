@@ -433,7 +433,7 @@ function GorevListesi({ oyun, token, onRefresh }) {
         <div key={p} style={{ marginBottom: 48 }}>
           {/* Sitedeki .grouptitle: serif başlık + sağa doğru sönen altın çizgi */}
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>
               {periyotEtiket[p] || p}
             </span>
             <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
@@ -447,7 +447,7 @@ function GorevListesi({ oyun, token, onRefresh }) {
       {hizmetGorevler.length > 0 && (
         <div style={{ marginBottom: 18 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 10 }}>
-            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Kariyer &amp; Gelişim Desteği</span>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Kariyer &amp; Gelişim Desteği</span>
             <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
           </div>
           <div style={{ fontSize: 14, color: THEME.textMuted, marginBottom: 10, lineHeight: 1.5 }}>MST''nin sunduğu gelişim fırsatları. Bu hizmetlerden yararlandığında ödülün otomatik tanımlanır.</div>
@@ -1639,29 +1639,43 @@ function Dugme({ children, onClick, disabled, tur = "asil", tamGenislik = true, 
       ? "rgba(201,162,75,.28)"
       : `linear-gradient(90deg,transparent,rgba(201,162,75,${uzerinde ? ".95" : tur === "asil" ? ".8" : ".5"}),transparent)`;
 
+  // Zemin + çerçeve: butonun buton olduğu ilk bakışta anlaşılsın (sessiz varyant çıplak kalır)
+  const zemin = disabled
+    ? "rgba(245,240,228,.03)"
+    : tur === "asil"
+      ? `linear-gradient(180deg, rgba(201,162,75,${uzerinde ? ".22" : ".15"}), rgba(201,162,75,${uzerinde ? ".10" : ".05"}))`
+      : tur === "orta" ? `rgba(245,240,228,${uzerinde ? ".08" : ".05"})` : "transparent";
+  const cerceve = disabled
+    ? "1px solid rgba(245,240,228,.12)"
+    : tur === "asil" ? "1px solid rgba(201,162,75,.55)"
+    : tur === "orta" ? "1px solid rgba(245,240,228,.22)"
+    : "none";
+
   return (
     <div style={{ width: tamGenislik ? "100%" : "auto", display: tamGenislik ? "block" : "inline-block" }}>
-      <button
-        type={type || "button"}
-        onClick={disabled ? undefined : onClick}
-        disabled={disabled}
-        onMouseEnter={() => setUzerinde(true)}
-        onMouseLeave={() => setUzerinde(false)}
-        style={{
-          width: "100%", background: "transparent", border: "none", borderRadius: 0,
-          color: renk, padding: kucuk ? "10px 14px" : "14px 18px",
-          fontSize: kucuk ? 12.5 : 14, fontWeight: 500,
-          letterSpacing: kucuk ? "0.14em" : "0.2em",
-          fontFamily: "'Jost', sans-serif",
-          cursor: disabled ? "default" : "pointer",
-          display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
-          transition: "color .2s",
-        }}
-      >
-        {children}
-        {tur !== "sessiz" && <span style={{ fontSize: kucuk ? 14 : 17, transform: uzerinde ? "translateX(3px)" : "none", transition: "transform .2s" }}>→</span>}
-      </button>
-      <div style={{ height: 1, background: cizgi }} />
+      <div style={{ border: cerceve, background: zemin, transition: "background .2s" }}>
+        <button
+          type={type || "button"}
+          onClick={disabled ? undefined : onClick}
+          disabled={disabled}
+          onMouseEnter={() => setUzerinde(true)}
+          onMouseLeave={() => setUzerinde(false)}
+          style={{
+            width: "100%", background: "transparent", border: "none", borderRadius: 0,
+            color: renk, padding: kucuk ? "10px 14px" : "14px 18px",
+            fontSize: kucuk ? 12.5 : 14, fontWeight: 500,
+            letterSpacing: kucuk ? "0.14em" : "0.2em",
+            fontFamily: "'Jost', sans-serif",
+            cursor: disabled ? "default" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 12,
+            transition: "color .2s",
+          }}
+        >
+          {children}
+          {tur !== "sessiz" && <span style={{ fontSize: kucuk ? 14 : 17, transform: uzerinde ? "translateX(3px)" : "none", transition: "transform .2s" }}>→</span>}
+        </button>
+        <div style={{ height: 1, background: cizgi }} />
+      </div>
     </div>
   );
 }
@@ -2106,7 +2120,7 @@ function StockBadge({ count }) {
 }
 function PlanBadge({ plan }) {
   const p = PLANS[plan];
-  return <span style={{ fontSize: 14, letterSpacing: "0.04em", color: p.fg, background: p.bg, borderRadius: 0, padding: "4px 12px", display: "inline-flex", alignItems: "center", gap: 5 }}>{plan === "vip" && "✦"} {p.label.toUpperCase()}</span>;
+  return <span style={{ fontSize: "clamp(11px, 3vw, 14px)", letterSpacing: "0.04em", color: p.fg, background: p.bg, borderRadius: 0, padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", flexShrink: 0 }}>{plan === "vip" && "✦"} {p.label.toUpperCase()}</span>;
 }
 
 function getNotifications(account) {
@@ -2287,8 +2301,16 @@ function LoginScreen({ onLogin }) {
         @keyframes mstDrop { 0% { transform: translateY(-160px) scale(0.85); opacity: 0; } 60% { transform: translateY(6px) scale(1.04); opacity: 1; } 80% { transform: translateY(-3px) scale(0.99); } 100% { transform: translateY(0) scale(1); opacity: 1; } }
         @keyframes mstBurst { 0% { transform: translate(0,0) scale(0.4); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; } }
         @keyframes mstScan { 0% { transform: translateY(-100%); opacity:0; } 8% { opacity:.5; } 92% { opacity:.5; } 100% { transform: translateY(720px); opacity:0; } }
+        .mst-input {
+          width: 100%; box-sizing: border-box;
+          padding: 15px 14px; font-size: 16px;
+          font-family: 'Jost', sans-serif; font-weight: 400;
+          background: rgba(7,13,27,.65); color: #F5F0E4;
+          border: 1px solid rgba(201,162,75,.4); border-radius: 0;
+          outline: none; -webkit-appearance: none; appearance: none;
+        }
         .mst-input::placeholder { color: ${LT.goldSoft}; }
-        .mst-input:focus { border-color: ${LT.gold} !important; box-shadow: 0 0 0 3px rgba(45,106,79,0.15); }
+        .mst-input:focus { border-color: ${LT.gold} !important; box-shadow: 0 0 0 3px rgba(201,162,75,0.16); }
       `}</style>
       <GridBackdrop />
       <ScanLine />
@@ -2654,14 +2676,14 @@ function SupportSection({ requests, onSubmit }) {
   const submit = (e) => { e.preventDefault(); if (!subject.trim() || !message.trim()) return; onSubmit({ subject: subject.trim(), message: message.trim() }); setSubject(""); setMessage(""); };
   return (
     <div style={{ marginTop: 8 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Destek talebi̇ oluştur</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Destek talebi oluştur</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       <form onSubmit={submit} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: 14, display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
         <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Konu" style={{ padding: "9px 11px", border: `1px solid ${THEME.border}`, borderRadius: 0, fontSize: 16, boxSizing: "border-box", background: THEME.yuzeyDik, color: THEME.textLight }} />
         <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Mesajınız" rows={3} style={{ padding: "9px 11px", border: `1px solid ${THEME.border}`, borderRadius: 0, fontSize: 16, boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", background: THEME.yuzeyDik, color: THEME.textLight }} />
         <Dugme type="submit" tur="asil">Gönder</Dugme>
       </form>
       {requests.length > 0 && (<>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Talepleri̇m</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Taleplerim</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
         {requests.map((r) => (
           <div key={r.id} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "12px 14px", marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}><span style={{ fontSize: 15, color: THEME.textLight }}>{r.subject}</span><span style={{ fontSize: 14, color: r.status === "açık" ? THEME.danger : THEME.success }}>{r.status === "açık" ? "Bekliyor" : "Yanıtlandı"}</span></div>
@@ -2703,10 +2725,14 @@ function PaymentNotice({ wallet, notices, onSubmit, label, token }) {
     finally { setKartYukleniyor(false); }
   };
 
+  // Sekmeler bir SEÇİMDİR, eylem butonu değil — dolgusuz, altın alt çizgili sekme dili
   const sekmeStil = (aktif) => ({
-    flex: 1, padding: "9px 0", fontSize: 14, fontWeight: aktif ? 700 : 500, cursor: "pointer",
-    background: aktif ? THEME.cyan : "transparent", color: aktif ? "#04121A" : THEME.textMuted,
-    border: `1px solid ${aktif ? THEME.cyan : THEME.border}`, borderRadius: 0, textAlign: "center",
+    flex: 1, padding: "11px 0", fontSize: 13.5, fontWeight: aktif ? 600 : 400, cursor: "pointer",
+    background: aktif ? "rgba(201,162,75,.08)" : "transparent",
+    color: aktif ? "#F0D68A" : THEME.textMuted,
+    border: `1px solid ${aktif ? "rgba(201,162,75,.5)" : THEME.border}`,
+    borderBottom: aktif ? "2px solid #C9A24B" : `1px solid ${THEME.border}`,
+    borderRadius: 0, textAlign: "center", letterSpacing: "0.05em",
   });
 
   return (
@@ -2717,9 +2743,10 @@ function PaymentNotice({ wallet, notices, onSubmit, label, token }) {
       </div>
 
       {/* Ödeme yöntemi sekmeleri */}
+      <div style={{ fontSize: 11, letterSpacing: "0.22em", color: THEME.textMuted, marginBottom: 6 }}>ÖDEME YÖNTEMİ SEÇİN</div>
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        <div onClick={() => setYontem("kart")} style={sekmeStil(yontem === "kart")}>💳 Kartla Öde</div>
-        <div onClick={() => setYontem("havale")} style={sekmeStil(yontem === "havale")}>🏦 Havale / EFT</div>
+        <div onClick={() => setYontem("kart")} style={sekmeStil(yontem === "kart")}>▤ Kartla Öde</div>
+        <div onClick={() => setYontem("havale")} style={sekmeStil(yontem === "havale")}>◫ Havale / EFT</div>
       </div>
 
       {yontem === "kart" ? (
@@ -2758,7 +2785,7 @@ function PaymentNotice({ wallet, notices, onSubmit, label, token }) {
 
       {notices.length > 0 && (
         <div style={{ marginTop: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Ödeme bi̇ldi̇ri̇mleri̇m</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Ödeme bildirimlerim</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
           {notices.map((n) => (
             <div key={n.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5, padding: "8px 0", borderBottom: `1px solid ${THEME.divider}` }}>
               <span>{tl(n.amount)} <span style={{ color: THEME.textMuted }}>· {n.date}</span></span>
@@ -3148,7 +3175,7 @@ function KendiKampanyam({ books, token }) {
   return (
     <div style={{ marginBottom: 34 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Kendi Kampanyam</span>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Kendi Kampanyam</span>
         <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
       </div>
 
@@ -3387,7 +3414,7 @@ function AdSection({ books, token, onRefresh }) {
   return (
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Reklam &amp; Tanıtım</span>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Reklam &amp; Tanıtım</span>
         <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
       </div>
 
@@ -3468,7 +3495,7 @@ function AdSection({ books, token, onRefresh }) {
       {teklifler && teklifler.length > 0 && (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}>
-            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Başvurularınız</span>
+            <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Başvurularınız</span>
             <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
           </div>
           <div style={{ display: "grid", gap: 2, background: "rgba(201,162,75,.16)", border: "1px solid rgba(201,162,75,.24)" }}>
@@ -3553,16 +3580,16 @@ function ExtrasSection({ books, requests, onSubmit }) {
         <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15, color: THEME.vip }}>✦ VIP Ek Hizmetler</div>
         <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 4, lineHeight: 1.6 }}>Kitaplarınız otomatik olarak Amazon üzerinden dünyaya açılır. Her kitap için 1 dile çeviri hakkınız bulunur.</div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Ki̇tap çevi̇ri̇ haklari</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Kitap çeviri hakları</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       <div style={{ marginBottom: 18 }}>{books.map((b) => (<div key={b.id} style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5, padding: "6px 0", borderBottom: `1px solid ${THEME.divider}`, color: THEME.textLight }}><span>{b.title}</span><span style={{ color: b.translationsUsed >= b.translationQuota ? THEME.danger : THEME.success }}>{b.translationsUsed}/{b.translationQuota} kullanıldı</span></div>))}</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Çevi̇ri̇ talebi̇ oluştur</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Çeviri talebi oluştur</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       <form onSubmit={submit} style={{ background: THEME.yuzey, border: `1px solid ${THEME.vipBorder}`, borderRadius: 0, padding: 14, display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
         <select value={bookId} onChange={(e) => setBookId(e.target.value)} style={inputStyle}>{books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}</select>
         <select value={language} onChange={(e) => setLanguage(e.target.value)} style={inputStyle}>{LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}</select>
         {quotaUsed && <div style={{ fontSize: 14, color: THEME.danger }}>Bu kitap için çeviri hakkınızı kullandınız. Ek hak için yayınevi ile iletişime geçin.</div>}
         <button type="submit" disabled={quotaUsed} style={{ background: quotaUsed ? THEME.disabledBg : THEME.vip, color: quotaUsed ? THEME.disabledFg : "#140A22", border: "none", borderRadius: 0, padding: "10px 0", fontSize: 14.5, cursor: quotaUsed ? "not-allowed" : "pointer", fontWeight: 600 }}>Çeviri Talebini Gönder</button>
       </form>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Talepleri̇m</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Taleplerim</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       {requests.length === 0 && <div style={{ fontSize: 14.5, color: THEME.textMuted }}>Henüz çeviri talebi oluşturmadınız.</div>}
       {requests.map((r) => (<div key={r.id} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "12px 14px", marginBottom: 8 }}><div style={{ display: "flex", justifyContent: "space-between" }}><span style={{ fontSize: 15, color: THEME.textLight }}>{r.bookTitle} → {r.language}</span><span style={{ fontSize: 14, color: r.status === "devam" ? THEME.warn : THEME.success }}>{r.status === "devam" ? "Devam ediyor" : "Tamamlandı"}</span></div></div>))}
     </div>
@@ -3656,7 +3683,7 @@ function StoreSection({ plan, books, wallet, notices, orders, onOrder, onSubmitN
   const available = SERVICES.filter((s) => s.plans.includes(plan));
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Yazar mağazasi · kari̇yeri̇ni̇zi̇ büyütecek hi̇zmetler</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Yazar mağazası · kariyerinizi büyütecek hizmetler</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       <PaymentNotice wallet={wallet} notices={notices} onSubmit={onSubmitNotice} label="HİZMET BAKİYESİ" token={token} />
       {available.map((s) => (
         <ServiceCard key={s.key} service={s} books={books} wallet={wallet} onOrder={onOrder} expanded={openKey === s.key} onToggle={() => setOpenKey(openKey === s.key ? null : s.key)} ordersForService={orders.filter((o) => o.serviceKey === s.key)} />
@@ -3708,7 +3735,7 @@ function EarningsSection({ account }) {
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Ki̇tap Başina Teli̇f (yaşam boyu)</span>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Kitap Başına Telif (yaşam boyu)</span>
         <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
       </div>
       <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "4px 14px", marginBottom: 18 }}>
@@ -3750,7 +3777,7 @@ function EarningsSection({ account }) {
       {/* MST vs DİĞERLERİ TELİF KARŞILAŞTIRMASI */}
       <div style={{ marginTop: 20 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Teli̇f Orani Karşilaştirmasi</span>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Telif Oranı Karşılaştırması</span>
         <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
       </div>
         <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, overflow: "hidden" }}>
@@ -4122,7 +4149,7 @@ function AccountSection({ account, token, referrals, onRefer, otherItems, onNavi
     <div>
       {otherItems && otherItems.length > 0 && (
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Di̇ğer i̇şlemler</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Diğer işlemler</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
           <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, overflow: "hidden" }}>
             {otherItems.map(([key, label, icon], i) => (
               <button key={key} onClick={() => onNavigate && onNavigate(key)} style={{
@@ -4138,14 +4165,14 @@ function AccountSection({ account, token, referrals, onRefer, otherItems, onNavi
           </div>
         </div>
       )}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Sözleşme özeti̇</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Sözleşme özeti</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "14px 16px", marginBottom: 48 }}>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, padding: "6px 0", borderBottom: `1px solid ${THEME.divider}`, color: THEME.textLight }}><span style={{ color: THEME.textMuted }}>Süre</span><span>{account.contract.term}</span></div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, padding: "6px 0", borderBottom: `1px solid ${THEME.divider}`, color: THEME.textLight }}><span style={{ color: THEME.textMuted }}>Münhasırlık</span><span>{account.contract.exclusivity}</span></div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 15, padding: "6px 0", color: THEME.textLight }}><span style={{ color: THEME.textMuted }}>İmza tarihi</span><span>{formatDate(account.contract.signedDate)}</span></div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Yazar geti̇r, kazan</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Yazar getir, kazan</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       <div style={{ background: `linear-gradient(135deg, ${THEME.headerGradA} 0%, ${THEME.headerGradB} 100%)`, borderRadius: 0, padding: "16px 18px", marginBottom: 12, color: THEME.textLight, border: `1px solid ${THEME.border}` }}>
         <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 15 }}>Referans Kodunuz: <span style={{ color: THEME.cyan, fontFamily: "'Cormorant Garamond', serif" }}>{referralCode}</span></div>
         <div style={{ fontSize: 14, color: THEME.textMuted, marginTop: 6, lineHeight: 1.6 }}>Getirdiğiniz her yazar MST'ye katıldığında hizmet bakiyenize {tl(REFERRAL_REWARD)} yansır.</div>
@@ -4165,7 +4192,7 @@ function AccountSection({ account, token, referrals, onRefer, otherItems, onNavi
         </div>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Şi̇fre deği̇şti̇r</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Şifre değiştir</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       <form onSubmit={submit} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: 14, display: "flex", flexDirection: "column", gap: 10, marginBottom: 48 }}>
         <input type="password" value={oldPass} onChange={(e) => setOldPass(e.target.value)} placeholder="Mevcut şifre" style={inputStyle} />
         <input type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Yeni şifre" style={inputStyle} />
@@ -4175,7 +4202,7 @@ function AccountSection({ account, token, referrals, onRefer, otherItems, onNavi
         <Dugme type="submit" tur="asil" disabled={pwBusy}>{pwBusy ? "Kaydediliyor..." : "Kaydet"}</Dugme>
       </form>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Sikça sorulan sorular</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Sikça sorulan sorular</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
       {FAQ_ITEMS.map((f, i) => (
         <div key={i} style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, marginBottom: 8, padding: "12px 14px" }}>
           <button onClick={() => setOpenFaq(openFaq === i ? null : i)} style={{ width: "100%", background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", fontSize: 15, color: THEME.textLight }}>{f.q}</button>
@@ -4467,9 +4494,10 @@ function AIFragman({ account, onBitti }) {
 // "bu bende olmalı" demeli. Yapı: kanca → yetenek → kanıt → mahremiyet
 // → fiyat. Teknolojik ama soğuk değil; paket sayfası dilinde.
 // ═══════════════════════════════════════════════════════════════════
-function AISubscribeScreen({ account, accountName, wallet, onSubscribe }) {
+function AISubscribeScreen({ account, accountName, wallet, onSubscribe, token }) {
   const [error, setError] = useState("");
   const [acikRol, setAcikRol] = useState(0);
+  const [odemeAciliyor, setOdemeAciliyor] = useState(false);
   const firstName = String(accountName || "").split(" ")[0];
 
   const roller = [
@@ -4510,8 +4538,25 @@ function AISubscribeScreen({ account, accountName, wallet, onSubscribe }) {
     },
   ];
 
-  const handle = () => {
-    if (AI_PRICE > wallet.balance) { setError("Bakiyeniz yetersiz — Mağaza bölümünden yükleyebilirsiniz."); return; }
+  const handle = async () => {
+    if (AI_PRICE > wallet.balance) {
+      // Yazarı Profil → Mağaza turuna çıkarma: eksik tutar için ödeme sayfasını DOĞRUDAN aç
+      const eksik = Math.max(1, Math.ceil(AI_PRICE - Number(wallet.balance || 0)));
+      setOdemeAciliyor(true); setError("");
+      try {
+        const r = await fetch(`${BACKEND_URL}/api/author/kart-odeme/baslat`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ tutar: eksik }),
+        });
+        const data = await r.json();
+        if (data.odemeUrl) { window.location.href = data.odemeUrl; return; }
+        setError(data.error || "Ödeme sayfası açılamadı — Mağaza bölümünden bakiye yükleyebilirsiniz.");
+      } catch {
+        setError("Bağlantı hatası — Mağaza bölümünden bakiye yükleyebilirsiniz.");
+      } finally { setOdemeAciliyor(false); }
+      return;
+    }
     onSubscribe();
   };
 
@@ -4556,7 +4601,7 @@ function AISubscribeScreen({ account, accountName, wallet, onSubscribe }) {
 
       {/* ── YETENEKLER ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18 }}>
-        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Beş uzman, tek sohbet</span>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Beş uzman, tek sohbet</span>
         <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
       </div>
 
@@ -4621,7 +4666,12 @@ function AISubscribeScreen({ account, accountName, wallet, onSubscribe }) {
           İstediğiniz zaman durdurabilirsiniz
         </div>
 
-        <Dugme tur="asil" onClick={handle}>DANIŞMANIMI BAŞLAT</Dugme>
+        <Dugme tur="asil" onClick={handle} disabled={odemeAciliyor}>{odemeAciliyor ? "ÖDEME SAYFASI AÇILIYOR..." : "DANIŞMANIMI BAŞLAT"}</Dugme>
+        {AI_PRICE > wallet.balance && !odemeAciliyor && (
+          <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.55)", marginTop: 10, lineHeight: 1.6 }}>
+            Bakiyeniz {Math.max(1, Math.ceil(AI_PRICE - Number(wallet.balance || 0)))} ₺ eksik — butona dokunduğunuzda güvenli ödeme sayfası açılır, ödeme sonrası aboneliğinizi başlatabilirsiniz.
+          </div>
+        )}
 
         {error && <div style={{ fontSize: 13.5, color: "#E09080", marginTop: 14 }}>{error}</div>}
 
@@ -4644,7 +4694,7 @@ function AIAssistant({ account, token, onSubscribe }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (!account.aiSubscription?.active) return <AISubscribeScreen account={account} accountName={account.name} wallet={account.wallet} onSubscribe={onSubscribe} />;
+  if (!account.aiSubscription?.active) return <AISubscribeScreen account={account} accountName={account.name} wallet={account.wallet} onSubscribe={onSubscribe} token={token} />;
 
   const firstName = account.name.split(" ")[0];
   const bookSummary = account.books.map((b) => `${b.title} (${b.totalSold} satış, ${getActiveStage(b.pipeline).label} aşamasında)`).join("; ") || "henüz kitap yok";
@@ -5076,21 +5126,21 @@ function YazarUygulamasi() {
       <ScanLine />
       <div style={{ position: "relative", zIndex: 2 }}>
       <div style={{ background: THEME.headerBg, padding: "22px 0 16px", color: THEME.textLight, borderBottom: `1px solid rgba(201,162,75,0.28)` }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img src={LOGO_HEADER} alt="MST" style={{ width: 54, height: "auto", flexShrink: 0 }} />
-            <div>
+        <div style={{ maxWidth: 1080, margin: "0 auto", padding: "0 clamp(12px, 4vw, 40px)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <img src={LOGO_HEADER} alt="MST" style={{ width: "clamp(42px, 11vw, 54px)", height: "auto", flexShrink: 0 }} />
+            <div style={{ minWidth: 0 }}>
               <div style={{
-                fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, fontSize: 23, letterSpacing: "0.24em", lineHeight: 1.15,
+                fontFamily: "'Cormorant Garamond', serif", fontWeight: 600, fontSize: "clamp(15px, 4.4vw, 23px)", letterSpacing: "0.18em", lineHeight: 1.15, whiteSpace: "nowrap",
                 background: THEME.altinMetin, WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent",
               }}>MST YAYINCILIK</div>
-              <div style={{ fontSize: 9.5, letterSpacing: "0.3em", color: "rgba(201,162,75,.72)", marginTop: 4 }}>YAZAR ASİSTANINIZ</div>
+              <div style={{ fontSize: "clamp(8px, 2.2vw, 9.5px)", letterSpacing: "0.3em", color: "rgba(201,162,75,.72)", marginTop: 4, whiteSpace: "nowrap" }}>YAZAR ASİSTANINIZ</div>
             </div>
-            <div style={{ marginLeft: 4 }}><PlanBadge plan={account.plan} /></div>
+            <div style={{ marginLeft: 4, flexShrink: 0 }}><PlanBadge plan={account.plan} /></div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             <NotificationBell account={account} />
-            <button onClick={() => setSession(null)} style={{ background: "none", border: `1px solid ${THEME.border}`, color: THEME.cyan, fontSize: 14, borderRadius: 0, padding: "5px 10px", cursor: "pointer" }}>ÇIKIŞ</button>
+            <button onClick={() => setSession(null)} style={{ background: "none", border: `1px solid ${THEME.border}`, color: THEME.cyan, fontSize: "clamp(12px, 3.2vw, 14px)", borderRadius: 0, padding: "5px 10px", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>ÇIKIŞ</button>
           </div>
         </div>
       </div>
@@ -5106,7 +5156,7 @@ function YazarUygulamasi() {
               <>
                 {/* PERFORMANS ÖZETİ */}
                 <div style={{ background: THEME.yuzey, border: `1px solid ${THEME.border}`, borderRadius: 0, padding: "14px 16px", marginBottom: 14 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 25, color: "#F0D68A", fontWeight: 600, whiteSpace: "nowrap" }}>Kütüphaneni̇z</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16, marginTop: 34 }}><span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Kütüphaneniz</span><span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} /></div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10 }}>
                     <div>
                       <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: THEME.gold, fontWeight: 700 }}>{kitapSayisi}</div>

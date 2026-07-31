@@ -2203,6 +2203,13 @@ function LoginScreen({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [introDone, setIntroDone] = useState(false); // video oynar -> biter/geç -> giriş ekranı
   const [introFading, setIntroFading] = useState(false); // video->giriş yumuşak geçiş
+  // Masaüstü (>=900px) kendi açılış videosunu oynatır; telefon eski videoda kalır.
+  // Masaüstü dosyası bulunamazsa onError telefon videosuna düşürür.
+  const [introKaynak, setIntroKaynak] = useState(() =>
+    (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(min-width: 900px)").matches)
+      ? "/mst-intro-masaustu.mp4"
+      : "/mst-intro.mp4"
+  );
   const [exiting, setExiting] = useState(false);
 
   // Giriş ekranı kendi sabit lacivert/altın paletini kullanır (global tema kreme dönse de bozulmaz)
@@ -2328,16 +2335,21 @@ function LoginScreen({ onLogin }) {
           display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
           opacity: introFading ? 0 : 1, transition: "opacity 0.7s ease",
         }}>
+          {/* Masaüstünde (>=900px) ayrı video oynar; dosya yoksa telefon videosuna düşer */}
           <video
+            key={introKaynak}
             autoPlay
             muted
             playsInline
             preload="auto"
             onEnded={() => { setIntroFading(true); setTimeout(() => setIntroDone(true), 700); }}
-            onError={() => setIntroDone(true)}
+            onError={() => {
+              if (introKaynak === "/mst-intro-masaustu.mp4") setIntroKaynak("/mst-intro.mp4");
+              else setIntroDone(true);
+            }}
             style={{ width: "100%", height: "100%", objectFit: "contain" }}
           >
-            <source src="/mst-intro.mp4" type="video/mp4" />
+            <source src={introKaynak} type="video/mp4" />
           </video>
           <button
             onClick={() => { setIntroFading(true); setTimeout(() => setIntroDone(true), 700); }}

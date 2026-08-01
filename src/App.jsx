@@ -5621,8 +5621,9 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim }) {
     ],
   };
 
+  const scrollRef = React.useRef(null);
   const Asagi = () => (
-    <div className="bk-asagi" onClick={() => document.querySelector('.bk-scroll').scrollBy(0, window.innerHeight)}>
+    <div className="bk-asagi" onClick={() => scrollRef.current?.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}>
       <div className="bk-asagi-ok" />
       <span>DEVAM</span>
     </div>
@@ -5661,10 +5662,10 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim }) {
       <div className="bk-serit">
         <div className="bk-serit-logo">MST YAYINCILIK</div>
         <div className="bk-serit-durum"><div className="bk-serit-nokta" />ESERİNİZ İNCELENİYOR</div>
-        <button className="bk-serit-atla" onClick={() => document.querySelector('.bk-scroll').scrollTo(0, 999999)}>DERSLERE GEÇ ↓</button>
+        <button className="bk-serit-atla" onClick={() => scrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' })}>DERSLERE GEÇ ↓</button>
       </div>
 
-      <div className="bk-scroll">
+      <div className="bk-scroll" ref={scrollRef}>
 
         {/* ══ B1: SERTİFİKA DEĞERİ ══ */}
         <div className="bk-bolum" style={{ background: "radial-gradient(ellipse 90% 60% at 50% 20%,rgba(201,162,75,.14) 0%,transparent 65%),#050D1A" }}>

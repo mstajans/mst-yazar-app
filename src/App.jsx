@@ -6250,10 +6250,29 @@ function AdayDeneyimi({ kaynak }) {
   );
 }
 
-function AdayPerde({ perde, perdeGetir, perdeGecmis }) {
-  const ic = perde.icerik || {};
-  const videoSrc = `/mst-aday-${perde.id}.mp4`;
+function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
+  const [perde, setPerde] = useState(ilkPerde);
   const [videoGoster, setVideoGoster] = useState(false);
+  const [yukleniyor, setYukleniyor] = useState(false);
+  const ic = (perde || {}).icerik || {};
+  const videoSrc = `/mst-aday-${perde?.id}.mp4`;
+
+  const sonraki = async () => {
+    if (yukleniyor) return;
+    setYukleniyor(true);
+    try {
+      // Backend'den yeni perde iste
+      await perdeGetir();
+      // perdeGetir state'i güncelliyor ama biz prop aldığımız için
+      // kısa bir gecikme sonra yeni prop gelecek
+    } catch {}
+    finally { setYukleniyor(false); }
+  };
+
+  // Üst bileşenden yeni perde gelince güncelle
+  useEffect(() => { if (ilkPerde) setPerde(ilkPerde); }, [ilkPerde?.id]);
+
+  if (!perde) return null;
 
   return (
     <div style={{ position: "sticky", top: 64, height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "clamp(24px,4vw,60px)" }}>
@@ -6270,7 +6289,6 @@ function AdayPerde({ perde, perdeGetir, perdeGecmis }) {
             <div style={{ width: 1, height: "60%", background: "linear-gradient(180deg,transparent,rgba(201,162,75,.4),transparent)" }} />
           </div>
         )}
-        {/* Büyük perde numarası */}
         <div className="aday-perde-numara">{perde.id}</div>
       </div>
       {/* Perde içeriği */}
@@ -6289,7 +6307,10 @@ function AdayPerde({ perde, perdeGetir, perdeGecmis }) {
             <div key={n} className={`aday-perde-nokta${perdeGecmis.includes(n) ? " aktif" : ""}`} />
           ))}
         </div>
-        <button className="aday-btn-sessiz" onClick={perdeGetir} style={{ padding: "8px 16px", fontSize: 10 }}>DEVAMINI GÖR →</button>
+        <button className="aday-btn-sessiz" onClick={sonraki} disabled={yukleniyor}
+          style={{ padding: "8px 16px", fontSize: 10, opacity: yukleniyor ? .5 : 1 }}>
+          {yukleniyor ? "..." : "DEVAMINI GÖR →"}
+        </button>
       </div>
     </div>
   );

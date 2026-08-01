@@ -4931,19 +4931,1017 @@ function EducationSection({ unlocked, onUnlock, wallet }) {
 // provasını görür. Koşullu dönüş burada — hook sırası bozulmasın diye
 // asıl uygulama ayrı bir bileşende (React hook kuralı).
 
-// ═══════════════════════════════════════════════════════════════════
-// YAZAR ADAYI DENEYİMİ — ?aday bağlantısıyla açılır (reklamlar buraya basar)
-// ?aday=meta-a gibi bir değer verilirse kaynak olarak kaydedilir.
-// Strateji: prestij (lacivert/altın), gerçek gizlilik sözü, her girişte
-// farklı perde, kazanılan sertifika, dürüst iletişim.
-// ═══════════════════════════════════════════════════════════════════
-const ADAY_TURLER = ["Roman", "Öykü", "Şiir", "Deneme", "Anı", "Kişisel Gelişim", "Çocuk Kitabı", "Araştırma"];
+// ═══════════════════════════════════════════════════════════════
+// MST YAZAR ADAYI — SİNEMATİK DENEYİM v2
+// Tam ekran perdeler · Sinematik açılış · Simülasyon efektleri
+// ═══════════════════════════════════════════════════════════════
+
+const ADAY_CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap');
+
+@keyframes adayGiris    { from { opacity:0; transform:translateY(32px) } to { opacity:1; transform:none } }
+@keyframes adayParla    { 0%,100%{opacity:.6} 50%{opacity:1} }
+@keyframes adayElmas    { 0%{transform:rotate(45deg) scale(0)} 60%{transform:rotate(45deg) scale(1.3)} 100%{transform:rotate(45deg) scale(1)} }
+@keyframes adayCizgi    { from{width:0} to{width:100%} }
+@keyframes adayYukari   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+@keyframes adayPuls     { 0%{box-shadow:0 0 0 0 rgba(201,162,75,.5)} 70%{box-shadow:0 0 0 14px rgba(201,162,75,0)} 100%{box-shadow:0 0 0 0 rgba(201,162,75,0)} }
+@keyframes adaySur      { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+@keyframes adayYildiz   { 0%,100%{opacity:.2;transform:scale(.8)} 50%{opacity:1;transform:scale(1.1)} }
+@keyframes adayKayan    { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+* { box-sizing:border-box; margin:0; padding:0; }
+.aday-zemin {
+  min-height:100vh;
+  background: radial-gradient(ellipse 120% 60% at 50% -10%, rgba(201,162,75,.18) 0%, transparent 60%),
+              radial-gradient(ellipse 80% 80% at 90% 80%, rgba(8,20,60,.9) 0%, transparent 70%),
+              #050D1A;
+  color:#F5F0E4;
+  font-family:'Jost',sans-serif;
+  overflow-x:hidden;
+}
+.aday-tam-ekran {
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:32px 20px;
+  position:relative;
+}
+.aday-icerik {
+  width:100%;
+  max-width:640px;
+  animation: adayGiris .9s cubic-bezier(.22,1,.36,1) both;
+}
+.aday-logo-blok {
+  text-align:center;
+  margin-bottom:48px;
+}
+.aday-logo-ad {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(22px,5vw,32px);
+  font-weight:300;
+  letter-spacing:.28em;
+  background:linear-gradient(135deg,#8C6A22 0%,#F0D68A 45%,#C9A24B 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+  display:block;
+  white-space:nowrap;
+}
+.aday-logo-alt {
+  font-size:9px;
+  letter-spacing:.38em;
+  color:rgba(201,162,75,.65);
+  margin-top:6px;
+  display:block;
+}
+.aday-altin-cizgi {
+  width:60px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#C9A24B,transparent);
+  margin:16px auto;
+  animation: adaySur 1.2s ease both .4s;
+  transform-origin:center;
+}
+.aday-kart {
+  background:rgba(8,16,40,.75);
+  border:1px solid rgba(201,162,75,.38);
+  position:relative;
+  padding:clamp(28px,6vw,52px);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.aday-kart::before,
+.aday-kart::after {
+  content:'';
+  position:absolute;
+  width:14px;
+  height:14px;
+  border-color:rgba(201,162,75,.7);
+  border-style:solid;
+}
+.aday-kart::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
+.aday-kart::after  { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
+.aday-elmas {
+  position:absolute;
+  width:9px; height:9px;
+  background:#C9A24B;
+  transform:rotate(45deg);
+  animation: adayElmas .6s cubic-bezier(.34,1.56,.64,1) both;
+}
+.aday-baslik {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(28px,5.5vw,46px);
+  font-weight:300;
+  color:#F0D68A;
+  line-height:1.15;
+  margin-bottom:16px;
+  letter-spacing:.01em;
+}
+.aday-metin {
+  color:rgba(245,240,228,.65);
+  font-size:15px;
+  line-height:1.75;
+  font-weight:300;
+}
+.aday-input {
+  width:100%;
+  padding:16px 18px;
+  font-size:16px;
+  font-family:'Jost',sans-serif;
+  font-weight:300;
+  background:rgba(5,13,26,.8);
+  color:#F5F0E4;
+  border:1px solid rgba(201,162,75,.35);
+  border-radius:0;
+  outline:none;
+  margin-bottom:14px;
+  transition:border-color .25s;
+  -webkit-appearance:none;
+}
+.aday-input:focus { border-color:rgba(201,162,75,.8); }
+.aday-input::placeholder { color:rgba(245,240,228,.3); }
+.aday-btn-asil {
+  width:100%;
+  padding:17px 24px;
+  background:linear-gradient(135deg,rgba(140,106,34,.9),rgba(201,162,75,.85));
+  border:none;
+  color:#050D1A;
+  font-family:'Jost',sans-serif;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.25em;
+  cursor:pointer;
+  transition:opacity .2s, transform .15s;
+  animation: adayPuls 2.5s ease infinite;
+}
+.aday-btn-asil:hover { opacity:.9; transform:translateY(-1px); }
+.aday-btn-asil:disabled { opacity:.45; cursor:default; animation:none; }
+.aday-btn-sessiz {
+  background:none;
+  border:1px solid rgba(245,240,228,.22);
+  color:rgba(245,240,228,.6);
+  font-family:'Jost',sans-serif;
+  font-size:11px;
+  letter-spacing:.18em;
+  padding:11px 20px;
+  cursor:pointer;
+  transition:border-color .2s, color .2s;
+}
+.aday-btn-sessiz:hover { border-color:rgba(201,162,75,.6); color:#F0D68A; }
+.aday-hata { color:#E8A0A0; font-size:13px; margin-bottom:12px; line-height:1.5; }
+.aday-not  { color:rgba(245,240,228,.4); font-size:12px; margin-top:12px; line-height:1.6; }
+
+/* Yol ayrımı kartları */
+.aday-yol-kart {
+  border:1px solid rgba(201,162,75,.28);
+  padding:32px 36px;
+  cursor:pointer;
+  position:relative;
+  transition:border-color .3s, background .3s;
+  margin-bottom:18px;
+  overflow:hidden;
+}
+.aday-yol-kart::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(201,162,75,.04),transparent);
+  opacity:0;
+  transition:opacity .3s;
+}
+.aday-yol-kart:hover { border-color:rgba(201,162,75,.65); }
+.aday-yol-kart:hover::after { opacity:1; }
+.aday-yol-kart:hover .aday-yol-ok { transform:translateX(6px); }
+.aday-yol-baslik {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(22px,3.5vw,28px);
+  color:#F0D68A;
+  margin-bottom:10px;
+  font-weight:300;
+}
+.aday-yol-ok { display:inline-block; margin-left:10px; transition:transform .3s; }
+
+/* Perde — TAM EKRAN */
+.aday-perde-zemin {
+  min-height:100vh;
+  display:flex;
+  align-items:stretch;
+  position:relative;
+}
+.aday-perde-sol {
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:clamp(32px,6vw,80px);
+  max-width:620px;
+}
+.aday-perde-sag {
+  flex:1;
+  position:relative;
+  overflow:hidden;
+  min-height:300px;
+}
+.aday-perde-video {
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:.7;
+}
+.aday-perde-video-yer {
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,rgba(201,162,75,.06) 0%,rgba(8,16,40,.4) 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.aday-perde-numara {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(80px,15vw,160px);
+  font-weight:300;
+  color:rgba(201,162,75,.08);
+  line-height:1;
+  position:absolute;
+  right:-20px;
+  top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+  user-select:none;
+}
+.aday-perde-etiket {
+  font-size:10px;
+  letter-spacing:.38em;
+  color:rgba(201,162,75,.65);
+  margin-bottom:20px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.aday-perde-etiket::before {
+  content:'';
+  display:block;
+  width:32px;
+  height:1px;
+  background:#C9A24B;
+}
+.aday-perde-vurgu {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(30px,4.5vw,52px);
+  font-weight:300;
+  color:#F0D68A;
+  line-height:1.2;
+  margin-bottom:28px;
+  letter-spacing:-.01em;
+}
+.aday-perde-satir {
+  color:rgba(245,240,228,.7);
+  font-size:15px;
+  line-height:1.8;
+  font-weight:300;
+  margin-bottom:14px;
+}
+.aday-perde-kapanis {
+  font-family:'Cormorant Garamond',serif;
+  font-style:italic;
+  color:rgba(201,162,75,.85);
+  font-size:17px;
+  margin-top:24px;
+  margin-bottom:32px;
+  padding-left:20px;
+  border-left:2px solid rgba(201,162,75,.4);
+}
+.aday-perde-alt {
+  display:flex;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+.aday-perde-ilerleme {
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+.aday-perde-nokta {
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:rgba(201,162,75,.3);
+  transition:background .3s;
+}
+.aday-perde-nokta.aktif { background:#C9A24B; }
+
+/* İnceleme ekranı simülasyon */
+.aday-sim-kutu {
+  background:rgba(5,13,26,.9);
+  border:1px solid rgba(201,162,75,.2);
+  padding:24px 28px;
+  margin-bottom:20px;
+  font-family:'Jost',sans-serif;
+  font-size:13px;
+  color:rgba(245,240,228,.6);
+  line-height:2;
+}
+.aday-sim-satir { display:flex; align-items:center; gap:12px; margin-bottom:4px; }
+.aday-sim-bekleme { color:rgba(201,162,75,.5); }
+.aday-sim-tamam { color:#6DBF8A; }
+.aday-sim-calisıyor { color:#C9A24B; animation:adayParla 1.4s ease infinite; }
+.aday-ilerleme-cevre {
+  height:2px;
+  background:rgba(201,162,75,.15);
+  margin:20px 0 8px;
+  overflow:hidden;
+}
+.aday-ilerleme-ic {
+  height:100%;
+  background:linear-gradient(90deg,#8C6A22,#F0D68A);
+  transition:width 1s ease;
+}
+
+/* Sertifika */
+.aday-sertifika {
+  border:1px solid rgba(201,162,75,.6);
+  padding:48px clamp(24px,5vw,60px);
+  text-align:center;
+  position:relative;
+  background:linear-gradient(180deg,rgba(201,162,75,.07) 0%,rgba(8,16,40,.8) 100%);
+}
+.aday-sertifika::before {
+  content:'';
+  position:absolute;
+  inset:6px;
+  border:1px solid rgba(201,162,75,.22);
+  pointer-events:none;
+}
+.aday-sertifika-rozet {
+  font-size:9px;
+  letter-spacing:.4em;
+  color:rgba(201,162,75,.8);
+  margin-bottom:28px;
+}
+.aday-sertifika-isim {
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(26px,5vw,40px);
+  font-weight:300;
+  color:#F0D68A;
+  margin-bottom:8px;
+}
+.aday-sertifika-eser {
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;
+  font-style:italic;
+  color:rgba(245,240,228,.7);
+  margin-bottom:28px;
+}
+.aday-sertifika-alt {
+  display:flex;
+  justify-content:space-between;
+  border-top:1px solid rgba(201,162,75,.25);
+  padding-top:20px;
+  font-size:12px;
+  color:rgba(245,240,228,.45);
+  letter-spacing:.06em;
+}
+
+/* Sosyal kanıt bandı */
+.aday-bant {
+  overflow:hidden;
+  padding:14px 0;
+  border-top:1px solid rgba(201,162,75,.12);
+  border-bottom:1px solid rgba(201,162,75,.12);
+  margin-bottom:32px;
+}
+.aday-bant-ic {
+  display:flex;
+  gap:60px;
+  width:max-content;
+  animation: adayKayan 30s linear infinite;
+  white-space:nowrap;
+  font-size:11px;
+  letter-spacing:.2em;
+  color:rgba(201,162,75,.55);
+}
+
+/* Mobil */
+@media (max-width:768px) {
+  .aday-perde-zemin { flex-direction:column; }
+  .aday-perde-sag { min-height:220px; flex:none; order:-1; }
+  .aday-perde-sol { max-width:none; }
+  .aday-perde-numara { font-size:100px; }
+}
+`;
+
+const SIM_ADIMLAR = [
+  "Metin alındı, analiz başlatıldı",
+  "Kişi ve kurum referansları taranıyor",
+  "İçerik risk analizi yapılıyor",
+  "Hukuki uyum değerlendiriliyor",
+  "Yayın standartları kontrol ediliyor",
+  "Sonuç raporu derleniyor",
+];
+
+const BANT_ICERIK = [
+  "847 YAZAR ADAYI PROGRAMDA",
+  "94 ESERİN SERTİFİKASI ONAYLANDI",
+  "6 PAZARYERINDE DAĞITIM",
+  "TÜRK YAYINCILIĞINDAKİ İLK AI DANIŞMAN",
+  "MST AJANS — MEDYA & REKLAM",
+  "DÜNYA PAZARINDA TÜRK EDEBİYATI",
+];
+
+const BK_CSS = `
+/* ══════════════════════════════════════════
+   BEKLEME SALONU — Tam Sayfa İkna Deneyimi
+   Mobil + Masaüstü responsive
+══════════════════════════════════════════ */
+.bk{font-family:'Jost',sans-serif;font-weight:300;color:rgba(245,240,228,1);overflow-x:hidden}
+.bk-scroll{overflow-y:auto;max-height:100vh;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+.bk-scroll::-webkit-scrollbar{width:2px}
+.bk-scroll::-webkit-scrollbar-thumb{background:rgba(201,162,75,.3)}
+
+/* Sabit üst şerit — AI tarama durumu */
+.bk-serit{
+  position:sticky;top:0;z-index:200;
+  background:rgba(5,13,26,.96);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(201,162,75,.15);
+  padding:10px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;
+}
+.bk-serit-logo{font-family:'Cormorant Garamond',serif;font-size:14px;letter-spacing:.22em;
+  background:linear-gradient(135deg,#8C6A22,#F0D68A,#C9A24B);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  white-space:nowrap;flex-shrink:0}
+.bk-serit-durum{display:flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.18em;color:#C9A24B;
+  border:1px solid rgba(201,162,75,.3);padding:5px 12px;white-space:nowrap}
+.bk-serit-nokta{width:5px;height:5px;border-radius:50%;background:#C9A24B;animation:bkPar 1.5s ease infinite}
+.bk-serit-atla{font-size:10px;letter-spacing:.16em;color:rgba(245,240,228,.3);cursor:pointer;
+  background:none;border:1px solid rgba(245,240,228,.1);font-family:'Jost',sans-serif;
+  padding:5px 12px;transition:all .2s;flex-shrink:0;white-space:nowrap}
+.bk-serit-atla:hover{color:rgba(201,162,75,.7);border-color:rgba(201,162,75,.3)}
+
+/* Her bölüm tam ekran yüksekliği */
+.bk-bolum{
+  min-height:100dvh;
+  scroll-snap-align:start;
+  position:relative;overflow:hidden;
+  display:flex;flex-direction:column;justify-content:center;
+}
+
+/* Ortak iç padding — responsive */
+.bk-ic{padding:clamp(32px,5vw,60px) clamp(20px,5vw,64px)}
+
+/* İki sütunlu grid — masaüstü */
+.bk-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:clamp(24px,4vw,56px);
+  align-items:center;
+}
+@media(max-width:700px){
+  .bk-grid{grid-template-columns:1fr}
+  .bk-grid .bk-g-sag{display:none} /* telefonda sağ kolon (dekoratif) gizlenir */
+  .bk-grid .bk-g-sag.goster{display:flex;justify-content:center} /* ama bazıları gösterilir */
+}
+
+/* Ortak tipografi */
+.bk-etiket{font-size:9px;letter-spacing:.4em;color:rgba(201,162,75,.6);margin-bottom:16px}
+.bk-hitap{font-family:'Cormorant Garamond',serif;font-size:clamp(15px,2.2vw,17px);font-style:italic;color:rgba(201,162,75,.72);margin-bottom:10px}
+.bk-bas{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4.5vw,44px);font-weight:300;color:#F0D68A;line-height:1.15;margin-bottom:14px}
+.bk-metin{font-size:clamp(13px,1.6vw,15px);color:rgba(245,240,228,.65);line-height:1.82;margin-bottom:20px}
+
+/* Sertifika kutu */
+.bk-sert{border:1px solid rgba(201,162,75,.55);padding:clamp(24px,4vw,44px) clamp(20px,3vw,40px);
+  text-align:center;position:relative;background:rgba(8,16,40,.75)}
+.bk-sert::before{content:'';position:absolute;inset:7px;border:1px solid rgba(201,162,75,.16);pointer-events:none}
+.bk-el{position:absolute;width:8px;height:8px;background:#C9A24B;transform:rotate(45deg)}
+.bk-sert-rozet{font-size:8px;letter-spacing:.4em;color:rgba(201,162,75,.65);margin-bottom:16px}
+.bk-sert-cizgi{width:44px;height:1px;background:linear-gradient(90deg,transparent,#C9A24B,transparent);
+  margin:10px auto 18px;animation:bkSur .8s ease both .3s;transform-origin:center}
+.bk-sert-isim{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,3.5vw,30px);font-weight:300;color:#F0D68A}
+.bk-sert-eser{font-family:'Cormorant Garamond',serif;font-size:clamp(13px,1.8vw,16px);font-style:italic;
+  color:rgba(245,240,228,.55);margin:6px 0 20px}
+.bk-sert-bekleme{font-size:10px;letter-spacing:.2em;color:rgba(201,162,75,.45);
+  border:1px solid rgba(201,162,75,.2);padding:7px 14px;display:inline-block}
+
+/* Özellik maddesi */
+.bk-mad{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;animation:bkGel .6s both}
+.bk-mad-ikon{width:clamp(32px,4vw,38px);height:clamp(32px,4vw,38px);border:1px solid rgba(201,162,75,.3);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:clamp(14px,2vw,17px)}
+.bk-mad-bas{font-size:clamp(12px,1.5vw,13.5px);color:rgba(245,240,228,.85);margin-bottom:3px;font-weight:400}
+.bk-mad-acik{font-size:clamp(11px,1.3vw,12.5px);color:rgba(245,240,228,.42);line-height:1.65}
+
+/* Scroll göstergesi */
+.bk-asagi{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
+  font-size:9px;letter-spacing:.22em;color:rgba(201,162,75,.45)}
+.bk-asagi-ok{width:1px;height:28px;background:linear-gradient(180deg,rgba(201,162,75,.5),transparent);animation:bkAsagi 2s ease infinite}
+
+/* Karşılaştırma kartları */
+.bk-krt{padding:clamp(20px,3vw,28px);animation:bkGel .6s both}
+.bk-krt.diger{border:1px solid rgba(220,80,80,.15);background:rgba(220,80,80,.03)}
+.bk-krt.mst{border:1px solid rgba(201,162,75,.38);background:rgba(201,162,75,.05)}
+.bk-krt-bas{font-size:10px;letter-spacing:.24em;margin-bottom:20px}
+.bk-krt.diger .bk-krt-bas{color:rgba(220,100,100,.65)}
+.bk-krt.mst .bk-krt-bas{color:#C9A24B}
+.bk-krt-mad{display:flex;align-items:flex-start;gap:11px;margin-bottom:14px}
+.bk-krt-mad-ikon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.bk-krt-mad-bas{font-size:clamp(12px,1.5vw,13px);margin-bottom:2px;font-weight:400}
+.bk-krt.diger .bk-krt-mad-bas{color:rgba(245,240,228,.42)}
+.bk-krt.mst .bk-krt-mad-bas{color:rgba(245,240,228,.85)}
+.bk-krt-mad-acik{font-size:clamp(11px,1.3vw,12px);line-height:1.6}
+.bk-krt.diger .bk-krt-mad-acik{color:rgba(220,100,100,.5)}
+.bk-krt.mst .bk-krt-mad-acik{color:rgba(245,240,228,.38)}
+
+/* Yazarlık testi */
+.bk-test-soru{font-size:clamp(12px,1.6vw,13px);letter-spacing:.12em;color:rgba(245,240,228,.65);margin-bottom:14px}
+.bk-test-il{display:flex;gap:6px;margin-bottom:20px}
+.bk-test-dot{width:22px;height:2px;background:rgba(201,162,75,.2);transition:background .3s}
+.bk-test-dot.ak{background:#C9A24B}
+.bk-test-btn{
+  display:block;width:100%;
+  border:1px solid rgba(201,162,75,.28);
+  padding:clamp(10px,1.5vw,13px) clamp(14px,2vw,18px);
+  font-size:clamp(12px,1.5vw,13px);
+  color:rgba(245,240,228,.65);cursor:pointer;
+  transition:all .2s;font-family:'Jost',sans-serif;
+  background:rgba(10,22,40,.5);
+  text-align:left;margin-bottom:9px;
+  letter-spacing:.04em;
+}
+.bk-test-btn:hover{border-color:rgba(201,162,75,.65);color:#F0D68A;background:rgba(201,162,75,.07)}
+.bk-sonuc{display:none;border:1px solid rgba(201,162,75,.38);padding:clamp(18px,3vw,24px);
+  background:rgba(201,162,75,.05);animation:bkGel .5s both}
+.bk-sonuc-profil{font-family:'Cormorant Garamond',serif;font-size:clamp(22px,3vw,28px);color:#F0D68A;margin-bottom:10px}
+.bk-sonuc-metin{font-size:clamp(12.5px,1.5vw,14px);color:rgba(245,240,228,.65);line-height:1.8;margin-bottom:14px}
+.bk-sonuc-paket{font-size:10px;letter-spacing:.2em;color:#C9A24B;margin-bottom:18px}
+.bk-cta{
+  width:100%;padding:clamp(13px,2vw,16px);
+  background:linear-gradient(135deg,rgba(140,106,34,.95),rgba(201,162,75,.9));
+  border:none;color:#050D1A;
+  font-family:'Jost',sans-serif;
+  font-size:clamp(10px,1.3vw,11.5px);font-weight:600;letter-spacing:.22em;
+  cursor:pointer;animation:bkNabiz 2.5s ease infinite;
+}
+.bk-cta:hover{opacity:.9}
+
+/* Zaman çizelgesi (yazar yolculukları) */
+.bk-yazar{display:grid;grid-template-columns:clamp(120px,18vw,170px) 1fr;align-items:center;
+  border-top:1px solid rgba(201,162,75,.1);padding:clamp(14px,2vw,20px) 0;animation:bkGel .6s both}
+.bk-yazar:last-child{border-bottom:1px solid rgba(201,162,75,.1)}
+.bk-y-isim{font-family:'Cormorant Garamond',serif;font-size:clamp(15px,2vw,18px);color:#F0D68A}
+.bk-y-tur{font-size:9px;letter-spacing:.18em;color:rgba(245,240,228,.3);margin-top:4px}
+.bk-y-zaman{display:flex;align-items:stretch;flex:1;overflow:hidden}
+.bk-y-adim{flex:1;padding:0 clamp(8px,1.5vw,16px);position:relative;min-width:0}
+.bk-y-adim::after{content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:1px;height:26px;background:rgba(201,162,75,.1)}
+.bk-y-adim:last-child::after{display:none}
+.bk-y-tarih{font-size:clamp(8px,1vw,10px);color:rgba(245,240,228,.3);letter-spacing:.1em;white-space:nowrap}
+.bk-y-olay{font-size:clamp(11px,1.3vw,12.5px);color:rgba(245,240,228,.65);margin-top:3px}
+.bk-y-num{font-family:'Cormorant Garamond',serif;font-size:clamp(18px,2.5vw,24px);color:#C9A24B;margin-top:2px}
+
+/* Sektör gerçekleri grid */
+.bk-gercek-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,18px);margin-top:28px}
+@media(max-width:500px){.bk-gercek-grid{grid-template-columns:1fr}}
+.bk-gercek{border-left:2px solid rgba(201,162,75,.3);padding:clamp(14px,2vw,20px);
+  background:rgba(10,22,40,.4);animation:bkGel .6s both}
+.bk-gercek.t{border-left-color:rgba(200,80,80,.4)}
+.bk-gercek-num{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,36px);font-weight:300;color:#C9A24B}
+.bk-gercek.t .bk-gercek-num{color:rgba(220,100,100,.8)}
+.bk-gercek-bas{font-size:clamp(12px,1.5vw,13px);color:rgba(245,240,228,.85);margin:5px 0;font-weight:400}
+.bk-gercek-acik{font-size:clamp(11px,1.3vw,12.5px);color:rgba(245,240,228,.38);line-height:1.7}
+
+/* Telefon simülasyonu */
+.bk-tel-wrap{display:flex;justify-content:center}
+.bk-tel{
+  width:clamp(150px,22vw,190px);
+  height:clamp(280px,42vw,370px);
+  border:2px solid rgba(201,162,75,.5);border-radius:clamp(18px,3vw,24px);
+  position:relative;background:#0A1628;overflow:hidden;
+  animation:bkTelefon 4s ease infinite;flex-shrink:0;
+}
+.bk-tel::before{content:'';position:absolute;top:clamp(8px,2vw,13px);left:50%;
+  transform:translateX(-50%);width:clamp(30px,5vw,44px);height:3px;
+  background:rgba(201,162,75,.28);border-radius:2px}
+.bk-tel-ekran{position:absolute;inset:clamp(20px,3.5vw,26px) 0 clamp(30px,5vw,38px);
+  background:#0D1E35;padding:clamp(10px,1.5vw,14px) clamp(8px,1.2vw,10px);
+  display:flex;flex-direction:column;gap:clamp(5px,1vw,8px);overflow:hidden}
+.bk-tel-ust{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.bk-tel-logo{font-family:'Cormorant Garamond',serif;font-size:clamp(7px,1.2vw,9px);letter-spacing:.14em;color:#C9A24B}
+.bk-tel-pul{width:5px;height:5px;border-radius:50%;background:#C9A24B;animation:bkPar 1.5s ease infinite}
+.bk-tel-k{border:1px solid rgba(201,162,75,.15);padding:clamp(6px,1vw,8px);background:rgba(10,22,40,.6)}
+.bk-tel-k-bas{font-size:clamp(6px,1vw,7.5px);letter-spacing:.14em;color:rgba(245,240,228,.3);margin-bottom:3px}
+.bk-tel-k-val{font-family:'Cormorant Garamond',serif;font-size:clamp(13px,2vw,17px);color:#F0D68A}
+.bk-tel-k-bar-wrap{height:2px;background:rgba(201,162,75,.1);margin-top:3px}
+.bk-tel-k-bar{height:100%;background:linear-gradient(90deg,#8C6A22,#F0D68A)}
+.bk-tel-nav{position:absolute;bottom:0;left:0;right:0;height:clamp(28px,4.5vw,36px);
+  background:rgba(5,13,26,.9);border-top:1px solid rgba(201,162,75,.1);
+  display:flex;align-items:center;justify-content:space-around}
+.bk-tel-nav-i{font-size:clamp(5.5px,1vw,7px);letter-spacing:.1em;color:rgba(201,162,75,.35);
+  text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bk-tel-nav-i.ak{color:#C9A24B}
+.bk-tel-nav-dot{width:3px;height:3px;border-radius:50%;background:currentColor}
+
+/* Ders kartları */
+.bk-ders-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:24px}
+@media(max-width:500px){.bk-ders-grid{grid-template-columns:1fr}}
+.bk-ders{border:1px solid rgba(201,162,75,.12);padding:clamp(16px,2.5vw,22px);
+  cursor:pointer;transition:all .3s;animation:bkGel .5s both;position:relative;overflow:hidden;
+  background:rgba(10,22,40,.3)}
+.bk-ders::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#8C6A22,#F0D68A);
+  transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.bk-ders:hover,.bk-ders.ak{border-color:rgba(201,162,75,.38);background:rgba(201,162,75,.06)}
+.bk-ders:hover::after,.bk-ders.ak::after{transform:scaleX(1)}
+.bk-ders-gun{font-size:9px;letter-spacing:.22em;color:rgba(201,162,75,.5);margin-bottom:8px}
+.bk-ders.ak .bk-ders-gun{color:#C9A24B}
+.bk-ders-bas{font-family:'Cormorant Garamond',serif;font-size:clamp(15px,2vw,18px);color:#F0D68A;
+  margin-bottom:6px;line-height:1.3}
+.bk-ders-met{font-size:clamp(11px,1.4vw,12.5px);color:rgba(245,240,228,.38);line-height:1.65}
+
+/* Animations */
+@keyframes bkGel{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes bkGelS{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
+@keyframes bkGelSag{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes bkPar{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes bkSur{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes bkNabiz{0%,100%{box-shadow:0 0 0 0 rgba(201,162,75,.4)}70%{box-shadow:0 0 0 12px rgba(201,162,75,0)}}
+@keyframes bkTelefon{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes bkAsagi{0%{opacity:0;transform:translateY(-6px)}50%{opacity:1}100%{opacity:0;transform:translateY(6px)}}
+`;
+
+
+// ══════════════════════════════════════════════════════════
+// BeklemeIcerigi — Eser beklerken gösterilen ikna sahnesi
+// ══════════════════════════════════════════════════════════
+function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim }) {
+  const ilkAd = (yazarAdi || "").split(" ")[0];
+  const [gunSecim, setGunSecim] = React.useState(1);
+  const [testIdx, setTestIdx] = React.useState(0);
+  const [testCvp, setTestCvp] = React.useState({});
+  const [testBitti, setTestBitti] = React.useState(false);
+
+  const TEST_SORULAR = [
+    { s: "Sosyal medyada toplam kaç takipçiniz var?", o: ["Yok ya da çok az", "1.000 – 10.000", "10.000 ve üzeri"], k: "takipci" },
+    { s: "Daha önce yayınladınız mı?", o: ["Hayır, ilk kitabım", "Evet, 1–2 kitap", "Evet, 3 ve daha fazla"], k: "yayin" },
+    { s: "Temel hedefiniz nedir?", o: ["Kitabım yayınlansın", "Okur kitlesi oluşturmak", "Profesyonel yazar olmak"], k: "hedef" },
+  ];
+
+  const testCevap = (key, val) => {
+    const yeni = { ...testCvp, [key]: val };
+    setTestCvp(yeni);
+    if (testIdx < TEST_SORULAR.length - 1) setTestIdx(testIdx + 1);
+    else setTestBitti(true);
+  };
+
+  const profil = () => {
+    const t = testCvp.takipci, y = testCvp.yayin;
+    if (t === "Yok ya da çok az" && y === "Hayır, ilk kitabım") return { isim: "Gizli Kahraman", acik: "Eseriniz var ama görünürlüğünüz yok. MST'nin 6 kanal dağıtımı ve reklam desteği tam size göre.", paket: "STANDART PAKET ÖNERİLİR" };
+    if (t === "10.000 ve üzeri" || y === "Evet, 3 ve daha fazla") return { isim: "Karizmatik Otorite", acik: "Kitleniz ve deneyiminiz var. Şimdi sistematize etme zamanı. AI menajer ile büyümeyi hızlandıralım.", paket: "VIP PAKET ÖNERİLİR" };
+    return { isim: "Yükselen Yazar", acik: "Potansiyeliniz açık görünüyor. Doğru strateji ve kanal desteğiyle hızlı büyüme mümkün.", paket: "PROFESYONEL PAKET ÖNERİLİR" };
+  };
+
+  const GUN_DERSLER = {
+    1: [
+      { gun: "1. GÜN · SABAH", bas: "Kitap kapağı nasıl satış yaratır?", met: "İlk 3 saniyede okur kararını verir. Kapak tasarımında yapılan 7 kritik hata ve nasıl önlenir." },
+      { gun: "1. GÜN · AKŞAM", bas: "Yazar markası nasıl kurulur?", met: "Sosyal medyada kitap değil yazar satılır. Platform stratejisi ve içerik takvimi." },
+    ],
+    2: [
+      { gun: "2. GÜN · SABAH", bas: "Trendyol'da kitap algoritması", met: "Başlık, anahtar kelime ve fiyat optimizasyonu. Rakiplerden önce vitrine çıkmak." },
+      { gun: "2. GÜN · AKŞAM", bas: "Telif hakkı ve sözleşme tuzakları", met: "Yayın sözleşmesinde gözden kaçan 9 madde. Hukuki korunma rehberi." },
+    ],
+    3: [
+      { gun: "3. GÜN · SABAH", bas: "Medyada yer almak", met: "Gazete, podcast ve YouTube'da nasıl görünürsünüz? PR başvuru şablonları." },
+      { gun: "3. GÜN · AKŞAM", bas: "İkinci kitap stratejisi", met: "Okur kitlesi oluşturanlar için seri yayın planı. Sadakat nasıl yaratılır?" },
+    ],
+  };
+
+  const Asagi = () => (
+    <div className="bk-asagi" onClick={() => document.querySelector('.bk-scroll').scrollBy(0, window.innerHeight)}>
+      <div className="bk-asagi-ok" />
+      <span>DEVAM</span>
+    </div>
+  );
+
+  const Tel = ({ aktifNav = 0, icerik }) => (
+    <div className="bk-tel-wrap">
+      <div className="bk-tel">
+        <div className="bk-tel-ekran">
+          <div className="bk-tel-ust">
+            <div className="bk-tel-logo">MST</div>
+            <div className="bk-tel-pul" />
+          </div>
+          {icerik}
+        </div>
+        <div className="bk-tel-nav">
+          {["PANO", "KARİYER", "MAĞAZA", "KAZANÇ"].map((n, i) => (
+            <div key={n} className={`bk-tel-nav-i${i === aktifNav ? " ak" : ""}`}>
+              <div className="bk-tel-nav-dot" />
+              {n}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="bk">
+      <style>{`
+        .bk *{box-sizing:border-box;margin:0;padding:0}
+        ` + BK_CSS + `
+      `}</style>
+
+      {/* SABİT ŞERİT */}
+      <div className="bk-serit">
+        <div className="bk-serit-logo">MST YAYINCILIK</div>
+        <div className="bk-serit-durum"><div className="bk-serit-nokta" />ESERİNİZ İNCELENİYOR</div>
+        <button className="bk-serit-atla" onClick={() => document.querySelector('.bk-scroll').scrollTo(0, 999999)}>DERSLERE GEÇ ↓</button>
+      </div>
+
+      <div className="bk-scroll">
+
+        {/* ══ B1: SERTİFİKA DEĞERİ ══ */}
+        <div className="bk-bolum" style={{ background: "radial-gradient(ellipse 90% 60% at 50% 20%,rgba(201,162,75,.14) 0%,transparent 65%),#050D1A" }}>
+          <div className="bk-ic bk-grid">
+            <div style={{ animation: "bkGelS .8s both .2s" }}>
+              <div className="bk-etiket">SERTİFİKANIZ NE KAZANDIRIR</div>
+              <div className="bk-hitap">{ilkAd} Bey,</div>
+              <h2 className="bk-bas">Bu belge bir kağıt değil — bir anahtar</h2>
+              <p className="bk-metin">Eseriniz onaylandığında elinize geçecek sertifika, sizi sektördeki diğer yazarlardan ayıran somut bir güçtür.</p>
+              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">🏛</div><div><div className="bk-mad-bas">Kültür Bakanlığı Destek Programları</div><div className="bk-mad-acik">MST sertifikalı eserler bakanlık fonlarına başvurabiliyor.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">📚</div><div><div className="bk-mad-bas">Kütüphane Alım Programı</div><div className="bk-mad-acik">Belediye kütüphaneleri sertifikalı eserleri öncelikli satın alıyor.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">🌍</div><div><div className="bk-mad-bas">Uluslararası Kitap Fuarları</div><div className="bk-mad-acik">Frankfurt, Londra, Bologna — MST çatısı altında dünya pazarına açılabilirsiniz.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".85s" }}><div className="bk-mad-ikon">✦</div><div><div className="bk-mad-bas">AI Menajer Aktivasyonu</div><div className="bk-mad-acik">Sertifika onaylandığı an kişisel yapay zekâ danışmanınız devreye girer.</div></div></div>
+            </div>
+            <div className="bk-g-sag" style={{ animation: "bkGelSag .8s both .3s" }}>
+              <div className="bk-sert">
+                <div className="bk-el" style={{ top: -5, left: -5 }} /><div className="bk-el" style={{ top: -5, right: -5 }} />
+                <div className="bk-el" style={{ bottom: -5, left: -5 }} /><div className="bk-el" style={{ bottom: -5, right: -5 }} />
+                <div className="bk-sert-rozet">MST YAYINA UYGUNLUK SERTİFİKASI</div>
+                <div className="bk-sert-cizgi" />
+                <div className="bk-sert-isim">{yazarAdi}</div>
+                <div className="bk-sert-eser">"{eserAdi}"</div>
+                <div className="bk-sert-bekleme">ONAY BEKLENİYOR</div>
+              </div>
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B2: SAMİMİ KARŞILAMA ══ */}
+        <div className="bk-bolum" style={{ background: "#0A1628" }}>
+          <div className="bk-ic" style={{ textAlign: "center", maxWidth: 680, margin: "0 auto" }}>
+            <div style={{ width: 1, height: 50, background: "linear-gradient(180deg,transparent,#C9A24B,transparent)", margin: "0 auto 28px", animation: "bkGel .5s both .1s" }} />
+            <div className="bk-hitap" style={{ animation: "bkGel .7s both .2s" }}>{ilkAd} Bey,</div>
+            <h2 className="bk-bas" style={{ fontSize: "clamp(30px,5vw,46px)", animation: "bkGel .9s both .35s" }}>
+              Eseriniz elimize ulaştı.<br />Şimdi size biraz kendimizden bahsetmek istiyoruz.
+            </h2>
+            <p className="bk-metin" style={{ maxWidth: 520, margin: "0 auto 28px", animation: "bkGel .8s both .5s" }}>
+              MST Yayıncılık, yayınevi değil bir ekosistemdir. Kitabınızı basmak sadece başlangıçtır — asıl işimiz onu doğru insanlarla buluşturmak, telifinizi şeffaf tutmak ve yazarlık yolculuğunuzda her adımda yanınızda olmaktır.
+            </p>
+            <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center", animation: "bkGel .7s both .65s" }}>
+              {["6 Pazaryeri", "MST Ajans Medya", "AI Menajer", "Şeffaf Telif"].map(m => (
+                <div key={m} style={{ fontSize: 11, letterSpacing: ".18em", color: "rgba(201,162,75,.65)", display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ color: "#C9A24B", fontSize: 7 }}>◆</span>{m}
+                </div>
+              ))}
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B3: YAZARLIK TESTİ ══ */}
+        <div className="bk-bolum" style={{ background: "linear-gradient(160deg,#040C1A,#081525)" }}>
+          <div className="bk-ic bk-grid">
+            <div style={{ animation: "bkGelS .8s both .2s" }}>
+              <div className="bk-etiket">KİŞİSEL ANALİZ</div>
+              <div className="bk-hitap">Sizi tanımak istiyoruz.</div>
+              <h2 className="bk-bas">Siz hangi yazar profilsiniz?</h2>
+              <p className="bk-metin">3 kısa soru. Size özel yayın stratejisi ve en uygun MST paketi belirleyelim. 2 dakika, kalıcı fark.</p>
+            </div>
+            <div style={{ animation: "bkGelSag .8s both .3s" }}>
+              <div className="bk-test-il">
+                {[0, 1, 2].map(i => <div key={i} className={`bk-test-dot${i <= testIdx ? " ak" : ""}`} />)}
+              </div>
+              {!testBitti ? (<>
+                <div className="bk-test-soru">{TEST_SORULAR[testIdx].s}</div>
+                {TEST_SORULAR[testIdx].o.map(o => (
+                  <button key={o} className="bk-test-btn" onClick={() => testCevap(TEST_SORULAR[testIdx].k, o)}>{o}</button>
+                ))}
+              </>) : (() => { const p = profil(); return (
+                <div className="bk-sonuc">
+                  <div className="bk-sonuc-profil">{p.isim}</div>
+                  <div className="bk-sonuc-metin">{p.acik}</div>
+                  <div className="bk-sonuc-paket">◆ &nbsp;{p.paket}</div>
+                  <button className="bk-cta">PAKET DETAYLARINI GÖR →</button>
+                </div>
+              ); })()}
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B4: YAZAR YOLCULUKLARI ══ */}
+        <div className="bk-bolum" style={{ background: "#050D1A" }}>
+          <div className="bk-ic">
+            <div className="bk-etiket">GERÇEK YAZARLAR · GERÇEK RAKAMLAR</div>
+            <div className="bk-hitap">Sizden önce gelenler şöyle anlattı...</div>
+            <h2 className="bk-bas">Adım adım yolculuklar</h2>
+            {[
+              { isim: "Ayşe H.", tur: "ROMAN", adimlar: [["14 MAR", "Eser yüklendi"], ["19 MAR", "Sertifika"], ["2 NİS", "Vitrine çıktı"], ["İLK AY", "Satış", "89"]] },
+              { isim: "Mehmet K.", tur: "KİŞİSEL GELİŞİM", adimlar: [["3 OCA", "Eser yüklendi"], ["7 OCA", "Sertifika"], ["28 OCA", "Vitrine çıktı"], ["İLK AY", "Satış", "214"]] },
+              { isim: "Zeynep A.", tur: "ŞİİR", adimlar: [["22 ŞUB", "Eser yüklendi"], ["26 ŞUB", "Sertifika"], ["18 MAR", "Vitrine çıktı"], ["İLK AY", "Satış", "156"]] },
+            ].map((y, yi) => (
+              <div key={y.isim} className="bk-yazar" style={{ animationDelay: `${.2 + yi * .15}s` }}>
+                <div><div className="bk-y-isim">{y.isim}</div><div className="bk-y-tur">{y.tur}</div></div>
+                <div className="bk-y-zaman">
+                  {y.adimlar.map(([tarih, olay, num]) => (
+                    <div key={tarih} className="bk-y-adim">
+                      <div className="bk-y-tarih">{tarih}</div>
+                      <div className="bk-y-olay">{olay}</div>
+                      {num && <div className="bk-y-num">{num}</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B5: SEKTÖR GERÇEKLERİ ══ */}
+        <div className="bk-bolum" style={{ background: "#0A1628" }}>
+          <div className="bk-ic">
+            <div className="bk-etiket">SEKTÖRÜN BİLMEK İSTEMEDİĞİ GERÇEKLER</div>
+            <div className="bk-hitap">Bunu çoğu yayınevi size söylemez.</div>
+            <h2 className="bk-bas">Türk yayıncılığının gerçek rakamları</h2>
+            <div className="bk-gercek-grid">
+              {[
+                { num: "%78", bas: "Yazarlar hiç telif alamıyor", acik: "İlk baskı masrafları çıkmadan yayınevi ödeme yapmıyor. Ortalama bekleme: 18 ay.", t: true },
+                { num: "%91", bas: "Kitaplar 90 günde kayboluyor", acik: "Tanıtım yapılmayan kitap üç ayda görünmez hale geliyor.", t: true },
+                { num: "₺0", bas: "Çoğu yayınevinde reklam bütçesi", acik: "Tanıtım tamamen yazara bırakılır. MST'de her yazara medya ajansı desteği verilir.", t: false },
+                { num: "1–2", bas: "Ortalama satış kanalı sayısı", acik: "Çoğu yayınevi tek platformda satar. MST 6 kanalda eş zamanlı listeler.", t: false },
+              ].map((g, i) => (
+                <div key={i} className={`bk-gercek${g.t ? " t" : ""}`} style={{ animationDelay: `${.2 + i * .15}s` }}>
+                  <div className="bk-gercek-num">{g.num}</div>
+                  <div className="bk-gercek-bas">{g.bas}</div>
+                  <div className="bk-gercek-acik">{g.acik}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B6: KARŞILAŞTIRMA ══ */}
+        <div className="bk-bolum" style={{ background: "#0D1E35" }}>
+          <div className="bk-ic">
+            <div className="bk-etiket">NEDEN MST?</div>
+            <div className="bk-hitap">Farkı kendiniz görün.</div>
+            <h2 className="bk-bas">İki farklı yayınevi deneyimi</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(12px,2vw,20px)" }}>
+              <div className="bk-krt diger" style={{ animationDelay: ".2s" }}>
+                <div className="bk-krt-bas">DİĞER YAYINEVLERİ</div>
+                {[["⏳","6–18 ay baskı süreci","Sıra beklenir, süreç görünmez, yazar bilgi alamaz."],["🙈","Telif hesabı belirsiz","Yılda 1–2 kez, gecikmeyle, spreadsheet ile bildirim."],["📦","1–2 platform satışı","Kitap tek kanalda, tanıtım tamamen yazara bırakılır."],["📵","İletişim kopuk","Yayınlandıktan sonra yazar kendi başına kalır."]].map(([ikon,bas,acik]) => (
+                  <div key={bas} className="bk-krt-mad"><div className="bk-krt-mad-ikon">{ikon}</div><div><div className="bk-krt-mad-bas">{bas}</div><div className="bk-krt-mad-acik">{acik}</div></div></div>
+                ))}
+              </div>
+              <div className="bk-krt mst" style={{ animationDelay: ".35s" }}>
+                <div className="bk-krt-bas">MST YAYINCILIK</div>
+                {[["⚡","30 günde vitrine","Her adım kişisel panelinden canlı takip edilir."],["📊","Şeffaf telif, her ay","Satış anında panele düşer. Her platformdan ayrı görülür."],["🛒","6 kanal, eş zamanlı","MST Ajans reklam desteğiyle otomatik tanıtım."],["🤖","AI menajer — 7/24","Sorularınıza anında cevap, stratejinize sürekli destek."]].map(([ikon,bas,acik]) => (
+                  <div key={bas} className="bk-krt-mad"><div className="bk-krt-mad-ikon">{ikon}</div><div><div className="bk-krt-mad-bas">{bas}</div><div className="bk-krt-mad-acik">{acik}</div></div></div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B7: MOBİL — PANO ══ */}
+        <div className="bk-bolum" style={{ background: "linear-gradient(160deg,#040C1A,#081828)" }}>
+          <div className="bk-ic bk-grid">
+            <div style={{ animation: "bkGelS .8s both .2s" }}>
+              <div className="bk-etiket">MOBİL UYGULAMA · SEKTÖRDE İLK</div>
+              <div className="bk-hitap">{ilkAd} Bey, kitabınız cebinizde.</div>
+              <h2 className="bk-bas">Pano — her şey bir bakışta</h2>
+              <p className="bk-metin">Sertifikanız onaylandığında kişisel paneliniz açılır. Satışlarınız, telifiniz, stok durumunuz — anlık ve şeffaf.</p>
+              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">📊</div><div><div className="bk-mad-bas">Anlık satış takibi</div><div className="bk-mad-acik">6 platformdan gelen satışlar saniye saniye güncellenir.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">💰</div><div><div className="bk-mad-bas">Şeffaf telif hesabı</div><div className="bk-mad-acik">Her satışın telifinize katkısını formülle görürsünüz.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">📦</div><div><div className="bk-mad-bas">Stok yönetimi</div><div className="bk-mad-acik">Tüm platformlardaki stok tek ekranda.</div></div></div>
+            </div>
+            <div className="bk-g-sag goster" style={{ animation: "bkGelSag .8s both .3s" }}>
+              <Tel aktifNav={0} icerik={<>
+                <div className="bk-tel-k"><div className="bk-tel-k-bas">TOPLAM SATIŞ</div><div className="bk-tel-k-val">312</div><div className="bk-tel-k-bar-wrap"><div className="bk-tel-k-bar" style={{ width: "82%" }} /></div></div>
+                <div className="bk-tel-k"><div className="bk-tel-k-bas">BU AY TELİF</div><div className="bk-tel-k-val">₺4.820</div><div className="bk-tel-k-bar-wrap"><div className="bk-tel-k-bar" style={{ width: "65%" }} /></div></div>
+                <div className="bk-tel-k"><div className="bk-tel-k-bas">AKTİF STOK</div><div className="bk-tel-k-val">688 adet</div><div className="bk-tel-k-bar-wrap"><div className="bk-tel-k-bar" style={{ width: "68%" }} /></div></div>
+              </>} />
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B8: MOBİL — AI MENAJER ══ */}
+        <div className="bk-bolum" style={{ background: "linear-gradient(160deg,#081525,#040C1A)" }}>
+          <div className="bk-ic bk-grid">
+            <div className="bk-g-sag goster" style={{ animation: "bkGelS .8s both .2s" }}>
+              <Tel aktifNav={1} icerik={<>
+                <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: 5 }}>
+                  {[
+                    { ben: true, yazi: "Bu ay satışlarım neden düştü?" },
+                    { ben: false, yazi: "Trendyol'daki Reels görünürlüğünüz %40 düştü. 15-30 saniyelik kısa video öneriyorum..." },
+                    { ben: true, yazi: "İkinci kitap için strateji?" },
+                    { ben: false, yazi: "Mevcut okurunuzun %68'i roman türü tercih etti. Devam kitabı için..." },
+                  ].map((m, i) => (
+                    <div key={i} style={{ background: m.ben ? "rgba(201,162,75,.08)" : "rgba(10,22,40,.8)", border: `1px solid ${m.ben ? "rgba(201,162,75,.2)" : "rgba(201,162,75,.1)"}`, padding: "6px 8px", fontSize: "clamp(6px,1.1vw,7.5px)", color: "rgba(245,240,228,.65)", lineHeight: 1.5, borderRadius: m.ben ? "0 5px 5px 5px" : "5px 0 5px 5px" }}>{m.yazi}</div>
+                  ))}
+                </div>
+                <div style={{ padding: 5, borderTop: "1px solid rgba(201,162,75,.1)" }}>
+                  <div style={{ border: "1px solid rgba(201,162,75,.2)", padding: "4px 7px", fontSize: "clamp(6px,1vw,7px)", color: "rgba(245,240,228,.3)" }}>Bir şey sorun...</div>
+                </div>
+              </>} />
+            </div>
+            <div style={{ animation: "bkGelSag .8s both .3s" }}>
+              <div className="bk-etiket">AI MENAJER · SERTİFİKA SONRASI AKTİF</div>
+              <div className="bk-hitap">{ilkAd} Bey, bu danışman sadece sizin.</div>
+              <h2 className="bk-bas">7/24 yanınızda, sektörü bilen bir danışman</h2>
+              <p className="bk-metin">Satış verilerinizi okur, pazar trendlerini analiz eder, size özel strateji üretir. Başka hiçbir yayınevinde böyle bir şey yok.</p>
+              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">🧠</div><div><div className="bk-mad-bas">Satış analizi</div><div className="bk-mad-acik">"Bu ay neden düştüm?" sorusunu 15 saniyede cevaplar.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">🎯</div><div><div className="bk-mad-bas">Kariyer stratejisi</div><div className="bk-mad-acik">İkinci kitap zamanlaması, tür önerisi, okur kitlesi analizi.</div></div></div>
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B9: MOBİL — KAZANÇ ══ */}
+        <div className="bk-bolum" style={{ background: "#050D1A" }}>
+          <div className="bk-ic bk-grid">
+            <div style={{ animation: "bkGelS .8s both .2s" }}>
+              <div className="bk-etiket">KAZANÇ EKRANI</div>
+              <div className="bk-hitap">Telifiniz nerede, ne zaman — hepsi açık.</div>
+              <h2 className="bk-bas">Şeffaf kazanç takibi</h2>
+              <p className="bk-metin">Her platform ayrı ayrı, her satış anında, her telif hesabı formülüyle gösterilir.</p>
+              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">🔓</div><div><div className="bk-mad-bas">Kilitli telif sistemi yok</div><div className="bk-mad-acik">MST'de telif kilitlenmez. Her ay birikir, dilediğinizde çekersiniz.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">📈</div><div><div className="bk-mad-bas">Platform bazlı karşılaştırma</div><div className="bk-mad-acik">Hangi kanal daha çok satıyor? Anlık görürsünüz.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">💳</div><div><div className="bk-mad-bas">Bakiye & çekim</div><div className="bk-mad-acik">Hizmet alımında kullanır ya da IBAN'ınıza çekebilirsiniz.</div></div></div>
+            </div>
+            <div className="bk-g-sag goster" style={{ animation: "bkGelSag .8s both .3s" }}>
+              <Tel aktifNav={3} icerik={<>
+                <div style={{ textAlign: "center", padding: "6px 0" }}>
+                  <div style={{ fontSize: "clamp(6px,1vw,8px)", letterSpacing: ".14em", color: "rgba(245,240,228,.3)", marginBottom: 3 }}>TOPLAM TELİF</div>
+                  <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: "clamp(20px,3.5vw,28px)", color: "#F0D68A" }}>₺4.820</div>
+                  <div style={{ fontSize: "clamp(6px,1vw,7px)", color: "rgba(109,191,138,.7)", marginTop: 2 }}>▲ %23 geçen aya göre</div>
+                </div>
+                {[["Trendyol","₺1.840"],["MST Mağaza","₺1.620"],["Hepsiburada","₺820"],["Diğer","₺540"]].map(([n,v]) => (
+                  <div key={n} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid rgba(201,162,75,.08)", fontSize: "clamp(6.5px,1.1vw,8px)" }}>
+                    <span style={{ color: "rgba(245,240,228,.3)" }}>{n}</span><span style={{ color: "#F0D68A" }}>{v}</span>
+                  </div>
+                ))}
+              </>} />
+            </div>
+          </div>
+          <Asagi />
+        </div>
+
+        {/* ══ B10: YAZARLIK OKULU (EN SONDA) ══ */}
+        <div className="bk-bolum" style={{ background: "#0A1628" }}>
+          <div className="bk-ic">
+            <div className="bk-etiket">YAZARLIK OKULU · ÜCRETSİZ · SADECE MST YAZARLARINA</div>
+            <div className="bk-hitap">Beklerken öğrenin.</div>
+            <h2 className="bk-bas">3 günde 6 yazarlık dersi</h2>
+            <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
+              {[1, 2, 3].map(g => (
+                <button key={g} onClick={() => setGunSecim(g)} style={{ border: `1px solid rgba(201,162,75,${gunSecim === g ? ".55" : ".2"})`, padding: "8px 18px", fontSize: 11, letterSpacing: ".14em", color: gunSecim === g ? "#F0D68A" : "rgba(245,240,228,.4)", cursor: "pointer", background: gunSecim === g ? "rgba(201,162,75,.07)" : "none", fontFamily: "'Jost',sans-serif", transition: "all .2s" }}>{g}. GÜN</button>
+              ))}
+            </div>
+            <div className="bk-ders-grid">
+              {GUN_DERSLER[gunSecim].map((d, i) => (
+                <div key={i} className={`bk-ders${i === 0 ? " ak" : ""}`} style={{ animationDelay: `${i * .12}s` }}>
+                  <div className="bk-ders-gun">{d.gun}</div>
+                  <div className="bk-ders-bas">{d.bas}</div>
+                  <div className="bk-ders-met">{d.met}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>{/* bk-scroll sonu */}
+    </div>
+  );
+}
+
 
 function AdayDeneyimi({ kaynak }) {
   const [oturum, setOturum] = useState(() => {
     try { return JSON.parse(localStorage.getItem("adayOturum") || "null"); } catch { return null; }
   });
-  const [asama, setAsama] = useState("form"); // form | kod
+  const [asama, setAsama] = useState("form");
   const [form, setForm] = useState({ adSoyad: "", telefon: "", eposta: "" });
   const [kod, setKod] = useState("");
   const [testKodu, setTestKodu] = useState("");
@@ -4951,8 +5949,10 @@ function AdayDeneyimi({ kaynak }) {
   const [mesgul, setMesgul] = useState(false);
   const [eserler, setEserler] = useState(null);
   const [perde, setPerde] = useState(null);
+  const [perdeGecmis, setPerdeGecmis] = useState([]);
   const [eserForm, setEserForm] = useState({ eserAdi: "", tur: "Roman", dosya: null });
   const [ilerleme, setIlerleme] = useState(0);
+  const [simAdim, setSimAdim] = useState(0);
   const [ilgiGitti, setIlgiGitti] = useState({});
   const inceleRef = useRef(false);
 
@@ -4965,13 +5965,16 @@ function AdayDeneyimi({ kaynak }) {
     try { const r = await yetkili("/api/aday/eserlerim"); const d = await r.json(); setEserler(d.eserler || []); return d.eserler || []; }
     catch { setEserler([]); return []; }
   };
+
   const perdeGetir = async () => {
-    try { const r = await yetkili("/api/aday/perde"); const d = await r.json(); setPerde(d.perde || null); } catch {}
+    try { const r = await yetkili("/api/aday/perde"); const d = await r.json();
+      if (d.perde) { setPerde(d.perde); setPerdeGecmis(g => [...g, d.perde.id]); }
+    } catch {}
   };
 
   useEffect(() => { if (oturum) { eserleriYukle(); perdeGetir(); } }, [oturum]);
 
-  // İnceleme sürücüsü: eser 'incelemede' ise sunucuyu tamam diyene dek dürter
+  // İnceleme sürücüsü
   useEffect(() => {
     const acik = (eserler || []).find(e => e.durum === "incelemede");
     if (!acik || inceleRef.current) return;
@@ -4990,6 +5993,14 @@ function AdayDeneyimi({ kaynak }) {
       inceleRef.current = false;
       eserleriYukle();
     })();
+  }, [eserler]);
+
+  // Simülasyon adımları (incelemede)
+  useEffect(() => {
+    const acik = (eserler || []).find(e => e.durum === "incelemede");
+    if (!acik) return;
+    const t = setInterval(() => setSimAdim(s => s < SIM_ADIMLAR.length - 1 ? s + 1 : s), 2800);
+    return () => clearInterval(t);
   }, [eserler]);
 
   const kodIste = async () => {
@@ -5047,7 +6058,7 @@ function AdayDeneyimi({ kaynak }) {
         body: JSON.stringify({ eserAdi: eserForm.eserAdi, tur: eserForm.tur, dosyaAdi: eserForm.dosya.name, dosyaBase64: base64 }),
       });
       const d = await r.json();
-      if (d.ok) { await eserleriYukle(); }
+      if (d.ok) { await eserleriYukle(); await perdeGetir(); }
       else setHata(d.error || "Yüklenemedi");
     } catch (e) { setHata(e.message || "Yüklenemedi"); }
     finally { setMesgul(false); }
@@ -5059,169 +6070,242 @@ function AdayDeneyimi({ kaynak }) {
     try { await yetkili("/api/aday/olay", { method: "POST", body: JSON.stringify({ olay: anahtar === "editorluk" ? "editorluk_ilgi" : "paket_ilgi", detay }) }); } catch {}
   };
 
-  // ---- ortak görsel dil ----
-  const zemin = { minHeight: "100vh", background: `radial-gradient(600px 320px at 50% 0%, rgba(201,162,75,.10), transparent 70%), #070D1B`, color: "#F5F0E4", fontFamily: "'Jost', sans-serif" };
-  const cerceve = { maxWidth: 560, margin: "0 auto", padding: "28px clamp(16px, 5vw, 32px) 60px" };
-  const kart = { border: "1px solid rgba(201,162,75,.35)", background: "rgba(12,23,48,.55)", padding: "clamp(18px, 5vw, 28px)", position: "relative", marginBottom: 18 };
-  const elmas = (k) => <span style={{ position: "absolute", width: 8, height: 8, background: "#C9A24B", transform: "rotate(45deg)", ...(k === 0 ? { top: -4, left: -4 } : k === 1 ? { top: -4, right: -4 } : k === 2 ? { bottom: -4, left: -4 } : { bottom: -4, right: -4 }) }} />;
-  const elmaslar = <>{elmas(0)}{elmas(1)}{elmas(2)}{elmas(3)}</>;
-  const baslikSt = { fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(24px, 6.5vw, 34px)", color: "#F0D68A", lineHeight: 1.2, margin: "0 0 8px" };
-  const soluk = { color: "rgba(245,240,228,.62)", fontSize: 14, lineHeight: 1.65 };
+  const cikis = () => {
+    localStorage.removeItem("adayOturum");
+    setOturum(null); setAsama("form"); setEserler(null); setPerde(null);
+  };
 
-  const Baslik = () => (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0 22px" }}>
+  const Ust = () => (
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "linear-gradient(180deg,rgba(5,13,26,.95) 0%,transparent 100%)", backdropFilter: "blur(4px)" }}>
       <div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 21, letterSpacing: "0.18em", background: "linear-gradient(120deg,#8C6A22,#F0D68A,#C9A24B)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", whiteSpace: "nowrap" }}>MST YAYINCILIK</div>
-        <div style={{ fontSize: 9, letterSpacing: "0.32em", color: "rgba(201,162,75,.72)", marginTop: 3 }}>YAZAR ADAYI PROGRAMI</div>
+        <span className="aday-logo-ad" style={{ fontSize: 16, letterSpacing: ".22em" }}>MST YAYINCILIK</span>
+        <span className="aday-logo-alt" style={{ textAlign: "left", marginTop: 2 }}>YAZAR ADAYI PROGRAMI</span>
       </div>
-      {oturum && <button onClick={() => { localStorage.removeItem("adayOturum"); setOturum(null); setAsama("form"); setEserler(null); }} style={{ background: "none", border: "1px solid rgba(245,240,228,.2)", color: "rgba(245,240,228,.62)", fontSize: 11, padding: "5px 10px", cursor: "pointer", letterSpacing: "0.1em" }}>ÇIKIŞ</button>}
+      {oturum && <button className="aday-btn-sessiz" onClick={cikis} style={{ padding: "7px 14px", fontSize: 10 }}>ÇIKIŞ</button>}
     </div>
   );
 
-  const girisAlani = { width: "100%", boxSizing: "border-box", padding: "15px 14px", fontSize: 16, fontFamily: "'Jost', sans-serif", background: "rgba(7,13,27,.65)", color: "#F5F0E4", border: "1px solid rgba(201,162,75,.4)", outline: "none", marginBottom: 12 };
-
-  // ============ 1 · KAYIT ============
-  if (!oturum) return (
-    <div style={zemin}><div style={cerceve}>
-      <Baslik />
-      <div style={kart}>{elmaslar}
-        <h1 style={baslikSt}>Eseriniz, hak ettiği yolculuğa burada başlar</h1>
-        <p style={soluk}>MST Yayıncılık Yazar Adayı Programı'na hoş geldiniz. Eseriniz, hiçbir insan gözü değmeden yapay zekâ ön incelemesinden geçer; size yalnızca sonuç ve yol haritası ulaşır.</p>
-        {asama === "form" ? (<>
-          <input style={girisAlani} placeholder="Ad Soyad" value={form.adSoyad} onChange={e => setForm({ ...form, adSoyad: e.target.value })} />
-          <input style={girisAlani} placeholder="Telefon (5xx xxx xx xx)" inputMode="tel" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} />
-          <input style={girisAlani} placeholder="E-posta" inputMode="email" value={form.eposta} onChange={e => setForm({ ...form, eposta: e.target.value })} />
-          {hata && <div style={{ color: "#E4A3A3", fontSize: 13, marginBottom: 10 }}>{hata}</div>}
-          <Dugme tur="asil" tamGenislik onClick={kodIste} disabled={mesgul}>{mesgul ? "GÖNDERİLİYOR..." : "DOĞRULAMA KODU GÖNDER"}</Dugme>
-          <div style={{ ...soluk, fontSize: 12, marginTop: 12 }}>Telefonunuza tek kullanımlık bir kod göndereceğiz. Bilgileriniz yalnızca yayın süreciniz için kullanılır.</div>
-        </>) : (<>
-          <p style={{ ...soluk, marginTop: 0 }}>{form.telefon} numarasına gönderilen 6 haneli kodu girin.</p>
-          {testKodu && <div style={{ color: "#C9A24B", fontSize: 12, marginBottom: 8 }}>Test modu — kodunuz: <b>{testKodu}</b></div>}
-          <input style={{ ...girisAlani, letterSpacing: "0.4em", textAlign: "center", fontSize: 22 }} maxLength={6} inputMode="numeric" placeholder="______" value={kod} onChange={e => setKod(e.target.value.replace(/\D/g, ""))} />
-          {hata && <div style={{ color: "#E4A3A3", fontSize: 13, marginBottom: 10 }}>{hata}</div>}
-          <Dugme tur="asil" tamGenislik onClick={kodOnayla} disabled={mesgul || kod.length !== 6}>{mesgul ? "DOĞRULANIYOR..." : "ÜYELİĞİMİ BAŞLAT"}</Dugme>
-          <div style={{ marginTop: 10 }}><Dugme tur="sessiz" onClick={() => { setAsama("form"); setKod(""); setHata(""); }}>BİLGİLERİ DÜZELT</Dugme></div>
-        </>)}
-      </div>
-      <div style={{ ...soluk, fontSize: 12, textAlign: "center" }}>◇ &nbsp; Sektörde ilk: yazarına kişisel uygulama sunan yayınevi &nbsp; ◇</div>
-    </div></div>
-  );
-
-  // ============ 2 · YOL AYRIMI ============
-  if (!oturum.tip) return (
-    <div style={zemin}><div style={cerceve}>
-      <Baslik />
-      <h1 style={baslikSt}>Hoş geldiniz, {oturum.adSoyad.split(" ")[0]}</h1>
-      <p style={soluk}>Sizi doğru yoldan ilerletelim:</p>
-      <div style={{ ...kart, cursor: "pointer" }} onClick={() => !mesgul && tipSec("yazar")}>{elmaslar}
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#F0D68A" }}>Bir eserim var — Yazar Adayıyım</div>
-        <div style={soluk}>Eserinizi güvenle yükleyin, yayına uygunluk ön incelemesinden geçsin, sertifikanızı kazanın.</div>
-      </div>
-      <div style={{ ...kart, cursor: "pointer" }} onClick={() => !mesgul && tipSec("okur")}>{elmaslar}
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#F0D68A" }}>Okumayı seviyorum — Okurum</div>
-        <div style={soluk}>Her ay seçtiğiniz türden yeni eserler kapınızda: kitap aboneliği programımızla tanışın.</div>
-      </div>
-    </div></div>
-  );
-
-  // ============ 3 · OKUR YOLU ============
-  if (oturum.tip === "okur") return (
-    <div style={zemin}><div style={cerceve}>
-      <Baslik />
-      <h1 style={baslikSt}>Kitap Aboneliği Programı</h1>
-      <p style={soluk}>Her ay, seçtiğiniz türden yeni çıkan eserler kapınıza gelir. Her paket, bir yazarın emeğine can verir. Program çok yakında açılıyor — ilginizi şimdiden bildirin, ilk gün haberdar olun:</p>
-      {[["4", "Aylık 4 kitap", "500 ₺/ay"], ["6", "Aylık 6 kitap", "750 ₺/ay"], ["8", "Aylık 8 kitap", "1.000 ₺/ay"]].map(([k, ad, fiyat]) => (
-        <div key={k} style={kart}>{elmaslar}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 21, color: "#F0D68A" }}>{ad}</div>
-            <div style={{ color: "#F5F0E4", fontSize: 15 }}>{fiyat}</div>
-          </div>
-          <div style={{ ...soluk, marginBottom: 12 }}>Tür seçimi size ait · kargo bizden · ilk ay ücretsiz açılış kampanyasıyla</div>
-          <Dugme tur={ilgiGitti["paket" + k] ? "sessiz" : "orta"} onClick={() => ilgiBildir("paket" + k, { paket: k })}>{ilgiGitti["paket" + k] ? "✓ LİSTEYE ALINDINIZ" : "İLGİLENİYORUM"}</Dugme>
-        </div>
-      ))}
-      <PerdeSahnesi perde={perde} yenile={perdeGetir} kart={kart} elmaslar={elmaslar} soluk={soluk} />
-    </div></div>
-  );
-
-  // ============ 4 · YAZAR YOLU ============
-  const eser = (eserler || [])[0];
-  return (
-    <div style={zemin}><div style={cerceve}>
-      <Baslik />
-      {eserler === null ? <div style={soluk}>Yükleniyor…</div> : !eser ? (
-        <div style={kart}>{elmaslar}
-          <h1 style={baslikSt}>Eserinizi güvenle teslim edin</h1>
-          <p style={soluk}>Dosyanız şifreli saklanır, <b style={{ color: "#F0D68A" }}>hiçbir insan tarafından okunmaz</b> — yalnızca yapay zekâ ön incelemesinden geçer ve editör kurulumuza sadece risk raporu ulaşır. Emeğiniz, ilk günden koruma altındadır.</p>
-          <input style={girisAlani} placeholder="Eserinizin adı" value={eserForm.eserAdi} onChange={e => setEserForm({ ...eserForm, eserAdi: e.target.value })} />
-          <select style={{ ...girisAlani }} value={eserForm.tur} onChange={e => setEserForm({ ...eserForm, tur: e.target.value })}>
-            {ADAY_TURLER.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <input type="file" accept=".docx,.txt" onChange={e => setEserForm({ ...eserForm, dosya: e.target.files?.[0] || null })} style={{ ...girisAlani, padding: "12px 14px" }} />
-          {hata && <div style={{ color: "#E4A3A3", fontSize: 13, marginBottom: 10 }}>{hata}</div>}
-          <Dugme tur="asil" tamGenislik onClick={eserGonder} disabled={mesgul}>{mesgul ? "GÜVENLE YÜKLENİYOR..." : "ESERİMİ İNCELEMEYE GÖNDER"}</Dugme>
-          <div style={{ ...soluk, fontSize: 12, marginTop: 10 }}>Kabul edilen biçimler: .docx ve .txt · en çok 3 MB</div>
-        </div>
-      ) : eser.durum === "incelemede" ? (
-        <div style={kart}>{elmaslar}
-          <h1 style={baslikSt}>Eseriniz inceleniyor</h1>
-          <p style={soluk}><b style={{ color: "#F0D68A" }}>{eser.eser_adi}</b> şu anda yapay zekâ ön incelemesinde. Bölüm bölüm, dikkatle.</p>
-          <div style={{ height: 3, background: "rgba(201,162,75,.18)", margin: "14px 0 6px" }}>
-            <div style={{ height: "100%", width: `${Math.max(ilerleme, eser.toplam_parca ? Math.round((eser.son_islenen_parca / eser.toplam_parca) * 100) : 4)}%`, background: "linear-gradient(90deg,#8C6A22,#F0D68A)", transition: "width .8s" }} />
-          </div>
-          <div style={{ ...soluk, fontSize: 12 }}>Bu sayfadan ayrılabilirsiniz — sonuç hazır olduğunda burada sizi bekliyor olacak.</div>
-        </div>
-      ) : eser.durum === "rapor_hazir" ? (
-        <div style={kart}>{elmaslar}
-          <h1 style={baslikSt}>İnceleme tamamlandı</h1>
-          <p style={soluk}>Yapay zekâ raporu hazır ve <b style={{ color: "#F0D68A" }}>editör kurulumuzun</b> önünde. Kurul yalnızca raporu görür — eserinizi değil. Sonuç açıklandığında bu ekranda ve telefonunuzda olacak.</p>
-        </div>
-      ) : eser.durum === "onaylandi" ? (
-        <div style={{ ...kart, borderColor: "#C9A24B", background: "linear-gradient(180deg, rgba(201,162,75,.10), rgba(12,23,48,.6))" }}>{elmaslar}
-          <div style={{ fontSize: 10, letterSpacing: "0.34em", color: "rgba(201,162,75,.8)", marginBottom: 8 }}>MST YAYINA UYGUNLUK SERTİFİKASI</div>
-          <h1 style={{ ...baslikSt, marginBottom: 4 }}>{oturum.adSoyad}</h1>
-          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, color: "#F5F0E4", fontStyle: "italic", marginBottom: 12 }}>"{eser.eser_adi}"</div>
-          <p style={soluk}>Eseriniz ön incelemeden geçti ve editör kurulumuzca onaylandı. Bu belge, eserinizin profesyonel bir süzgeçten geçtiğinin kanıtıdır.</p>
-          <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(201,162,75,.3)", paddingTop: 12, fontSize: 12.5 }}>
-            <span style={{ color: "#F0D68A" }}>Belge No: {eser.sertifika_no}</span>
-            <span style={soluk}>{eser.onay_tarihi ? new Date(eser.onay_tarihi).toLocaleDateString("tr-TR") : ""}</span>
-          </div>
-          <div style={{ marginTop: 16 }}><div style={{ ...soluk, marginBottom: 8 }}>Yayın yolculuğunuzun ilk adımı tamam. Yayın danışmanımız en kısa sürede sizi arayacak.</div></div>
-        </div>
-      ) : (
-        <div style={kart}>{elmaslar}
-          <h1 style={baslikSt}>Eseriniz güçlenmeyi bekliyor</h1>
-          <p style={soluk}>Ön incelememiz, <b style={{ color: "#F0D68A" }}>{eser.eser_adi}</b> için yayın öncesi düzeltilmesi gereken noktalar tespit etti:</p>
-          {(eser.red_gerekceleri || []).map((g, i) => (
-            <div key={i} style={{ borderLeft: "2px solid #C9A24B", padding: "6px 10px", marginBottom: 6, fontSize: 13.5, color: "rgba(245,240,228,.85)" }}>{g}</div>
-          ))}
-          <p style={soluk}>Bu, yolun sonu değil — tam tersi: birçok başarılı eser bu aşamadan geçti. Uzman editör ve redaksiyon ekibimiz, eserinizi birlikte yayın seviyesine taşıyabilir.</p>
-          <Dugme tur={ilgiGitti["editorluk"] ? "sessiz" : "asil"} tamGenislik onClick={() => ilgiBildir("editorluk", { eserId: eser.id })}>{ilgiGitti["editorluk"] ? "✓ TALEBİNİZ ALINDI — SİZİ ARAYACAĞIZ" : "EDİTÖRLÜK DESTEĞİ İSTİYORUM"}</Dugme>
-        </div>
-      )}
-      <PerdeSahnesi perde={perde} yenile={perdeGetir} kart={kart} elmaslar={elmaslar} soluk={soluk} />
-    </div></div>
-  );
-}
-
-function PerdeSahnesi({ perde, yenile, kart, elmaslar, soluk }) {
-  if (!perde) return null;
-  const ic = perde.icerik || {};
-  return (
-    <div style={{ ...kart, marginTop: 26 }}>{elmaslar}
-      <style>{`@keyframes adayPerde { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }`}</style>
-      <div key={perde.id}>
-        <div style={{ fontSize: 10, letterSpacing: "0.3em", color: "rgba(201,162,75,.75)", marginBottom: 8 }}>{(perde.baslik || "").toLocaleUpperCase("tr-TR")}</div>
-        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 23, color: "#F0D68A", marginBottom: 12, animation: "adayPerde .7s ease both" }}>{ic.vurgu}</div>
-        {(ic.satirlar || []).map((s, i) => (
-          <p key={i} style={{ ...soluk, animation: `adayPerde .7s ease ${0.25 + i * 0.35}s both` }}>{s}</p>
+  const SosyalBant = () => (
+    <div className="aday-bant">
+      <div className="aday-bant-ic">
+        {[...BANT_ICERIK, ...BANT_ICERIK].map((b, i) => (
+          <span key={i}>◆ &nbsp;{b}&nbsp; </span>
         ))}
-        {ic.kapanis && <div style={{ fontStyle: "italic", color: "#F0D68A", fontSize: 14, marginTop: 12, animation: `adayPerde .7s ease ${0.4 + (ic.satirlar || []).length * 0.35}s both` }}>— {ic.kapanis}</div>}
       </div>
-      <div style={{ marginTop: 14 }}><Dugme tur="sessiz" onClick={yenile}>YENİ BİR PERSPEKTİF</Dugme></div>
+    </div>
+  );
+
+  // ═══ 1 · KAYIT ═══
+  if (!oturum) return (
+    <div className="aday-zemin">
+      <style>{ADAY_CSS}</style>
+      <Ust />
+      <div className="aday-tam-ekran" style={{ paddingTop: 80 }}>
+        <div className="aday-icerik">
+          <div className="aday-logo-blok">
+            <span className="aday-logo-ad">MST YAYINCILIK</span>
+            <div className="aday-altin-cizgi" />
+            <span className="aday-logo-alt">YAZAR ADAYI PROGRAMI</span>
+          </div>
+          <SosyalBant />
+          <div className="aday-kart">
+            <div className="aday-elmas" style={{ top: -5, left: -5 }} />
+            <div className="aday-elmas" style={{ top: -5, right: -5 }} />
+            <div className="aday-elmas" style={{ bottom: -5, left: -5 }} />
+            <div className="aday-elmas" style={{ bottom: -5, right: -5 }} />
+            {asama === "form" ? (<>
+              <h1 className="aday-baslik" style={{ animationDelay: ".1s" }}>Eseriniz burada korunur, burada parlar</h1>
+              <p className="aday-metin" style={{ marginBottom: 32 }}>Türkiye'nin ilk AI destekli yazar adayı programına hoş geldiniz. Eseriniz hiçbir insan gözüne değmeden incelenir; size yalnızca sonuç ve yol haritası ulaşır.</p>
+              <input className="aday-input" placeholder="Ad Soyad" value={form.adSoyad} onChange={e => setForm({ ...form, adSoyad: e.target.value })} />
+              <input className="aday-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} />
+              <input className="aday-input" placeholder="E-posta" inputMode="email" value={form.eposta} onChange={e => setForm({ ...form, eposta: e.target.value })} />
+              {hata && <div className="aday-hata">{hata}</div>}
+              <button className="aday-btn-asil" onClick={kodIste} disabled={mesgul}>{mesgul ? "GÖNDERİLİYOR..." : "DOĞRULAMA KODU GÖNDER →"}</button>
+              <p className="aday-not">Telefonunuza tek kullanımlık SMS kodu gelecek. Bilgileriniz yalnızca yayın süreciniz için kullanılır.</p>
+            </>) : (<>
+              <h1 className="aday-baslik">Kodunuzu girin</h1>
+              <p className="aday-metin" style={{ marginBottom: 24 }}>{form.telefon} numarasına 6 haneli kod gönderildi.</p>
+              {testKodu && <div style={{ background: "rgba(201,162,75,.1)", border: "1px solid rgba(201,162,75,.3)", padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#C9A24B" }}>Test modu — kodunuz: <b style={{ fontSize: 18, letterSpacing: ".2em" }}>{testKodu}</b></div>}
+              <input className="aday-input" style={{ letterSpacing: ".45em", textAlign: "center", fontSize: 24 }} maxLength={6} inputMode="numeric" placeholder="— — — — — —" value={kod} onChange={e => setKod(e.target.value.replace(/\D/g, ""))} />
+              {hata && <div className="aday-hata">{hata}</div>}
+              <button className="aday-btn-asil" onClick={kodOnayla} disabled={mesgul || kod.length !== 6}>{mesgul ? "DOĞRULANIYOR..." : "ÜYELİĞİMİ BAŞLAT →"}</button>
+              <div style={{ marginTop: 12 }}>
+                <button className="aday-btn-sessiz" onClick={() => { setAsama("form"); setKod(""); setHata(""); }}>← Bilgileri düzelt</button>
+              </div>
+            </>)}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ═══ 2 · YOL AYRIMI ═══
+  if (!oturum.tip) return (
+    <div className="aday-zemin">
+      <style>{ADAY_CSS}</style>
+      <Ust />
+      <div className="aday-tam-ekran" style={{ paddingTop: 80 }}>
+        <div className="aday-icerik">
+          <div style={{ marginBottom: 40, animationDelay: ".1s", animation: "adayGiris .8s both" }}>
+            <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 12 }}>HOŞ GELDİNİZ</div>
+            <h1 className="aday-baslik">{oturum.adSoyad.split(" ")[0]}, sizi doğru yola alalım</h1>
+          </div>
+          <div className="aday-yol-kart" onClick={() => !mesgul && tipSec("yazar")} style={{ animationDelay: ".2s", animation: "adayGiris .8s both .2s" }}>
+            <div className="aday-elmas" style={{ top: -5, right: -5 }} />
+            <div className="aday-yol-baslik">Bir eserim var <span className="aday-yol-ok">→</span></div>
+            <p className="aday-metin">Eserinizi güvenle yükleyin. AI ön incelemesinden geçsin, yayına uygunluk sertifikanızı kazanın.</p>
+          </div>
+          <div className="aday-yol-kart" onClick={() => !mesgul && tipSec("okur")} style={{ animationDelay: ".35s", animation: "adayGiris .8s both .35s" }}>
+            <div className="aday-elmas" style={{ bottom: -5, left: -5 }} />
+            <div className="aday-yol-baslik">Okumayı seviyorum <span className="aday-yol-ok">→</span></div>
+            <p className="aday-metin">Her ay seçtiğiniz türden yeni eserler kapınıza gelsin. Kitap aboneliği programımıza katılın.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ═══ 3 · YAZAR YOLU ═══
+  const eser = (eserler || [])[0];
+  const AnaIcerik = () => {
+    if (eserler === null) return <div className="aday-metin" style={{ padding: "40px 0" }}>Yükleniyor…</div>;
+    if (!eser) return (
+      <div style={{ animation: "adayGiris .8s both" }}>
+        <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 16 }}>ESER YÜKLEME</div>
+        <h1 className="aday-baslik">Eserinizi güvenle teslim edin</h1>
+        <p className="aday-metin" style={{ marginBottom: 10 }}>Dosyanız şifreli ortamda saklanır. <b style={{ color: "#F0D68A", fontWeight: 400 }}>Hiçbir insan tarafından okunmaz</b> — yalnızca yapay zekâ inceler, MST'ye yalnızca risk raporu ulaşır.</p>
+        <div style={{ display: "flex", gap: 24, margin: "20px 0 28px", flexWrap: "wrap" }}>
+          {["Şifreli saklama", "Sadece AI okur", "Anında rapor"].map(f => (
+            <div key={f} style={{ fontSize: 11, color: "rgba(201,162,75,.7)", letterSpacing: ".1em", display: "flex", alignItems: "center", gap: 7 }}>
+              <span style={{ color: "#C9A24B" }}>◆</span> {f}
+            </div>
+          ))}
+        </div>
+        <input className="aday-input" placeholder="Eserinizin adı" value={eserForm.eserAdi} onChange={e => setEserForm({ ...eserForm, eserAdi: e.target.value })} />
+        <select className="aday-input" value={eserForm.tur} onChange={e => setEserForm({ ...eserForm, tur: e.target.value })}>
+          {ADAY_TURLER.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <input type="file" accept=".docx,.txt" onChange={e => setEserForm({ ...eserForm, dosya: e.target.files?.[0] || null })} className="aday-input" style={{ paddingTop: 13 }} />
+        {hata && <div className="aday-hata">{hata}</div>}
+        <button className="aday-btn-asil" onClick={eserGonder} disabled={mesgul}>{mesgul ? "GÜVENLE YÜKLENİYOR..." : "ESERİMİ İNCELEMEYE GÖNDER →"}</button>
+        <p className="aday-not">.docx ve .txt kabul edilir · en fazla 3 MB</p>
+      </div>
+    );
+
+    if (eser.durum === "incelemede" || eser.durum === "rapor_hazir") {
+      return <BeklemeIcerigi eserAdi={eser.eser_adi} yazarAdi={oturum.adSoyad} ilerleme={ilerleme} simAdim={simAdim} />;
+    }
+
+    if (eser.durum === "onaylandi") return (
+      <div style={{ animation: "adayGiris .8s both" }}>
+        <div className="aday-sertifika">
+          <div className="aday-sertifika-rozet">MST YAYINA UYGUNLUK SERTİFİKASI</div>
+          <div className="aday-altin-cizgi" />
+          <div className="aday-sertifika-isim">{oturum.adSoyad}</div>
+          <div className="aday-sertifika-eser">"{eser.eser_adi}"</div>
+          <p className="aday-metin" style={{ marginBottom: 28 }}>Eseriniz, MST Yayıncılık AI ön incelemesinden ve editör kurulu değerlendirmesinden geçti. Bu belge, eserinizin profesyonel bir süzgeçten geçtiğinin resmî kanıtıdır.</p>
+          <div className="aday-sertifika-alt">
+            <span>BELGE NO: {eser.sertifika_no}</span>
+            <span>{eser.onay_tarihi ? new Date(eser.onay_tarihi).toLocaleDateString("tr-TR") : ""}</span>
+          </div>
+        </div>
+        <p className="aday-metin" style={{ marginTop: 24 }}>Yayın danışmanımız en kısa sürede sizinle iletişime geçecek. Yolculuğunuzun ilk adımı tamamlandı.</p>
+      </div>
+    );
+
+    return (
+      <div style={{ animation: "adayGiris .8s both" }}>
+        <div style={{ fontSize: 11, letterSpacing: ".3em", color: "#E8A0A0", marginBottom: 16 }}>İNCELEME SONUCU</div>
+        <h1 className="aday-baslik">Eseriniz güçlenebilir</h1>
+        <p className="aday-metin" style={{ marginBottom: 20 }}>Ön incelememiz <b style={{ color: "#F0D68A", fontWeight: 400 }}>{eser.eser_adi}</b> için bazı noktalar tespit etti. Bu, yolun sonu değil — birçok başarılı eser bu süreçten geçti.</p>
+        {(eser.red_gerekceleri || []).map((g, i) => (
+          <div key={i} style={{ borderLeft: "2px solid rgba(201,162,75,.5)", padding: "10px 16px", marginBottom: 10, fontSize: 14, color: "rgba(245,240,228,.8)", lineHeight: 1.65 }}>◆ {g}</div>
+        ))}
+        <p className="aday-metin" style={{ margin: "24px 0 20px" }}>Uzman editör ve redaksiyon ekibimiz eserinizi birlikte yayın seviyesine taşıyabilir.</p>
+        <button className="aday-btn-asil" onClick={() => ilgiBildir("editorluk", { eserId: eser.id })} disabled={!!ilgiGitti["editorluk"]}>
+          {ilgiGitti["editorluk"] ? "✓ TALEBİNİZ ALINDI — SİZİ ARAYACAĞIZ" : "EDİTÖRLÜK DESTEĞİ İSTİYORUM →"}
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="aday-zemin">
+      <style>{ADAY_CSS}</style>
+      <Ust />
+      <div className="aday-perde-zemin" style={{ paddingTop: 64 }}>
+        {/* Sol: Ana içerik */}
+        <div className="aday-perde-sol">
+          <AnaIcerik />
+        </div>
+        {/* Sağ: Perde sahnesi — her girişte farklı */}
+        {perde && (
+          <div className="aday-perde-sag">
+            <AdayPerde perde={perde} perdeGetir={perdeGetir} perdeGecmis={perdeGecmis} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+function AdayPerde({ perde, perdeGetir, perdeGecmis }) {
+  const ic = perde.icerik || {};
+  const videoSrc = `/mst-aday-${perde.id}.mp4`;
+  const [videoGoster, setVideoGoster] = useState(false);
+
+  return (
+    <div style={{ position: "sticky", top: 64, height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "clamp(24px,4vw,60px)" }}>
+      {/* Video alanı */}
+      <div style={{ position: "relative", marginBottom: 32, background: "rgba(8,16,40,.6)", aspectRatio: "16/9", overflow: "hidden" }}>
+        <video autoPlay muted playsInline loop
+          onCanPlay={() => setVideoGoster(true)}
+          onError={() => setVideoGoster(false)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", opacity: videoGoster ? .85 : 0, transition: "opacity .8s" }}>
+          <source src={videoSrc} type="video/mp4" />
+        </video>
+        {!videoGoster && (
+          <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 1, height: "60%", background: "linear-gradient(180deg,transparent,rgba(201,162,75,.4),transparent)" }} />
+          </div>
+        )}
+        {/* Büyük perde numarası */}
+        <div className="aday-perde-numara">{perde.id}</div>
+      </div>
+      {/* Perde içeriği */}
+      <div key={perde.id} style={{ animation: "adayGiris .7s both" }}>
+        <div className="aday-perde-etiket">{(perde.baslik || "").toLocaleUpperCase("tr-TR")}</div>
+        <div className="aday-perde-vurgu">{ic.vurgu}</div>
+        {(ic.satirlar || []).slice(0, 2).map((s, i) => (
+          <div key={i} className="aday-perde-satir" style={{ animation: `adayYukari .6s both ${.2 + i * .15}s` }}>{s}</div>
+        ))}
+        {ic.kapanis && <div className="aday-perde-kapanis">{ic.kapanis}</div>}
+      </div>
+      {/* Alt: nokta göstergesi + yenile */}
+      <div className="aday-perde-alt">
+        <div className="aday-perde-ilerleme">
+          {[1,2,3,4,5,6,7,8].map(n => (
+            <div key={n} className={`aday-perde-nokta${perdeGecmis.includes(n) ? " aktif" : ""}`} />
+          ))}
+        </div>
+        <button className="aday-btn-sessiz" onClick={perdeGetir} style={{ padding: "8px 16px", fontSize: 10 }}>DEVAMINI GÖR →</button>
+      </div>
+    </div>
+  );
+}
+
+// VideoSlot ve PerdeSahnesi — eski sürümlerle uyumluluk için tutuldu
+function VideoSlot({ src }) {
+  const [goster, setGoster] = useState(false);
+  return (
+    <video autoPlay muted playsInline loop onCanPlay={() => setGoster(true)} onError={() => setGoster(false)}
+      style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: goster ? "block" : "none", marginBottom: 16 }}>
+      <source src={src} type="video/mp4" />
+    </video>
+  );
+}
+function PerdeSahnesi() { return null; }
+
 
 export default function App() {
   const demoKodu = (() => {

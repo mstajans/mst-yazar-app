@@ -966,7 +966,7 @@ function ReklamDashboard({ kampanyalar = [], C, baslik = "Reklam Performansı" }
 // Giriş yanıtı ~550 ms sürüyor; animasyon yarım kalmasın diye en az
 // 1,2 saniye ekranda tutuluyor.
 // ═══════════════════════════════════════════════════════════════════
-function GirisAnimasyonu({ gorunur }) {
+function GirisAnimasyonu({ gorunur, metin = "GİRİŞ YAPILIYOR" }) {
   if (!gorunur) return null;
   return (
     <div style={{
@@ -991,7 +991,7 @@ function GirisAnimasyonu({ gorunur }) {
       </div>
 
       <div style={{ fontSize: 10, letterSpacing: "0.3em", color: "rgba(201,162,75,.7)", fontFamily: "'Jost', sans-serif" }}>
-        GİRİŞ YAPILIYOR
+        {metin}
       </div>
     </div>
   );
@@ -2203,13 +2203,20 @@ function LoginScreen({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [introDone, setIntroDone] = useState(false); // video oynar -> biter/geç -> giriş ekranı
   const [introFading, setIntroFading] = useState(false); // video->giriş yumuşak geçiş
-  // Masaüstü (>=900px) kendi açılış videosunu oynatır; telefon eski videoda kalır.
+  // Ekran YATAYSA (PC, yatay tablet) masaüstü videosu; DİKEYSE (telefon, dik tablet) telefon videosu.
+  // Böylece video ekran yönüyle eşleşir ve "kapla" modu en az kırpmayla tam ekran doldurur.
   // Masaüstü dosyası bulunamazsa onError telefon videosuna düşürür.
   const [introKaynak, setIntroKaynak] = useState(() =>
-    (typeof window !== "undefined" && window.matchMedia && window.matchMedia("(min-width: 900px)").matches)
+    (typeof window !== "undefined" && window.innerWidth > window.innerHeight)
       ? "/mst-intro-masaustu.mp4"
       : "/mst-intro.mp4"
   );
+  const [videoHazir, setVideoHazir] = useState(false); // video tamamen yüklenene kadar MST yükleme ekranı
+  const [videoOran, setVideoOran] = useState(null); // videonun gerçek en/boy oranı (yüklenince ölçülür)
+  // Video ile ekran oranı yakınsa tam kapla (bantsız); fark büyükse (ör. dikey video geniş ekranda)
+  // görüntü kırpılmasın diye tamamını göster. Her ekran boyutunda otomatik doğru karar.
+  const ekranOran = typeof window !== "undefined" ? window.innerWidth / window.innerHeight : 1.78;
+  const videoUyum = videoOran && (Math.max(videoOran, ekranOran) / Math.min(videoOran, ekranOran)) > 1.25 ? "contain" : "cover";
   const [exiting, setExiting] = useState(false);
 
   // Giriş ekranı kendi sabit lacivert/altın paletini kullanır (global tema kreme dönse de bozulmaz)
@@ -2335,26 +2342,36 @@ function LoginScreen({ onLogin }) {
           display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
           opacity: introFading ? 0 : 1, transition: "opacity 0.7s ease",
         }}>
-          {/* Masaüstünde (>=900px) ayrı video oynar; dosya yoksa telefon videosuna düşer */}
+          {/* Video tamamen oynatılabilir olana kadar MST yükleme ekranı gösterilir —
+              dona dona başlama sorunu böylece görünmez. Hazır olunca kendiliğinden oynar. */}
           <video
             key={introKaynak}
-            autoPlay
             muted
             playsInline
             preload="auto"
+            onCanPlayThrough={(e) => {
+              if (!videoHazir) {
+                setVideoHazir(true);
+                // Video sağlıklı yüklendi — 10 sn'lik güvenlik zamanlayıcısı videoyu yarıda kesmesin
+                if (introFallback.current) { clearTimeout(introFallback.current); introFallback.current = null; }
+                e.currentTarget.play().catch(() => {});
+              }
+            }}
+            onLoadedMetadata={(e) => { const v = e.currentTarget; if (v.videoWidth && v.videoHeight) setVideoOran(v.videoWidth / v.videoHeight); }}
             onEnded={() => { setIntroFading(true); setTimeout(() => setIntroDone(true), 700); }}
             onError={() => {
-              if (introKaynak === "/mst-intro-masaustu.mp4") setIntroKaynak("/mst-intro.mp4");
+              if (introKaynak === "/mst-intro-masaustu.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
               else setIntroDone(true);
             }}
-            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+            style={{ width: "100%", height: "100%", objectFit: videoUyum, objectPosition: "center", background: "#070D1B" }}
           >
             <source src={introKaynak} type="video/mp4" />
           </video>
+          {!videoHazir && <GirisAnimasyonu gorunur metin="YÜKLENİYOR" />}
           <button
             onClick={() => { setIntroFading(true); setTimeout(() => setIntroDone(true), 700); }}
             style={{
-              position: "absolute", top: 18, right: 18, zIndex: 81,
+              position: "absolute", top: 18, right: 18, zIndex: 210,
               background: "rgba(6,18,35,0.6)", color: LT.textLight,
               border: `1px solid ${LT.border}`, borderRadius: 0,
               padding: "6px 16px", fontSize: 15, letterSpacing: "0.05em",
@@ -4913,6 +4930,299 @@ function EducationSection({ unlocked, onUnlock, wallet }) {
 // Kök bileşen: demo bağlantısıyla gelen aday yazar giriş yapmadan yolculuk
 // provasını görür. Koşullu dönüş burada — hook sırası bozulmasın diye
 // asıl uygulama ayrı bir bileşende (React hook kuralı).
+
+// ═══════════════════════════════════════════════════════════════════
+// YAZAR ADAYI DENEYİMİ — ?aday bağlantısıyla açılır (reklamlar buraya basar)
+// ?aday=meta-a gibi bir değer verilirse kaynak olarak kaydedilir.
+// Strateji: prestij (lacivert/altın), gerçek gizlilik sözü, her girişte
+// farklı perde, kazanılan sertifika, dürüst iletişim.
+// ═══════════════════════════════════════════════════════════════════
+const ADAY_TURLER = ["Roman", "Öykü", "Şiir", "Deneme", "Anı", "Kişisel Gelişim", "Çocuk Kitabı", "Araştırma"];
+
+function AdayDeneyimi({ kaynak }) {
+  const [oturum, setOturum] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("adayOturum") || "null"); } catch { return null; }
+  });
+  const [asama, setAsama] = useState("form"); // form | kod
+  const [form, setForm] = useState({ adSoyad: "", telefon: "", eposta: "" });
+  const [kod, setKod] = useState("");
+  const [testKodu, setTestKodu] = useState("");
+  const [hata, setHata] = useState("");
+  const [mesgul, setMesgul] = useState(false);
+  const [eserler, setEserler] = useState(null);
+  const [perde, setPerde] = useState(null);
+  const [eserForm, setEserForm] = useState({ eserAdi: "", tur: "Roman", dosya: null });
+  const [ilerleme, setIlerleme] = useState(0);
+  const [ilgiGitti, setIlgiGitti] = useState({});
+  const inceleRef = useRef(false);
+
+  const yetkili = (yol, ayar = {}) => fetch(`${BACKEND_URL}${yol}`, {
+    ...ayar,
+    headers: { "Content-Type": "application/json", ...(oturum ? { Authorization: `Bearer ${oturum.token}` } : {}), ...(ayar.headers || {}) },
+  });
+
+  const eserleriYukle = async () => {
+    try { const r = await yetkili("/api/aday/eserlerim"); const d = await r.json(); setEserler(d.eserler || []); return d.eserler || []; }
+    catch { setEserler([]); return []; }
+  };
+  const perdeGetir = async () => {
+    try { const r = await yetkili("/api/aday/perde"); const d = await r.json(); setPerde(d.perde || null); } catch {}
+  };
+
+  useEffect(() => { if (oturum) { eserleriYukle(); perdeGetir(); } }, [oturum]);
+
+  // İnceleme sürücüsü: eser 'incelemede' ise sunucuyu tamam diyene dek dürter
+  useEffect(() => {
+    const acik = (eserler || []).find(e => e.durum === "incelemede");
+    if (!acik || inceleRef.current) return;
+    inceleRef.current = true;
+    (async () => {
+      let bitti = false;
+      while (!bitti) {
+        try {
+          const r = await yetkili(`/api/aday/eser/${acik.id}/incele`, { method: "POST" });
+          const d = await r.json();
+          if (d.ilerleme) setIlerleme(d.ilerleme);
+          bitti = !!d.tamam || !!d.error;
+        } catch { await new Promise(c => setTimeout(c, 4000)); }
+        if (!bitti) await new Promise(c => setTimeout(c, 1500));
+      }
+      inceleRef.current = false;
+      eserleriYukle();
+    })();
+  }, [eserler]);
+
+  const kodIste = async () => {
+    setHata("");
+    if (form.adSoyad.trim().length < 3) { setHata("Adınızı ve soyadınızı yazın"); return; }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.eposta.trim())) { setHata("Geçerli bir e-posta yazın"); return; }
+    setMesgul(true);
+    try {
+      const r = await yetkili("/api/aday/kod-gonder", { method: "POST", body: JSON.stringify({ ...form }) });
+      const d = await r.json();
+      if (d.ok) { setAsama("kod"); if (d.testKodu) setTestKodu(d.testKodu); }
+      else setHata(d.error || "Kod gönderilemedi");
+    } catch { setHata("Bağlantı kurulamadı"); }
+    finally { setMesgul(false); }
+  };
+
+  const kodOnayla = async () => {
+    setHata(""); setMesgul(true);
+    try {
+      const r = await yetkili("/api/aday/kod-dogrula", { method: "POST", body: JSON.stringify({ ...form, kod, kaynak }) });
+      const d = await r.json();
+      if (d.ok) {
+        const yeni = { token: d.token, adSoyad: d.aday.adSoyad, tip: d.aday.tip };
+        localStorage.setItem("adayOturum", JSON.stringify(yeni));
+        setOturum(yeni);
+      } else setHata(d.error || "Kod doğrulanamadı");
+    } catch { setHata("Bağlantı kurulamadı"); }
+    finally { setMesgul(false); }
+  };
+
+  const tipSec = async (tip) => {
+    setMesgul(true);
+    try {
+      await yetkili("/api/aday/tip", { method: "POST", body: JSON.stringify({ tip }) });
+      const yeni = { ...oturum, tip };
+      localStorage.setItem("adayOturum", JSON.stringify(yeni));
+      setOturum(yeni);
+    } catch {} finally { setMesgul(false); }
+  };
+
+  const eserGonder = async () => {
+    setHata("");
+    if (!eserForm.eserAdi.trim()) { setHata("Eserinizin adını yazın"); return; }
+    if (!eserForm.dosya) { setHata("Dosyanızı seçin (.docx ya da .txt)"); return; }
+    setMesgul(true);
+    try {
+      const base64 = await new Promise((cozul, hataVer) => {
+        const o = new FileReader();
+        o.onload = () => cozul(String(o.result).split(",")[1]);
+        o.onerror = () => hataVer(new Error("Dosya okunamadı"));
+        o.readAsDataURL(eserForm.dosya);
+      });
+      const r = await yetkili("/api/aday/eser-yukle", {
+        method: "POST",
+        body: JSON.stringify({ eserAdi: eserForm.eserAdi, tur: eserForm.tur, dosyaAdi: eserForm.dosya.name, dosyaBase64: base64 }),
+      });
+      const d = await r.json();
+      if (d.ok) { await eserleriYukle(); }
+      else setHata(d.error || "Yüklenemedi");
+    } catch (e) { setHata(e.message || "Yüklenemedi"); }
+    finally { setMesgul(false); }
+  };
+
+  const ilgiBildir = async (anahtar, detay) => {
+    if (ilgiGitti[anahtar]) return;
+    setIlgiGitti(g => ({ ...g, [anahtar]: true }));
+    try { await yetkili("/api/aday/olay", { method: "POST", body: JSON.stringify({ olay: anahtar === "editorluk" ? "editorluk_ilgi" : "paket_ilgi", detay }) }); } catch {}
+  };
+
+  // ---- ortak görsel dil ----
+  const zemin = { minHeight: "100vh", background: `radial-gradient(600px 320px at 50% 0%, rgba(201,162,75,.10), transparent 70%), #070D1B`, color: "#F5F0E4", fontFamily: "'Jost', sans-serif" };
+  const cerceve = { maxWidth: 560, margin: "0 auto", padding: "28px clamp(16px, 5vw, 32px) 60px" };
+  const kart = { border: "1px solid rgba(201,162,75,.35)", background: "rgba(12,23,48,.55)", padding: "clamp(18px, 5vw, 28px)", position: "relative", marginBottom: 18 };
+  const elmas = (k) => <span style={{ position: "absolute", width: 8, height: 8, background: "#C9A24B", transform: "rotate(45deg)", ...(k === 0 ? { top: -4, left: -4 } : k === 1 ? { top: -4, right: -4 } : k === 2 ? { bottom: -4, left: -4 } : { bottom: -4, right: -4 }) }} />;
+  const elmaslar = <>{elmas(0)}{elmas(1)}{elmas(2)}{elmas(3)}</>;
+  const baslikSt = { fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(24px, 6.5vw, 34px)", color: "#F0D68A", lineHeight: 1.2, margin: "0 0 8px" };
+  const soluk = { color: "rgba(245,240,228,.62)", fontSize: 14, lineHeight: 1.65 };
+
+  const Baslik = () => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 0 22px" }}>
+      <div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 21, letterSpacing: "0.18em", background: "linear-gradient(120deg,#8C6A22,#F0D68A,#C9A24B)", WebkitBackgroundClip: "text", backgroundClip: "text", WebkitTextFillColor: "transparent", whiteSpace: "nowrap" }}>MST YAYINCILIK</div>
+        <div style={{ fontSize: 9, letterSpacing: "0.32em", color: "rgba(201,162,75,.72)", marginTop: 3 }}>YAZAR ADAYI PROGRAMI</div>
+      </div>
+      {oturum && <button onClick={() => { localStorage.removeItem("adayOturum"); setOturum(null); setAsama("form"); setEserler(null); }} style={{ background: "none", border: "1px solid rgba(245,240,228,.2)", color: "rgba(245,240,228,.62)", fontSize: 11, padding: "5px 10px", cursor: "pointer", letterSpacing: "0.1em" }}>ÇIKIŞ</button>}
+    </div>
+  );
+
+  const girisAlani = { width: "100%", boxSizing: "border-box", padding: "15px 14px", fontSize: 16, fontFamily: "'Jost', sans-serif", background: "rgba(7,13,27,.65)", color: "#F5F0E4", border: "1px solid rgba(201,162,75,.4)", outline: "none", marginBottom: 12 };
+
+  // ============ 1 · KAYIT ============
+  if (!oturum) return (
+    <div style={zemin}><div style={cerceve}>
+      <Baslik />
+      <div style={kart}>{elmaslar}
+        <h1 style={baslikSt}>Eseriniz, hak ettiği yolculuğa burada başlar</h1>
+        <p style={soluk}>MST Yayıncılık Yazar Adayı Programı'na hoş geldiniz. Eseriniz, hiçbir insan gözü değmeden yapay zekâ ön incelemesinden geçer; size yalnızca sonuç ve yol haritası ulaşır.</p>
+        {asama === "form" ? (<>
+          <input style={girisAlani} placeholder="Ad Soyad" value={form.adSoyad} onChange={e => setForm({ ...form, adSoyad: e.target.value })} />
+          <input style={girisAlani} placeholder="Telefon (5xx xxx xx xx)" inputMode="tel" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} />
+          <input style={girisAlani} placeholder="E-posta" inputMode="email" value={form.eposta} onChange={e => setForm({ ...form, eposta: e.target.value })} />
+          {hata && <div style={{ color: "#E4A3A3", fontSize: 13, marginBottom: 10 }}>{hata}</div>}
+          <Dugme tur="asil" tamGenislik onClick={kodIste} disabled={mesgul}>{mesgul ? "GÖNDERİLİYOR..." : "DOĞRULAMA KODU GÖNDER"}</Dugme>
+          <div style={{ ...soluk, fontSize: 12, marginTop: 12 }}>Telefonunuza tek kullanımlık bir kod göndereceğiz. Bilgileriniz yalnızca yayın süreciniz için kullanılır.</div>
+        </>) : (<>
+          <p style={{ ...soluk, marginTop: 0 }}>{form.telefon} numarasına gönderilen 6 haneli kodu girin.</p>
+          {testKodu && <div style={{ color: "#C9A24B", fontSize: 12, marginBottom: 8 }}>Test modu — kodunuz: <b>{testKodu}</b></div>}
+          <input style={{ ...girisAlani, letterSpacing: "0.4em", textAlign: "center", fontSize: 22 }} maxLength={6} inputMode="numeric" placeholder="______" value={kod} onChange={e => setKod(e.target.value.replace(/\D/g, ""))} />
+          {hata && <div style={{ color: "#E4A3A3", fontSize: 13, marginBottom: 10 }}>{hata}</div>}
+          <Dugme tur="asil" tamGenislik onClick={kodOnayla} disabled={mesgul || kod.length !== 6}>{mesgul ? "DOĞRULANIYOR..." : "ÜYELİĞİMİ BAŞLAT"}</Dugme>
+          <div style={{ marginTop: 10 }}><Dugme tur="sessiz" onClick={() => { setAsama("form"); setKod(""); setHata(""); }}>BİLGİLERİ DÜZELT</Dugme></div>
+        </>)}
+      </div>
+      <div style={{ ...soluk, fontSize: 12, textAlign: "center" }}>◇ &nbsp; Sektörde ilk: yazarına kişisel uygulama sunan yayınevi &nbsp; ◇</div>
+    </div></div>
+  );
+
+  // ============ 2 · YOL AYRIMI ============
+  if (!oturum.tip) return (
+    <div style={zemin}><div style={cerceve}>
+      <Baslik />
+      <h1 style={baslikSt}>Hoş geldiniz, {oturum.adSoyad.split(" ")[0]}</h1>
+      <p style={soluk}>Sizi doğru yoldan ilerletelim:</p>
+      <div style={{ ...kart, cursor: "pointer" }} onClick={() => !mesgul && tipSec("yazar")}>{elmaslar}
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#F0D68A" }}>Bir eserim var — Yazar Adayıyım</div>
+        <div style={soluk}>Eserinizi güvenle yükleyin, yayına uygunluk ön incelemesinden geçsin, sertifikanızı kazanın.</div>
+      </div>
+      <div style={{ ...kart, cursor: "pointer" }} onClick={() => !mesgul && tipSec("okur")}>{elmaslar}
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 22, color: "#F0D68A" }}>Okumayı seviyorum — Okurum</div>
+        <div style={soluk}>Her ay seçtiğiniz türden yeni eserler kapınızda: kitap aboneliği programımızla tanışın.</div>
+      </div>
+    </div></div>
+  );
+
+  // ============ 3 · OKUR YOLU ============
+  if (oturum.tip === "okur") return (
+    <div style={zemin}><div style={cerceve}>
+      <Baslik />
+      <h1 style={baslikSt}>Kitap Aboneliği Programı</h1>
+      <p style={soluk}>Her ay, seçtiğiniz türden yeni çıkan eserler kapınıza gelir. Her paket, bir yazarın emeğine can verir. Program çok yakında açılıyor — ilginizi şimdiden bildirin, ilk gün haberdar olun:</p>
+      {[["4", "Aylık 4 kitap", "500 ₺/ay"], ["6", "Aylık 6 kitap", "750 ₺/ay"], ["8", "Aylık 8 kitap", "1.000 ₺/ay"]].map(([k, ad, fiyat]) => (
+        <div key={k} style={kart}>{elmaslar}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 21, color: "#F0D68A" }}>{ad}</div>
+            <div style={{ color: "#F5F0E4", fontSize: 15 }}>{fiyat}</div>
+          </div>
+          <div style={{ ...soluk, marginBottom: 12 }}>Tür seçimi size ait · kargo bizden · ilk ay ücretsiz açılış kampanyasıyla</div>
+          <Dugme tur={ilgiGitti["paket" + k] ? "sessiz" : "orta"} onClick={() => ilgiBildir("paket" + k, { paket: k })}>{ilgiGitti["paket" + k] ? "✓ LİSTEYE ALINDINIZ" : "İLGİLENİYORUM"}</Dugme>
+        </div>
+      ))}
+      <PerdeSahnesi perde={perde} yenile={perdeGetir} kart={kart} elmaslar={elmaslar} soluk={soluk} />
+    </div></div>
+  );
+
+  // ============ 4 · YAZAR YOLU ============
+  const eser = (eserler || [])[0];
+  return (
+    <div style={zemin}><div style={cerceve}>
+      <Baslik />
+      {eserler === null ? <div style={soluk}>Yükleniyor…</div> : !eser ? (
+        <div style={kart}>{elmaslar}
+          <h1 style={baslikSt}>Eserinizi güvenle teslim edin</h1>
+          <p style={soluk}>Dosyanız şifreli saklanır, <b style={{ color: "#F0D68A" }}>hiçbir insan tarafından okunmaz</b> — yalnızca yapay zekâ ön incelemesinden geçer ve editör kurulumuza sadece risk raporu ulaşır. Emeğiniz, ilk günden koruma altındadır.</p>
+          <input style={girisAlani} placeholder="Eserinizin adı" value={eserForm.eserAdi} onChange={e => setEserForm({ ...eserForm, eserAdi: e.target.value })} />
+          <select style={{ ...girisAlani }} value={eserForm.tur} onChange={e => setEserForm({ ...eserForm, tur: e.target.value })}>
+            {ADAY_TURLER.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <input type="file" accept=".docx,.txt" onChange={e => setEserForm({ ...eserForm, dosya: e.target.files?.[0] || null })} style={{ ...girisAlani, padding: "12px 14px" }} />
+          {hata && <div style={{ color: "#E4A3A3", fontSize: 13, marginBottom: 10 }}>{hata}</div>}
+          <Dugme tur="asil" tamGenislik onClick={eserGonder} disabled={mesgul}>{mesgul ? "GÜVENLE YÜKLENİYOR..." : "ESERİMİ İNCELEMEYE GÖNDER"}</Dugme>
+          <div style={{ ...soluk, fontSize: 12, marginTop: 10 }}>Kabul edilen biçimler: .docx ve .txt · en çok 3 MB</div>
+        </div>
+      ) : eser.durum === "incelemede" ? (
+        <div style={kart}>{elmaslar}
+          <h1 style={baslikSt}>Eseriniz inceleniyor</h1>
+          <p style={soluk}><b style={{ color: "#F0D68A" }}>{eser.eser_adi}</b> şu anda yapay zekâ ön incelemesinde. Bölüm bölüm, dikkatle.</p>
+          <div style={{ height: 3, background: "rgba(201,162,75,.18)", margin: "14px 0 6px" }}>
+            <div style={{ height: "100%", width: `${Math.max(ilerleme, eser.toplam_parca ? Math.round((eser.son_islenen_parca / eser.toplam_parca) * 100) : 4)}%`, background: "linear-gradient(90deg,#8C6A22,#F0D68A)", transition: "width .8s" }} />
+          </div>
+          <div style={{ ...soluk, fontSize: 12 }}>Bu sayfadan ayrılabilirsiniz — sonuç hazır olduğunda burada sizi bekliyor olacak.</div>
+        </div>
+      ) : eser.durum === "rapor_hazir" ? (
+        <div style={kart}>{elmaslar}
+          <h1 style={baslikSt}>İnceleme tamamlandı</h1>
+          <p style={soluk}>Yapay zekâ raporu hazır ve <b style={{ color: "#F0D68A" }}>editör kurulumuzun</b> önünde. Kurul yalnızca raporu görür — eserinizi değil. Sonuç açıklandığında bu ekranda ve telefonunuzda olacak.</p>
+        </div>
+      ) : eser.durum === "onaylandi" ? (
+        <div style={{ ...kart, borderColor: "#C9A24B", background: "linear-gradient(180deg, rgba(201,162,75,.10), rgba(12,23,48,.6))" }}>{elmaslar}
+          <div style={{ fontSize: 10, letterSpacing: "0.34em", color: "rgba(201,162,75,.8)", marginBottom: 8 }}>MST YAYINA UYGUNLUK SERTİFİKASI</div>
+          <h1 style={{ ...baslikSt, marginBottom: 4 }}>{oturum.adSoyad}</h1>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, color: "#F5F0E4", fontStyle: "italic", marginBottom: 12 }}>"{eser.eser_adi}"</div>
+          <p style={soluk}>Eseriniz ön incelemeden geçti ve editör kurulumuzca onaylandı. Bu belge, eserinizin profesyonel bir süzgeçten geçtiğinin kanıtıdır.</p>
+          <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid rgba(201,162,75,.3)", paddingTop: 12, fontSize: 12.5 }}>
+            <span style={{ color: "#F0D68A" }}>Belge No: {eser.sertifika_no}</span>
+            <span style={soluk}>{eser.onay_tarihi ? new Date(eser.onay_tarihi).toLocaleDateString("tr-TR") : ""}</span>
+          </div>
+          <div style={{ marginTop: 16 }}><div style={{ ...soluk, marginBottom: 8 }}>Yayın yolculuğunuzun ilk adımı tamam. Yayın danışmanımız en kısa sürede sizi arayacak.</div></div>
+        </div>
+      ) : (
+        <div style={kart}>{elmaslar}
+          <h1 style={baslikSt}>Eseriniz güçlenmeyi bekliyor</h1>
+          <p style={soluk}>Ön incelememiz, <b style={{ color: "#F0D68A" }}>{eser.eser_adi}</b> için yayın öncesi düzeltilmesi gereken noktalar tespit etti:</p>
+          {(eser.red_gerekceleri || []).map((g, i) => (
+            <div key={i} style={{ borderLeft: "2px solid #C9A24B", padding: "6px 10px", marginBottom: 6, fontSize: 13.5, color: "rgba(245,240,228,.85)" }}>{g}</div>
+          ))}
+          <p style={soluk}>Bu, yolun sonu değil — tam tersi: birçok başarılı eser bu aşamadan geçti. Uzman editör ve redaksiyon ekibimiz, eserinizi birlikte yayın seviyesine taşıyabilir.</p>
+          <Dugme tur={ilgiGitti["editorluk"] ? "sessiz" : "asil"} tamGenislik onClick={() => ilgiBildir("editorluk", { eserId: eser.id })}>{ilgiGitti["editorluk"] ? "✓ TALEBİNİZ ALINDI — SİZİ ARAYACAĞIZ" : "EDİTÖRLÜK DESTEĞİ İSTİYORUM"}</Dugme>
+        </div>
+      )}
+      <PerdeSahnesi perde={perde} yenile={perdeGetir} kart={kart} elmaslar={elmaslar} soluk={soluk} />
+    </div></div>
+  );
+}
+
+function PerdeSahnesi({ perde, yenile, kart, elmaslar, soluk }) {
+  if (!perde) return null;
+  const ic = perde.icerik || {};
+  return (
+    <div style={{ ...kart, marginTop: 26 }}>{elmaslar}
+      <style>{`@keyframes adayPerde { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }`}</style>
+      <div key={perde.id}>
+        <div style={{ fontSize: 10, letterSpacing: "0.3em", color: "rgba(201,162,75,.75)", marginBottom: 8 }}>{(perde.baslik || "").toLocaleUpperCase("tr-TR")}</div>
+        <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 23, color: "#F0D68A", marginBottom: 12, animation: "adayPerde .7s ease both" }}>{ic.vurgu}</div>
+        {(ic.satirlar || []).map((s, i) => (
+          <p key={i} style={{ ...soluk, animation: `adayPerde .7s ease ${0.25 + i * 0.35}s both` }}>{s}</p>
+        ))}
+        {ic.kapanis && <div style={{ fontStyle: "italic", color: "#F0D68A", fontSize: 14, marginTop: 12, animation: `adayPerde .7s ease ${0.4 + (ic.satirlar || []).length * 0.35}s both` }}>— {ic.kapanis}</div>}
+      </div>
+      <div style={{ marginTop: 14 }}><Dugme tur="sessiz" onClick={yenile}>YENİ BİR PERSPEKTİF</Dugme></div>
+    </div>
+  );
+}
+
 export default function App() {
   const demoKodu = (() => {
     try {
@@ -4920,7 +5230,16 @@ export default function App() {
       return k ? k.toUpperCase().slice(0, 12) : null;
     } catch { return null; }
   })();
-  return demoKodu ? <DemoDeneyimi kod={demoKodu} /> : <YazarUygulamasi />;
+  const adayKaynak = (() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (!p.has("aday")) return null;
+      return (p.get("aday") || "dogrudan").toLowerCase().slice(0, 60) || "dogrudan";
+    } catch { return null; }
+  })();
+  if (demoKodu) return <DemoDeneyimi kod={demoKodu} />;
+  if (adayKaynak) return <AdayDeneyimi kaynak={adayKaynak} />;
+  return <YazarUygulamasi />;
 }
 
 function YazarUygulamasi() {

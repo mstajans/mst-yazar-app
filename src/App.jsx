@@ -2288,7 +2288,8 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
       {/* Video arka plan */}
       <video
         ref={videoRef}
-        muted loop playsInline preload="auto"
+        muted playsInline preload="auto"
+        onEnded={(e) => { e.currentTarget.pause(); setPartAktif(true); }}
         style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: videoHazir ? 0.38 : 0, transition: 'opacity .8s', zIndex: 0 }}
       >
         <source src="/videos/mst-karsilama.mp4" type="video/mp4" />
@@ -2378,6 +2379,9 @@ function LoginScreen({ onLogin }) {
   const [adayTestKodu, setAdayTestKodu] = useState("");
   const introDone_ls = (() => { try { return !!localStorage.getItem("mst_intro_done"); } catch { return false; } })();
   const [introDone, setIntroDone] = useState(introDone_ls);
+  const girisPartRef = React.useRef(null);
+  const [girisPartAktif, setGirisPartAktif] = useState(false);
+  usePartikul(girisPartRef, girisPartAktif);
   const [introFading, setIntroFading] = useState(false); // video->giriş yumuşak geçiş
   // Ekran YATAYSA (PC, yatay tablet) masaüstü videosu; DİKEYSE (telefon, dik tablet) telefon videosu.
   // Böylece video ekran yönüyle eşleşir ve "kapla" modu en az kırpmayla tam ekran doldurur.
@@ -2563,11 +2567,13 @@ function LoginScreen({ onLogin }) {
       {/* Giris paneli surekli video arka plani - demo'daki GIRIS ekraniyla tutarli:
           intro bittikten/gecildikten sonra kart bos gradyanda kalmasin. */}
       <video
-        autoPlay muted loop playsInline preload="auto"
-        style={{ position: "fixed", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.32, zIndex: 0 }}
+        autoPlay muted playsInline preload="auto"
+        onEnded={(e) => { e.currentTarget.pause(); setGirisPartAktif(true); }}
+        style={{ position: "fixed", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: girisPartAktif ? 0.12 : 0.38, transition: "opacity .5s", zIndex: 0 }}
       >
         <source src="/videos/mst-ofis.mp4" type="video/mp4" />
       </video>
+      <canvas ref={girisPartRef} style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 0, opacity: girisPartAktif ? 1 : 0, transition: "opacity 1.2s ease", pointerEvents: "none" }} />
 
       <div style={{ position: "absolute", top: "-10%", left: "-10%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,106,79,0.12), transparent 70%)", filter: "blur(10px)", animation: "mstDriftA 13s ease-in-out infinite" }} />
       <div style={{ position: "absolute", bottom: "-15%", right: "-10%", width: 340, height: 340, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,162,75,0.14), transparent 70%)", filter: "blur(12px)", animation: "mstDriftB 16s ease-in-out infinite" }} />
@@ -2651,7 +2657,7 @@ function LoginScreen({ onLogin }) {
           <span key={i} style={{ position: "absolute", ...k, width: 9, height: 9, background: LT.gold, transform: "rotate(45deg)", zIndex: 3 }} />
         ))}
 
-        <div style={{ border: `1px solid rgba(201,162,75,.45)`, background: "rgba(7,13,27,.55)", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
+        <div style={{ border: `1px solid rgba(201,162,75,.45)`, background: "rgba(7,13,27,.55)" }}>
           {/* Üst bölüm — marka */}
           <div style={{
             background: "radial-gradient(320px 160px at 50% 0%, rgba(201,162,75,.16), transparent 70%), linear-gradient(172deg, #132445, #070D1B)",
@@ -6733,8 +6739,9 @@ function AdayVideoZemin({ video, poster, children }) {
       <video
         key={video}
         ref={videoRef}
-        muted loop playsInline preload="auto"
+        muted playsInline preload="auto"
         poster={poster || undefined}
+        onEnded={(e) => { e.currentTarget.pause(); setBitti(true); setPartAktif(true); }}
         onError={() => { setBitti(true); setPartAktif(true); }}
         className={"aday-vz-video" + (bitti ? " bitti" : "")}
       >

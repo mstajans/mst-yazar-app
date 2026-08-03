@@ -2288,8 +2288,7 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
       {/* Video arka plan */}
       <video
         ref={videoRef}
-        muted playsInline preload="auto"
-        onEnded={(e) => { e.currentTarget.pause(); setPartAktif(true); }}
+        muted loop playsInline preload="auto"
         style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: videoHazir ? 0.38 : 0, transition: 'opacity .8s', zIndex: 0 }}
       >
         <source src="/videos/mst-karsilama.mp4" type="video/mp4" />
@@ -2560,6 +2559,15 @@ function LoginScreen({ onLogin }) {
       `}</style>
       <GridBackdrop />
       <ScanLine />
+
+      {/* Giris paneli surekli video arka plani - demo'daki GIRIS ekraniyla tutarli:
+          intro bittikten/gecildikten sonra kart bos gradyanda kalmasin. */}
+      <video
+        autoPlay muted loop playsInline preload="auto"
+        style={{ position: "fixed", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: 0.32, zIndex: 0 }}
+      >
+        <source src="/videos/mst-ofis.mp4" type="video/mp4" />
+      </video>
 
       <div style={{ position: "absolute", top: "-10%", left: "-10%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,106,79,0.12), transparent 70%)", filter: "blur(10px)", animation: "mstDriftA 13s ease-in-out infinite" }} />
       <div style={{ position: "absolute", bottom: "-15%", right: "-10%", width: 340, height: 340, borderRadius: "50%", background: "radial-gradient(circle, rgba(201,162,75,0.14), transparent 70%)", filter: "blur(12px)", animation: "mstDriftB 16s ease-in-out infinite" }} />
@@ -6725,9 +6733,8 @@ function AdayVideoZemin({ video, poster, children }) {
       <video
         key={video}
         ref={videoRef}
-        muted playsInline preload="auto"
+        muted loop playsInline preload="auto"
         poster={poster || undefined}
-        onEnded={(e) => { e.currentTarget.pause(); setBitti(true); setPartAktif(true); }}
         onError={() => { setBitti(true); setPartAktif(true); }}
         className={"aday-vz-video" + (bitti ? " bitti" : "")}
       >

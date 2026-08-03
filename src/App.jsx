@@ -2217,6 +2217,10 @@ function LoginScreen({ onLogin }) {
   const [adayHata, setAdayHata] = useState("");
   const [adayYukleniyor, setAdayYukleniyor] = useState(false);
   const [adayOturumAcildi, setAdayOturumAcildi] = useState(false);
+  const [adayEkrani, setAdayEkrani] = useState("telefon");
+  const [adayForm, setAdayForm] = useState({ adSoyad: "", eposta: "" });
+  const [adayKod, setAdayKod] = useState("");
+  const [adayKodAsama, setAdayKodAsama] = useState(false);
   const introDone_ls = (() => { try { return !!localStorage.getItem("mst_intro_done"); } catch { return false; } })();
   const [introDone, setIntroDone] = useState(introDone_ls);
   const [introFading, setIntroFading] = useState(false); // video->giriş yumuşak geçiş

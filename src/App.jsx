@@ -2291,7 +2291,7 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
         onEnded={(e) => { e.currentTarget.pause(); setPartAktif(true); }}
         style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: videoHazir ? 0.38 : 0, transition: 'opacity .8s', zIndex: 0 }}
       >
-        <source src="/videos/mst-karsilama.mp4" type="video/mp4" />
+        <source src="/videos/Golden_light_particles_rising_up__202608031346.mp4" type="video/mp4" />
       </video>
 
       {/* Partiküller */}
@@ -2382,7 +2382,7 @@ function LoginScreen({ onLogin }) {
   // Masaüstü dosyası bulunamazsa onError telefon videosuna düşürür.
   const [introKaynak, setIntroKaynak] = useState(() =>
     (typeof window !== "undefined" && window.innerWidth > window.innerHeight)
-      ? "/mst-intro-masaustu.mp4"
+      ? "/mst-intro.mp4"
       : "/mst-intro.mp4"
   );
   const [videoHazir, setVideoHazir] = useState(false); // video tamamen yüklenene kadar MST yükleme ekranı
@@ -2597,7 +2597,7 @@ function LoginScreen({ onLogin }) {
             }}
             onError={() => {
               videoYuklendi();
-              if (introKaynak === "/mst-intro-masaustu.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
+              if (introKaynak === "/mst-intro.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
               else setIntroDone(true);
             }}
             style={{ width: "100%", height: "100%", objectFit: videoUyum, objectPosition: "center", background: "#070D1B" }}
@@ -5714,6 +5714,22 @@ const ADAY_CSS = `
   color:rgba(201,162,75,.55);
 }
 
+/* Tam ekran video zemin — kayıt, yol ayrımı, eser yükleme, sertifika, red ekranları */
+.aday-vz { position:relative; min-height:100vh; overflow:hidden; }
+.aday-vz-video {
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; opacity:.38; z-index:0; transition:opacity .6s;
+}
+.aday-vz-video.bitti { opacity:.12; }
+.aday-vz-partikul { position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:0; transition:opacity 1.2s ease; }
+.aday-vz-partikul.ak { opacity:1; }
+.aday-vz-karart { position:absolute; inset:0; background:rgba(3,8,18,.6); z-index:1; }
+.aday-vz-cizgi { position:absolute; top:0; left:0; right:0; height:2px; overflow:hidden; z-index:5; }
+.aday-vz-cizgi-ic { position:absolute; width:50%; height:100%; background:linear-gradient(90deg,transparent,#F0D68A,transparent); animation:adaySur2 2.5s ease-in-out infinite; }
+@keyframes adaySur2 { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
+.aday-vz-elmas { position:absolute; width:8px; height:8px; background:#C9A24B; transform:rotate(45deg); z-index:5; }
+.aday-vz-ic { position:relative; z-index:2; }
+
 /* Mobil */
 @media (max-width:768px) {
   .aday-perde-zemin { flex-direction:column; }
@@ -6674,6 +6690,53 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim }) {
 }
 
 
+// Tam ekran video zemin — kayıt, yol ayrımı, eser yükleme, sertifika, red ekranlarında kullanılır.
+// Video oynatılamazsa (codec/ağ/güç modu) partiküller devreye girer, ekran boş kalmaz.
+function AdayVideoZemin({ video, poster, children }) {
+  const videoRef = React.useRef(null);
+  const partRef = React.useRef(null);
+  const [partAktif, setPartAktif] = React.useState(false);
+  const [bitti, setBitti] = React.useState(false);
+  usePartikul(partRef, partAktif);
+
+  React.useEffect(() => {
+    setBitti(false); setPartAktif(false);
+    const v = videoRef.current;
+    if (!v) { setPartAktif(true); return; }
+    v.currentTime = 0;
+    const p = v.play();
+    if (p && p.catch) p.catch(() => { setBitti(true); setPartAktif(true); });
+    const zamanAsimi = setTimeout(() => {
+      if (v.currentTime < 0.05 || v.paused) { setBitti(true); setPartAktif(true); }
+    }, 1500);
+    return () => clearTimeout(zamanAsimi);
+  }, [video]);
+
+  return (
+    <div className="aday-vz">
+      <video
+        key={video}
+        ref={videoRef}
+        muted playsInline preload="auto"
+        poster={poster || undefined}
+        onEnded={(e) => { e.currentTarget.pause(); setBitti(true); setPartAktif(true); }}
+        onError={() => { setBitti(true); setPartAktif(true); }}
+        className={"aday-vz-video" + (bitti ? " bitti" : "")}
+      >
+        <source src={video} type="video/mp4" />
+      </video>
+      <canvas ref={partRef} className={"aday-vz-partikul" + (partAktif ? " ak" : "")} />
+      <div className="aday-vz-karart" />
+      <div className="aday-vz-cizgi"><div className="aday-vz-cizgi-ic" /></div>
+      <div className="aday-vz-elmas" style={{ top: 8, left: 8 }} />
+      <div className="aday-vz-elmas" style={{ top: 8, right: 8 }} />
+      <div className="aday-vz-elmas" style={{ bottom: 8, left: 8 }} />
+      <div className="aday-vz-elmas" style={{ bottom: 8, right: 8 }} />
+      <div className="aday-vz-ic">{children}</div>
+    </div>
+  );
+}
+
 function AdayDeneyimi({ kaynak }) {
   const [oturum, setOturum] = useState(() => {
     try { return JSON.parse(localStorage.getItem("adayOturum") || "null"); } catch { return null; }
@@ -6834,7 +6897,7 @@ function AdayDeneyimi({ kaynak }) {
 
   // ═══ 1 · KAYIT / HIZLI GİRİŞ ═══
   if (!oturum) return (
-    <div className="aday-zemin">
+    <AdayVideoZemin video="/videos/mst-ofis.mp4">
       <style>{ADAY_CSS}</style>
       <Ust />
       <div className="aday-tam-ekran" style={{ paddingTop: 80 }}>
@@ -6899,12 +6962,12 @@ function AdayDeneyimi({ kaynak }) {
           </div>
         </div>
       </div>
-    </div>
+    </AdayVideoZemin>
   );
 
   // ═══ 2 · YOL AYRIMI ═══
   if (!oturum.tip) return (
-    <div className="aday-zemin">
+    <AdayVideoZemin video="/videos/mst-karsilama.mp4">
       <style>{ADAY_CSS}</style>
       <Ust />
       <div className="aday-tam-ekran" style={{ paddingTop: 80 }}>
@@ -6925,7 +6988,7 @@ function AdayDeneyimi({ kaynak }) {
           </div>
         </div>
       </div>
-    </div>
+    </AdayVideoZemin>
   );
 
   // ═══ 3 · YAZAR YOLU ═══
@@ -6992,16 +7055,18 @@ function AdayDeneyimi({ kaynak }) {
     );
   };
 
-  return (
+  // Bekleme (incelemede/rapor_hazir) dışındaki her durumda tam ekran video zemin;
+  // bekleme sırasında BeklemeIcerigi kendi tasarımını + sağdaki AdayPerde videosunu kullanır.
+  const bekleniyor = eser && (eser.durum === "incelemede" || eser.durum === "rapor_hazir");
+
+  if (bekleniyor) return (
     <div className="aday-zemin">
       <style>{ADAY_CSS}</style>
       <Ust />
       <div className="aday-perde-zemin" style={{ paddingTop: 64 }}>
-        {/* Sol: Ana içerik */}
         <div className="aday-perde-sol">
           <AnaIcerik />
         </div>
-        {/* Sağ: Perde sahnesi — her girişte farklı */}
         {perde && (
           <div className="aday-perde-sag">
             <AdayPerde perde={perde} perdeGetir={perdeGetir} perdeGecmis={perdeGecmis} />
@@ -7010,21 +7075,22 @@ function AdayDeneyimi({ kaynak }) {
       </div>
     </div>
   );
-}
 
-// Perde videoları — perde ID'leri veritabanında değişse de bozulmasın diye
-// perdenin BAŞLIK/VURGU metnindeki anahtar kelimeye göre eşlenir.
-// Eşleşme yoksa eski isim denenir; o da yoksa video gösterilmez (altın çizgi kalır).
-const PERDE_VIDEOLARI = [
-  { anahtar: ["dağıtım", "platform", "satış ağ", "pazaryeri", "ağı", "dünya"], src: "/videos/mst-perde-agi.mp4" },
-  { anahtar: ["takip", "şeffaf", "panel", "anlık", "veri", "rakam", "satış"], src: "/videos/mst-perde-takip.mp4" },
-  { anahtar: ["inceleme", "sertifika", "değerlendir", "onay", "gizlilik"], src: "/videos/mst-perde-sertifika.mp4" },
-  { anahtar: ["okuma", "ilham", "kitap", "eser", "yazarlık", "eğitim"], src: "/videos/mst-perde-kitap.mp4" },
-];
-function perdeVideoSec(perde) {
-  const metin = ((perde?.baslik || "") + " " + ((perde?.icerik || {}).vurgu || "")).toLocaleLowerCase("tr-TR");
-  const bulunan = PERDE_VIDEOLARI.find(v => v.anahtar.some(a => metin.includes(a)));
-  return bulunan ? bulunan.src : `/mst-aday-${perde?.id}.mp4`;
+  const anaVideo = !eser ? "/videos/mst-perde-kitap.mp4"
+    : eser.durum === "onaylandi" ? "/videos/mst-perde-sertifika.mp4"
+    : "/videos/mst-perde-agi.mp4"; // red/güçlenebilir ekranı
+
+  return (
+    <AdayVideoZemin video={anaVideo}>
+      <style>{ADAY_CSS}</style>
+      <Ust />
+      <div className="aday-tam-ekran" style={{ paddingTop: 80 }}>
+        <div className="aday-icerik">
+          <AnaIcerik />
+        </div>
+      </div>
+    </AdayVideoZemin>
+  );
 }
 
 function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
@@ -7032,7 +7098,7 @@ function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
   const [videoGoster, setVideoGoster] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(false);
   const ic = (perde || {}).icerik || {};
-  const videoSrc = perdeVideoSec(perde);
+  const videoSrc = `/mst-aday-${perde?.id}.mp4`;
 
   const sonraki = async () => {
     if (yukleniyor) return;
@@ -7047,7 +7113,7 @@ function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
   };
 
   // Üst bileşenden yeni perde gelince güncelle
-  useEffect(() => { if (ilkPerde) { setPerde(ilkPerde); setVideoGoster(false); } }, [ilkPerde?.id]);
+  useEffect(() => { if (ilkPerde) setPerde(ilkPerde); }, [ilkPerde?.id]);
 
   if (!perde) return null;
 
@@ -7055,7 +7121,7 @@ function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
     <div style={{ position: "sticky", top: 64, height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "clamp(24px,4vw,60px)" }}>
       {/* Video alanı */}
       <div style={{ position: "relative", marginBottom: 32, background: "rgba(8,16,40,.6)", aspectRatio: "16/9", overflow: "hidden" }}>
-        <video key={videoSrc} autoPlay muted playsInline loop preload="metadata"
+        <video autoPlay muted playsInline loop
           onCanPlay={() => setVideoGoster(true)}
           onError={() => setVideoGoster(false)}
           style={{ width: "100%", height: "100%", objectFit: "cover", opacity: videoGoster ? .85 : 0, transition: "opacity .8s" }}>

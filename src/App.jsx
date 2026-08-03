@@ -4055,18 +4055,38 @@ function StockOrbitTab({ books, account, token, onQuickAction, onAkademiAc }) {
         {onAkademiAc && (
           <div onClick={onAkademiAc} style={{
             cursor: 'pointer', marginBottom: 16,
-            background: 'linear-gradient(135deg,rgba(201,162,75,.1) 0%,rgba(10,20,40,.7) 100%)',
-            border: '1px solid rgba(201,162,75,.38)',
-            padding: '14px 16px', position: 'relative', overflow: 'hidden',
+            background: 'linear-gradient(135deg,rgba(201,162,75,.12) 0%,rgba(5,13,26,.8) 100%)',
+            border: '1px solid rgba(201,162,75,.4)',
+            padding: '18px 20px',
+            position: 'relative', overflow: 'hidden',
+            animation: 'mgrBtnBreath 3s ease-in-out infinite',
           }}>
-            <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',background:'linear-gradient(90deg,transparent,#C9A24B,transparent)',animation:'adaySur 2s ease both'}} />
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
+            <style>{`
+              @keyframes akWidgetCizgi { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+              @keyframes akWidgetOk { 0%,100%{transform:translateX(0)} 50%{transform:translateX(5px)} }
+              @keyframes akWidgetParla { 0%,100%{opacity:.35;box-shadow:0 0 0 0 rgba(201,162,75,.3)} 50%{opacity:1;box-shadow:0 0 0 6px rgba(201,162,75,0)} }
+            `}</style>
+            {/* Kayan altın çizgi */}
+            <div style={{position:'absolute',top:0,left:0,right:0,height:'2px',overflow:'hidden'}}>
+              <div style={{position:'absolute',top:0,left:0,width:'60%',height:'100%',background:'linear-gradient(90deg,transparent,#C9A24B,transparent)',animation:'akWidgetCizgi 2s ease-in-out infinite'}} />
+            </div>
+            {/* Alt kayan çizgi */}
+            <div style={{position:'absolute',bottom:0,left:0,right:0,height:'1px',overflow:'hidden'}}>
+              <div style={{position:'absolute',bottom:0,left:0,width:'40%',height:'100%',background:'linear-gradient(90deg,transparent,rgba(201,162,75,.4),transparent)',animation:'akWidgetCizgi 2.8s ease-in-out infinite reverse'}} />
+            </div>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
               <div style={{flex:1}}>
-                <div style={{fontSize:9,letterSpacing:'.28em',color:'rgba(201,162,75,.6)',marginBottom:5}}>MST YAZARLIK AKADEMİSİ · ÜCRETSİZ</div>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:18,color:'#F0D68A',marginBottom:3}}>10 modül · 10 günde profesyonel yazar</div>
-                <div style={{fontSize:11,color:'rgba(245,240,228,.45)'}}>Sosyal medya · Lansman · Topluluk · PR · Veri analizi</div>
+                <div style={{fontSize:9,letterSpacing:'.3em',color:'rgba(201,162,75,.65)',marginBottom:6}}>MST YAZARLIK AKADEMİSİ · ÜCRETSİZ</div>
+                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:20,color:'#F0D68A',marginBottom:4}}>10 modül · 10 günde profesyonel yazar</div>
+                <div style={{fontSize:12,color:'rgba(245,240,228,.5)'}}>Sosyal medya · Lansman · Topluluk · PR · Veri analizi</div>
               </div>
-              <div style={{width:36,height:36,border:'1px solid rgba(201,162,75,.45)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,color:'#C9A24B',fontSize:16}}>→</div>
+              {/* Animasyonlu ok */}
+              <div style={{width:42,height:42,border:'1px solid rgba(201,162,75,.5)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:18,color:'#C9A24B',animation:'akWidgetParla 2s ease infinite'}}>→</div>
+            </div>
+            <div style={{display:'flex',gap:6,marginTop:12,flexWrap:'wrap'}}>
+              {['Modül 1 Açık','Her Gün 1 Modül','AI Geri Bildirim'].map(t => (
+                <div key={t} style={{border:'1px solid rgba(201,162,75,.2)',padding:'3px 10px',fontSize:9,letterSpacing:'.14em',color:'rgba(201,162,75,.6)'}}>{t}</div>
+              ))}
             </div>
           </div>
         )}
@@ -6778,6 +6798,7 @@ function YazarUygulamasi() {
     const goruldu = localStorage.getItem("mst_akademi_goruldu");
     if (!goruldu) { setAkademiKutlama(true); localStorage.setItem("mst_akademi_goruldu", "1"); }
     setAkademiAcik(true);
+    setTab("akademi");
   }, []);
   const [wcProducts, setWcProducts] = useState([]);
   const [wcLoading, setWcLoading] = useState(false);

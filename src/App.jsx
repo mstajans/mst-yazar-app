@@ -2263,14 +2263,14 @@ function LoginScreen({ onLogin }) {
       });
       const veri = await r.json();
       if (veri.ok) {
+        // Mevcut üye — direkt içeri
         const oturum = { token: veri.token, adSoyad: veri.aday.adSoyad, tip: veri.aday.tip };
         try { localStorage.setItem("adayOturum", JSON.stringify(oturum)); } catch {}
-        setAdayOturumAcildi(true);
-        // Aday uygulamasına geç — URL'yi güncelle
-        window.history.replaceState({}, "", "/?aday=giris");
-        window.location.reload();
+        window.location.href = "/?aday=giris";
       } else if (veri.yonlendir === "kayit") {
-        setAdayHata("Bu numara kayıtlı değil. Kayıt için reklam linkini kullanın.");
+        // Yeni kullanıcı — etki ekranına geç
+        setAdayEkrani("etki");
+        setAdayHata("");
       } else {
         setAdayHata(veri.error || "Giriş yapılamadı");
       }
@@ -2483,30 +2483,109 @@ function LoginScreen({ onLogin }) {
               ))}
             </div>
 
-            {/* YAZAR ADAYIYIM sekmesi */}
-            {sekme === "aday" && (
+            {/* YAZAR ADAYIYIM — Adım 1: Telefon */}
+            {sekme === "aday" && adayEkrani === "telefon" && (
               <div style={{ animation: "mstFadeUp .35s both" }}>
                 <p style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 16, lineHeight: 1.75 }}>
-                  Daha önce kayıt olduysanız telefon numaranızla SMS kodu olmadan doğrudan girin.
+                  Telefon numaranızı girin. Kayıtlıysanız direkt giriş yapın, ilk kez geliyorsanız sizi tanıyalım.
                 </p>
-                <input
-                  className="mst-input"
-                  placeholder="Telefon (5xx xxx xx xx)"
-                  inputMode="tel"
-                  value={adayTelefon}
-                  onChange={e => setAdayTelefon(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && adayHizliGiris()}
-                  style={{ marginBottom: 12 }}
-                />
+                <input className="mst-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel"
+                  value={adayTelefon} onChange={e => setAdayTelefon(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && adayHizliGiris()} style={{ marginBottom: 12 }} />
                 {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 10 }}>{adayHata}</div>}
-                <Dugme
-                  tur="asil"
-                  onClick={adayHizliGiris}
-                  disabled={adayYukleniyor || adayTelefon.replace(/\D/g,"").length < 10}
-                >{adayYukleniyor ? "GİRİŞ YAPILIYOR..." : "GİRİŞ YAP →"}</Dugme>
-                <p style={{ marginTop: 14, fontSize: 11, color: "rgba(245,240,228,.3)", textAlign: "center", lineHeight: 1.6 }}>
-                  İlk kez mi geldiniz? Yayınevimizin size gönderdiği kayıt linki üzerinden üye olun.
-                </p>
+                <Dugme tur="asil" onClick={adayHizliGiris}
+                  disabled={adayYukleniyor || adayTelefon.replace(/[^0-9]/g,"").length < 10}>
+                  {adayYukleniyor ? "KONTROL EDİLİYOR..." : "DEVAM →"}
+                </Dugme>
+              </div>
+            )}
+
+            {/* YAZAR ADAYIYIM — Adım 2: ETKİ EKRANI (yeni kullanıcı) */}
+            {sekme === "aday" && adayEkrani === "etki" && (
+              <div style={{ animation: "mstFadeUp .4s both" }}>
+                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 21, color: LT.gold, marginBottom: 8, lineHeight: 1.3 }}>
+                  Eseriniz yayına uygun mu?
+                </div>
+                <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.55)", marginBottom: 18, lineHeight: 1.75 }}>
+                  48 saat içinde öğrenin. Ücretsiz. Hiçbir insan gözü eserinize değmez.
+                </div>
+                {[
+                  ["🔒", "Gizlilik garantisi", "Eseriniz AI tarafından incelenir, hiçbir editör okumaz."],
+                  ["📊", "Anlık takip paneli", "Sürecin her adımını canlı görürsünüz."],
+                  ["🏪", "6 platformda satış", "Trendyol, Hepsiburada, N11, İdefix, Pazarama ve MST Mağaza."],
+                  ["🎓", "Ücretsiz akademi", "Beklerken 10 modüllük profesyonel yazarlık eğitimi."],
+                ].map(([ikon, bas, met], i) => (
+                  <div key={i} style={{ display: "flex", gap: 10, marginBottom: 12, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: 16, flexShrink: 0 }}>{ikon}</span>
+                    <div>
+                      <div style={{ fontSize: 12.5, color: LT.gold, fontWeight: 500, marginBottom: 1 }}>{bas}</div>
+                      <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.45)", lineHeight: 1.6 }}>{met}</div>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ height: 1, background: "rgba(201,162,75,.18)", margin: "14px 0" }} />
+                <Dugme tur="asil" onClick={() => setAdayEkrani("kayit")}>
+                  DOSYAMI GÖNDER — ÜCRETSİZ DEĞERLENDİRMEYİ BAŞLAT →
+                </Dugme>
+              </div>
+            )}
+
+            {/* YAZAR ADAYIYIM — Adım 3: KAYIT FORMU */}
+            {sekme === "aday" && adayEkrani === "kayit" && (
+              <div style={{ animation: "mstFadeUp .4s both" }}>
+                <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 14, lineHeight: 1.75 }}>
+                  Hesabınızı oluşturun — telefonunuza doğrulama kodu göndereceğiz.
+                </div>
+                {!adayKodAsama ? (<>
+                  <input className="mst-input" placeholder="Ad Soyad" value={adayForm.adSoyad}
+                    onChange={e => setAdayForm({...adayForm, adSoyad: e.target.value})} style={{ marginBottom: 8 }} />
+                  <input className="mst-input" placeholder="E-posta" inputMode="email" value={adayForm.eposta}
+                    onChange={e => setAdayForm({...adayForm, eposta: e.target.value})} style={{ marginBottom: 8 }} />
+                  <input className="mst-input" placeholder="Telefon" value={adayTelefon}
+                    onChange={e => setAdayTelefon(e.target.value)} style={{ marginBottom: 12 }} />
+                  {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 8 }}>{adayHata}</div>}
+                  <Dugme tur="asil" onClick={async () => {
+                    setAdayHata(""); setAdayYukleniyor(true);
+                    try {
+                      const r = await fetch(`${BACKEND_URL}/api/aday/kod-gonder`, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayForm.eposta, telefon: adayTelefon, kaynak: "direkt" }),
+                      });
+                      const v = await r.json();
+                      if (v.ok) setAdayKodAsama(true);
+                      else setAdayHata(v.error || "Kod gönderilemedi");
+                    } catch { setAdayHata("Bağlantı kurulamadı"); }
+                    finally { setAdayYukleniyor(false); }
+                  }} disabled={adayYukleniyor || !adayForm.adSoyad || !adayForm.eposta}>
+                    {adayYukleniyor ? "GÖNDERİLİYOR..." : "DOĞRULAMA KODU GÖNDER →"}
+                  </Dugme>
+                </>) : (<>
+                  <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 12 }}>
+                    {adayTelefon} numarasına 6 haneli kod gönderdik.
+                  </div>
+                  <input className="mst-input" placeholder="Doğrulama kodu" inputMode="numeric"
+                    value={adayKod} onChange={e => setAdayKod(e.target.value)} style={{ marginBottom: 12 }} />
+                  {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 8 }}>{adayHata}</div>}
+                  <Dugme tur="asil" onClick={async () => {
+                    setAdayHata(""); setAdayYukleniyor(true);
+                    try {
+                      const r = await fetch(`${BACKEND_URL}/api/aday/kod-dogrula`, {
+                        method: "POST", headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayForm.eposta, telefon: adayTelefon, kod: adayKod, kaynak: "direkt" }),
+                      });
+                      const v = await r.json();
+                      if (v.ok) {
+                        try { localStorage.setItem("adayOturum", JSON.stringify({ token: v.token, adSoyad: v.aday.adSoyad, tip: v.aday.tip })); } catch {}
+                        window.location.href = "/?aday=giris";
+                      } else setAdayHata(v.error || "Kod hatalı");
+                    } catch { setAdayHata("Bağlantı kurulamadı"); }
+                    finally { setAdayYukleniyor(false); }
+                  }} disabled={adayYukleniyor || adayKod.length !== 6}>
+                    {adayYukleniyor ? "DOĞRULANIYOR..." : "HESABIMI OLUŞTUR →"}
+                  </Dugme>
+                  <div style={{ marginTop: 10, fontSize: 11, color: "rgba(245,240,228,.3)", textAlign: "center", cursor: "pointer" }}
+                    onClick={() => setAdayKodAsama(false)}>← Bilgileri düzelt</div>
+                </>)}
               </div>
             )}
 

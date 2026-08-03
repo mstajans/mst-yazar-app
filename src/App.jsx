@@ -2522,7 +2522,7 @@ function LoginScreen({ onLogin }) {
                 {[
                   ["🔒", "Gizlilik garantisi", "Eseriniz AI tarafından incelenir, hiçbir editör okumaz."],
                   ["📊", "Anlık takip paneli", "Sürecin her adımını canlı görürsünüz."],
-                  ["🏪", "6 platformda satış", "Trendyol, Hepsiburada, N11, İdefix, Pazarama ve MST Mağaza."],
+                  ["🌐", "15 online platformda satış", "Trendyol, Hepsiburada, N11, İdefix, Pazarama ve 10 platform daha."],
                   ["🎓", "Ücretsiz akademi", "Beklerken 10 modüllük profesyonel yazarlık eğitimi."],
                 ].map(([ikon, bas, met], i) => (
                   <div key={i} style={{ display: "flex", gap: 10, marginBottom: 12, alignItems: "flex-start" }}>
@@ -2535,7 +2535,7 @@ function LoginScreen({ onLogin }) {
                 ))}
                 <div style={{ height: 1, background: "rgba(201,162,75,.18)", margin: "14px 0" }} />
                 <Dugme tur="asil" onClick={() => setAdayEkrani("kayit")}>
-                  DOSYAMI GÖNDER — ÜCRETSİZ DEĞERLENDİRMEYİ BAŞLAT →
+                  ESER YAYINA UYGUNLUK SERTİFİKA TESTİNİ BAŞLAT →
                 </Dugme>
               </div>
             )}
@@ -6360,7 +6360,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim }) {
                 { num: "%78", bas: "Yazarlar hiç telif alamıyor", acik: "İlk baskı masrafları çıkmadan yayınevi ödeme yapmıyor. Ortalama bekleme: 18 ay.", t: true },
                 { num: "%91", bas: "Kitaplar 90 günde kayboluyor", acik: "Tanıtım yapılmayan kitap üç ayda görünmez hale geliyor.", t: true },
                 { num: "₺0", bas: "Çoğu yayınevinde reklam bütçesi", acik: "Tanıtım tamamen yazara bırakılır. MST'de her yazara medya ajansı desteği verilir.", t: false },
-                { num: "1–2", bas: "Ortalama satış kanalı sayısı", acik: "Çoğu yayınevi tek platformda satar. MST 6 kanalda eş zamanlı listeler.", t: false },
+                { num: "1–2", bas: "Ortalama satış kanalı sayısı", acik: "Çoğu yayınevi 1-2 platformda satar. MST 15 online kanalda eş zamanlı listeler.", t: false },
               ].map((g, i) => (
                 <div key={i} className={`bk-gercek${g.t ? " t" : ""}`} style={{ animationDelay: `${.2 + i * .15}s` }}>
                   <div className="bk-gercek-num">{g.num}</div>
@@ -6405,7 +6405,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim }) {
               <div className="bk-hitap">{ilkAd} Bey, kitabınız cebinizde.</div>
               <h2 className="bk-bas">Pano — her şey bir bakışta</h2>
               <p className="bk-metin">Sertifikanız onaylandığında kişisel paneliniz açılır. Satışlarınız, telifiniz, stok durumunuz — anlık ve şeffaf.</p>
-              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">📊</div><div><div className="bk-mad-bas">Anlık satış takibi</div><div className="bk-mad-acik">6 platformdan gelen satışlar saniye saniye güncellenir.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">📊</div><div><div className="bk-mad-bas">Anlık satış takibi</div><div className="bk-mad-acik">15 online platformdan gelen satışlar saniye saniye güncellenir.</div></div></div>
               <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">💰</div><div><div className="bk-mad-bas">Şeffaf telif hesabı</div><div className="bk-mad-acik">Her satışın telifinize katkısını formülle görürsünüz.</div></div></div>
               <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">📦</div><div><div className="bk-mad-bas">Stok yönetimi</div><div className="bk-mad-acik">Tüm platformlardaki stok tek ekranda.</div></div></div>
             </div>

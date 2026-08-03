@@ -2291,7 +2291,7 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
         onEnded={(e) => { e.currentTarget.pause(); setPartAktif(true); }}
         style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: videoHazir ? 0.38 : 0, transition: 'opacity .8s', zIndex: 0 }}
       >
-        <source src="/videos/Golden_light_particles_rising_up__202608031346.mp4" type="video/mp4" />
+        <source src="/videos/mst-karsilama.mp4" type="video/mp4" />
       </video>
 
       {/* Partiküller */}
@@ -2382,7 +2382,7 @@ function LoginScreen({ onLogin }) {
   // Masaüstü dosyası bulunamazsa onError telefon videosuna düşürür.
   const [introKaynak, setIntroKaynak] = useState(() =>
     (typeof window !== "undefined" && window.innerWidth > window.innerHeight)
-      ? "/mst-intro.mp4"
+      ? "/mst-intro-masaustu.mp4"
       : "/mst-intro.mp4"
   );
   const [videoHazir, setVideoHazir] = useState(false); // video tamamen yüklenene kadar MST yükleme ekranı
@@ -2597,7 +2597,7 @@ function LoginScreen({ onLogin }) {
             }}
             onError={() => {
               videoYuklendi();
-              if (introKaynak === "/mst-intro.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
+              if (introKaynak === "/mst-intro-masaustu.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
               else setIntroDone(true);
             }}
             style={{ width: "100%", height: "100%", objectFit: videoUyum, objectPosition: "center", background: "#070D1B" }}
@@ -7012,12 +7012,27 @@ function AdayDeneyimi({ kaynak }) {
   );
 }
 
+// Perde videoları — perde ID'leri veritabanında değişse de bozulmasın diye
+// perdenin BAŞLIK/VURGU metnindeki anahtar kelimeye göre eşlenir.
+// Eşleşme yoksa eski isim denenir; o da yoksa video gösterilmez (altın çizgi kalır).
+const PERDE_VIDEOLARI = [
+  { anahtar: ["dağıtım", "platform", "satış ağ", "pazaryeri", "ağı", "dünya"], src: "/videos/mst-perde-agi.mp4" },
+  { anahtar: ["takip", "şeffaf", "panel", "anlık", "veri", "rakam", "satış"], src: "/videos/mst-perde-takip.mp4" },
+  { anahtar: ["inceleme", "sertifika", "değerlendir", "onay", "gizlilik"], src: "/videos/mst-perde-sertifika.mp4" },
+  { anahtar: ["okuma", "ilham", "kitap", "eser", "yazarlık", "eğitim"], src: "/videos/mst-perde-kitap.mp4" },
+];
+function perdeVideoSec(perde) {
+  const metin = ((perde?.baslik || "") + " " + ((perde?.icerik || {}).vurgu || "")).toLocaleLowerCase("tr-TR");
+  const bulunan = PERDE_VIDEOLARI.find(v => v.anahtar.some(a => metin.includes(a)));
+  return bulunan ? bulunan.src : `/mst-aday-${perde?.id}.mp4`;
+}
+
 function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
   const [perde, setPerde] = useState(ilkPerde);
   const [videoGoster, setVideoGoster] = useState(false);
   const [yukleniyor, setYukleniyor] = useState(false);
   const ic = (perde || {}).icerik || {};
-  const videoSrc = `/mst-aday-${perde?.id}.mp4`;
+  const videoSrc = perdeVideoSec(perde);
 
   const sonraki = async () => {
     if (yukleniyor) return;
@@ -7032,7 +7047,7 @@ function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
   };
 
   // Üst bileşenden yeni perde gelince güncelle
-  useEffect(() => { if (ilkPerde) setPerde(ilkPerde); }, [ilkPerde?.id]);
+  useEffect(() => { if (ilkPerde) { setPerde(ilkPerde); setVideoGoster(false); } }, [ilkPerde?.id]);
 
   if (!perde) return null;
 
@@ -7040,7 +7055,7 @@ function AdayPerde({ perde: ilkPerde, perdeGetir, perdeGecmis }) {
     <div style={{ position: "sticky", top: 64, height: "calc(100vh - 64px)", display: "flex", flexDirection: "column", justifyContent: "center", padding: "clamp(24px,4vw,60px)" }}>
       {/* Video alanı */}
       <div style={{ position: "relative", marginBottom: 32, background: "rgba(8,16,40,.6)", aspectRatio: "16/9", overflow: "hidden" }}>
-        <video autoPlay muted playsInline loop
+        <video key={videoSrc} autoPlay muted playsInline loop preload="metadata"
           onCanPlay={() => setVideoGoster(true)}
           onError={() => setVideoGoster(false)}
           style={{ width: "100%", height: "100%", objectFit: "cover", opacity: videoGoster ? .85 : 0, transition: "opacity .8s" }}>

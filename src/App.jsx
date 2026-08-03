@@ -2358,7 +2358,7 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
 }
 
 
-function LoginScreen({ onLogin }) {
+function LoginScreen({ onLogin, onAdayGirisTamam }) {
   const [sekme, setSekme] = useState("yazar"); // "yazar" | "aday"
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
@@ -2451,18 +2451,22 @@ function LoginScreen({ onLogin }) {
       });
       const veri = await r.json();
       if (veri.ok) {
-        // Mevcut üye — direkt içeri
+        // Mevcut üye — direkt içeri, sayfa yenilemeden
         const oturum = { token: veri.token, adSoyad: veri.aday.adSoyad, tip: veri.aday.tip };
         try { localStorage.setItem("adayOturum", JSON.stringify(oturum)); } catch {}
-        window.location.href = "/?aday=giris";
+        if (onAdayGirisTamam) onAdayGirisTamam("giris"); else window.location.href = "/?aday=giris";
       } else if (veri.yonlendir === "kayit") {
-        // Yeni kullanıcı — versiyon çek, etki ekranına geç
-        fetch(`${BACKEND_URL}/api/aday/versiyon`)
-          .then(r => r.json())
-          .then(v => { if (v.sessionId) setAdaySessionId(v.sessionId); })
-          .catch(() => {});
-        setAdayEkrani("etki");
+        // Yeni aday — az önce girdiği ad soyad + telefonla dogrudan kod gonder
         setAdayHata("");
+        try {
+          const r2 = await fetch(`${BACKEND_URL}/api/aday/kod-gonder`, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: "", telefon: adayTelefon, kaynak: "direkt" }),
+          });
+          const v2 = await r2.json();
+          if (v2.ok) { setAdayKodAsama(true); if (v2.testKodu) setAdayTestKodu(v2.testKodu); }
+          else setAdayHata(v2.error || "Kod gönderilemedi");
+        } catch { setAdayHata("Bağlantı kurulamadı"); }
       } else {
         setAdayHata(veri.error || "Giriş yapılamadı");
       }
@@ -2697,60 +2701,24 @@ function LoginScreen({ onLogin }) {
               ))}
             </div>
 
-            {/* YAZAR ADAYIYIM — Adım 1: Telefon */}
-            {sekme === "aday" && adayEkrani === "telefon" && (
+            {/* YAZAR ADAYIYIM — TEK ADIM: Ad Soyad + Telefon -> kod -> giriş.
+                Ara ekran yok, sayfa yenilemesi yok; doğrulama tamamlanınca
+                bir daha bu panele asla dönülmez. */}
+            {sekme === "aday" && (
               <div style={{ animation: "mstFadeUp .35s both" }}>
-                <p style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 16, lineHeight: 1.75 }}>
-                  Telefon numaranızı girin. Kayıtlıysanız direkt giriş yapın, ilk kez geliyorsanız sizi tanıyalım.
-                </p>
-                <input className="mst-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel"
-                  value={adayTelefon} onChange={e => setAdayTelefon(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && adayHizliGiris()} style={{ marginBottom: 12 }} />
-                {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 10 }}>{adayHata}</div>}
-                <Dugme tur="asil" onClick={adayHizliGiris}
-                  disabled={adayYukleniyor || adayTelefon.replace(/[^0-9]/g,"").length < 10}>
-                  {adayYukleniyor ? "KONTROL EDİLİYOR..." : "DEVAM →"}
-                </Dugme>
-              </div>
-            )}
-
-            {/* YAZAR ADAYIYIM — Adım 2: ETKİ EKRANI — sinematik, A/B test versiyonu */}
-            {sekme === "aday" && adayEkrani === "etki" && (
-              <EtkiVideoEkrani
-                LT={LT}
-                onDevam={() => setAdayEkrani("kayit")}
-                sessionId={adaySessionId}
-              />
-            )}
-
-            {/* YAZAR ADAYIYIM — Adım 3: KAYIT FORMU */}
-            {sekme === "aday" && adayEkrani === "kayit" && (
-              <div style={{ animation: "mstFadeUp .4s both" }}>
-                <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 14, lineHeight: 1.75 }}>
-                  Hesabınızı oluşturun — telefonunuza doğrulama kodu göndereceğiz.
-                </div>
                 {!adayKodAsama ? (<>
+                  <p style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 16, lineHeight: 1.75 }}>
+                    Ad soyad ve telefon numaranızı girin. Kayıtlıysanız direkt giriş yapılır, ilk kez geliyorsanız telefonunuza doğrulama kodu gönderilir.
+                  </p>
                   <input className="mst-input" placeholder="Ad Soyad" value={adayForm.adSoyad}
                     onChange={e => setAdayForm({...adayForm, adSoyad: e.target.value})} style={{ marginBottom: 8 }} />
-                  <input className="mst-input" placeholder="E-posta" inputMode="email" value={adayForm.eposta}
-                    onChange={e => setAdayForm({...adayForm, eposta: e.target.value})} style={{ marginBottom: 8 }} />
-                  <input className="mst-input" placeholder="Telefon" value={adayTelefon}
-                    onChange={e => setAdayTelefon(e.target.value)} style={{ marginBottom: 12 }} />
-                  {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 8 }}>{adayHata}</div>}
-                  <Dugme tur="asil" onClick={async () => {
-                    setAdayHata(""); setAdayYukleniyor(true);
-                    try {
-                      const r = await fetch(`${BACKEND_URL}/api/aday/kod-gonder`, {
-                        method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayForm.eposta, telefon: adayTelefon, kaynak: "direkt" }),
-                      });
-                      const v = await r.json();
-                      if (v.ok) { setAdayKodAsama(true); if (v.testKodu) setAdayTestKodu(v.testKodu); }
-                      else setAdayHata(v.error || "Kod gönderilemedi");
-                    } catch { setAdayHata("Bağlantı kurulamadı"); }
-                    finally { setAdayYukleniyor(false); }
-                  }} disabled={adayYukleniyor || !adayForm.adSoyad || !adayForm.eposta}>
-                    {adayYukleniyor ? "GÖNDERİLİYOR..." : "DOĞRULAMA KODU GÖNDER →"}
+                  <input className="mst-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel"
+                    value={adayTelefon} onChange={e => setAdayTelefon(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && adayHizliGiris()} style={{ marginBottom: 12 }} />
+                  {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 10 }}>{adayHata}</div>}
+                  <Dugme tur="asil" onClick={adayHizliGiris}
+                    disabled={adayYukleniyor || !adayForm.adSoyad || adayTelefon.replace(/[^0-9]/g,"").length < 10}>
+                    {adayYukleniyor ? "KONTROL EDİLİYOR..." : "DEVAM →"}
                   </Dugme>
                 </>) : (<>
                   <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 12 }}>
@@ -2769,17 +2737,17 @@ function LoginScreen({ onLogin }) {
                     try {
                       const r = await fetch(`${BACKEND_URL}/api/aday/kod-dogrula`, {
                         method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayForm.eposta, telefon: adayTelefon, kod: adayKod, kaynak: "direkt" }),
+                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: "", telefon: adayTelefon, kod: adayKod, kaynak: "direkt" }),
                       });
                       const v = await r.json();
                       if (v.ok) {
                         try { localStorage.setItem("adayOturum", JSON.stringify({ token: v.token, adSoyad: v.aday.adSoyad, tip: v.aday.tip })); } catch {}
-                        window.location.href = "/?aday=giris";
+                        if (onAdayGirisTamam) onAdayGirisTamam("giris"); else window.location.href = "/?aday=giris";
                       } else setAdayHata(v.error || "Kod hatalı");
                     } catch { setAdayHata("Bağlantı kurulamadı"); }
                     finally { setAdayYukleniyor(false); }
                   }} disabled={adayYukleniyor || adayKod.length !== 6}>
-                    {adayYukleniyor ? "DOĞRULANIYOR..." : "HESABIMI OLUŞTUR →"}
+                    {adayYukleniyor ? "DOĞRULANIYOR..." : "GİRİŞ YAP →"}
                   </Dugme>
                   <div style={{ marginTop: 10, fontSize: 11, color: "rgba(245,240,228,.3)", textAlign: "center", cursor: "pointer" }}
                     onClick={() => setAdayKodAsama(false)}>← Bilgileri düzelt</div>
@@ -7286,19 +7254,26 @@ export default function App() {
       return k ? k.toUpperCase().slice(0, 12) : null;
     } catch { return null; }
   })();
-  const adayKaynak = (() => {
+  // adayKaynak artik state: aday girisi tamamlaninca TAM SAYFA YENILEMESI
+  // yapmadan (window.location.href KULLANMADAN) burada degistirilip
+  // AdayDeneyimi'ye gecilir. Boylece giris paneline asla geri donulmez.
+  const [adayKaynak, setAdayKaynak] = useState(() => {
     try {
       const p = new URLSearchParams(window.location.search);
       if (!p.has("aday")) return null;
       return (p.get("aday") || "dogrudan").toLowerCase().slice(0, 60) || "dogrudan";
     } catch { return null; }
-  })();
+  });
+  const adayGirisTamamlandi = (kaynak) => {
+    try { window.history.pushState({}, "", `/?aday=${kaynak || "giris"}`); } catch {}
+    setAdayKaynak(kaynak || "giris");
+  };
   if (demoKodu) return <DemoDeneyimi kod={demoKodu} />;
   if (adayKaynak) return <AdayDeneyimi kaynak={adayKaynak} />;
-  return <YazarUygulamasi />;
+  return <YazarUygulamasi onAdayGirisTamam={adayGirisTamamlandi} />;
 }
 
-function YazarUygulamasi() {
+function YazarUygulamasi({ onAdayGirisTamam } = {}) {
   const [session, setSession] = useState(null);
   const [authorsData, setAuthorsData] = useState(AUTHORS_SEED);
   const [supportData, setSupportData] = useState(SUPPORT_SEED);
@@ -7394,7 +7369,7 @@ function YazarUygulamasi() {
       .catch(() => {});
   }, [session]); // eslint-disable-line
 
-  if (!session) return <LoginScreen onLogin={setSession} />;
+  if (!session) return <LoginScreen onLogin={setSession} onAdayGirisTamam={onAdayGirisTamam} />;
   const account = session.account;
   const vip = account.plan === "vip";
 

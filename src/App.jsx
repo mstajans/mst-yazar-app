@@ -2206,12 +2206,19 @@ function HudCorner({ style }) {
 }
 
 function LoginScreen({ onLogin }) {
+  const [sekme, setSekme] = useState("yazar"); // "yazar" | "aday"
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [remember, setRemember] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [introDone, setIntroDone] = useState(false); // video oynar -> biter/geç -> giriş ekranı
+  // Aday hızlı giriş state
+  const [adayTelefon, setAdayTelefon] = useState("");
+  const [adayHata, setAdayHata] = useState("");
+  const [adayYukleniyor, setAdayYukleniyor] = useState(false);
+  const [adayOturumAcildi, setAdayOturumAcildi] = useState(false);
+  const introDone_ls = (() => { try { return !!localStorage.getItem("mst_intro_done"); } catch { return false; } })();
+  const [introDone, setIntroDone] = useState(introDone_ls);
   const [introFading, setIntroFading] = useState(false); // video->giriş yumuşak geçiş
   // Ekran YATAYSA (PC, yatay tablet) masaüstü videosu; DİKEYSE (telefon, dik tablet) telefon videosu.
   // Böylece video ekran yönüyle eşleşir ve "kapla" modu en az kırpmayla tam ekran doldurur.
@@ -2244,6 +2251,32 @@ function LoginScreen({ onLogin }) {
     introFallback.current = setTimeout(() => setIntroDone(true), 15000);
     return () => { if (introFallback.current) clearTimeout(introFallback.current); };
   }, []);
+
+  const adayHizliGiris = async () => {
+    if (adayYukleniyor) return;
+    setAdayHata(""); setAdayYukleniyor(true);
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/aday/hizli-giris`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telefon: adayTelefon }),
+      });
+      const veri = await r.json();
+      if (veri.ok) {
+        const oturum = { token: veri.token, adSoyad: veri.aday.adSoyad, tip: veri.aday.tip };
+        try { localStorage.setItem("adayOturum", JSON.stringify(oturum)); } catch {}
+        setAdayOturumAcildi(true);
+        // Aday uygulamasına geç — URL'yi güncelle
+        window.history.replaceState({}, "", "/?aday=giris");
+        window.location.reload();
+      } else if (veri.yonlendir === "kayit") {
+        setAdayHata("Bu numara kayıtlı değil. Kayıt için reklam linkini kullanın.");
+      } else {
+        setAdayHata(veri.error || "Giriş yapılamadı");
+      }
+    } catch { setAdayHata("Bağlantı kurulamadı"); }
+    finally { setAdayYukleniyor(false); }
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -2370,7 +2403,7 @@ function LoginScreen({ onLogin }) {
               }
             }}
             onLoadedMetadata={(e) => { const v = e.currentTarget; if (v.videoWidth && v.videoHeight) setVideoOran(v.videoWidth / v.videoHeight); }}
-            onEnded={() => { setIntroFading(true); setTimeout(() => setIntroDone(true), 700); }}
+            onEnded={() => { setIntroFading(true); setTimeout(() => { setIntroDone(true); try { localStorage.setItem("mst_intro_done","1"); } catch {} }, 700); }}
             onError={() => {
               if (introKaynak === "/mst-intro-masaustu.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
               else setIntroDone(true);
@@ -2434,18 +2467,66 @@ function LoginScreen({ onLogin }) {
               </div>
             )}
 
-            <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input className="mst-input" value={user} onChange={(e) => setUser(e.target.value)} placeholder="Kullanıcı Adı" autoComplete="username" />
-              <input className="mst-input" type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Şifre" autoComplete="current-password" />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, color: LT.goldSoft }}>
-                <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-                  <input type="checkbox" checked={remember} onChange={() => setRemember(!remember)} style={{ accentColor: LT.gold }} />
-                  Beni hatırla
-                </label>
-                <span onClick={() => setError("Bu işlem için yayınevi ile iletişime geçin.")} style={{ color: LT.gold, cursor: "pointer" }}>Şifremi unuttum</span>
+            {/* Sekme seçici */}
+            <div style={{ display: "flex", marginBottom: 20, border: `1px solid ${LT.border}` }}>
+              {[["yazar", "YAZARIM"], ["aday", "YAZAR ADAYIYIM"]].map(([k, ad]) => (
+                <button key={k} onClick={() => { setSekme(k); setError(""); setAdayHata(""); }}
+                  style={{
+                    flex: 1, padding: "11px 8px",
+                    background: sekme === k ? "rgba(201,162,75,.12)" : "transparent",
+                    border: "none",
+                    borderBottom: sekme === k ? `2px solid ${LT.gold}` : "2px solid transparent",
+                    color: sekme === k ? LT.gold : "rgba(245,240,228,.4)",
+                    fontFamily: "'Jost',sans-serif", fontSize: 10, fontWeight: 600,
+                    letterSpacing: ".2em", cursor: "pointer", transition: "all .2s",
+                  }}>{ad}</button>
+              ))}
+            </div>
+
+            {/* YAZAR ADAYIYIM sekmesi */}
+            {sekme === "aday" && (
+              <div style={{ animation: "mstFadeUp .35s both" }}>
+                <p style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 16, lineHeight: 1.75 }}>
+                  Daha önce kayıt olduysanız telefon numaranızla SMS kodu olmadan doğrudan girin.
+                </p>
+                <input
+                  className="mst-input"
+                  placeholder="Telefon (5xx xxx xx xx)"
+                  inputMode="tel"
+                  value={adayTelefon}
+                  onChange={e => setAdayTelefon(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && adayHizliGiris()}
+                  style={{ marginBottom: 12 }}
+                />
+                {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 10 }}>{adayHata}</div>}
+                <Dugme
+                  tur="asil"
+                  onClick={adayHizliGiris}
+                  disabled={adayYukleniyor || adayTelefon.replace(/\D/g,"").length < 10}
+                >{adayYukleniyor ? "GİRİŞ YAPILIYOR..." : "GİRİŞ YAP →"}</Dugme>
+                <p style={{ marginTop: 14, fontSize: 11, color: "rgba(245,240,228,.3)", textAlign: "center", lineHeight: 1.6 }}>
+                  İlk kez mi geldiniz? Yayınevimizin size gönderdiği kayıt linki üzerinden üye olun.
+                </p>
               </div>
-              <Dugme type="submit" tur="asil" disabled={loading}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</Dugme>
-            </form>
+            )}
+
+            {/* YAZARIM sekmesi — mevcut kullanıcı adı/şifre formu */}
+            {sekme === "yazar" && (
+              <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12, animation: "mstFadeUp .35s both" }}>
+                <input className="mst-input" value={user} onChange={(e) => setUser(e.target.value)} placeholder="Kullanıcı Adı" autoComplete="username" />
+                <input className="mst-input" type="password" value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Şifre" autoComplete="current-password" />
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14, color: LT.goldSoft }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                    <input type="checkbox" checked={remember} onChange={() => setRemember(!remember)} style={{ accentColor: LT.gold }} />
+                    Beni hatırla
+                  </label>
+                  <span onClick={() => setError("Bu işlem için yayınevi ile iletişime geçin.")} style={{ color: LT.gold, cursor: "pointer" }}>Şifremi unuttum</span>
+                </div>
+                <Dugme type="submit" tur="asil" disabled={loading}>{loading ? "Giriş yapılıyor..." : "Giriş Yap"}</Dugme>
+              </form>
+            )}
+
+            {error && <div style={{ color: LT.danger, fontSize: 13, marginTop: 10, textAlign: "center" }}>{error}</div>}
           </div>
         </div>
       </div>
@@ -6496,7 +6577,7 @@ function AdayDeneyimi({ kaynak }) {
     </div>
   );
 
-  // ═══ 1 · KAYIT ═══
+  // ═══ 1 · KAYIT / HIZLI GİRİŞ ═══
   if (!oturum) return (
     <div className="aday-zemin">
       <style>{ADAY_CSS}</style>
@@ -6506,7 +6587,7 @@ function AdayDeneyimi({ kaynak }) {
           <div className="aday-logo-blok">
             <span className="aday-logo-ad">MST YAYINCILIK</span>
             <div className="aday-altin-cizgi" />
-            <span className="aday-logo-alt">YAZAR ADAYI PROGRAMI</span>
+            <span className="aday-logo-alt">{kaynak === "giris" ? "YAZAR ADAYI GİRİŞİ" : "YAZAR ADAYI PROGRAMI"}</span>
           </div>
           <SosyalBant />
           <div className="aday-kart">
@@ -6514,7 +6595,33 @@ function AdayDeneyimi({ kaynak }) {
             <div className="aday-elmas" style={{ top: -5, right: -5 }} />
             <div className="aday-elmas" style={{ bottom: -5, left: -5 }} />
             <div className="aday-elmas" style={{ bottom: -5, right: -5 }} />
-            {asama === "form" ? (<>
+            {kaynak === "giris" ? (<>
+              {/* HIZLI GİRİŞ — sadece telefon */}
+              <h1 className="aday-baslik" style={{ animationDelay: ".1s" }}>Tekrar hoş geldiniz</h1>
+              <p className="aday-metin" style={{ marginBottom: 24 }}>Telefon numaranızı girin, SMS kodu olmadan doğrudan girelim.</p>
+              <input className="aday-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} />
+              {hata && <div className="aday-hata">{hata}</div>}
+              <button className="aday-btn-asil" onClick={async () => {
+                setHata(""); setMesgul(true);
+                try {
+                  const r = await yetkili("/api/aday/hizli-giris", { method: "POST", body: JSON.stringify({ telefon: form.telefon }) });
+                  const veri = await r.json();
+                  if (veri.ok) {
+                    const yeni = { token: veri.token, adSoyad: veri.aday.adSoyad, tip: veri.aday.tip };
+                    localStorage.setItem("adayOturum", JSON.stringify(yeni));
+                    setOturum(yeni);
+                  } else if (veri.yonlendir === "kayit") {
+                    setHata("Bu numara kayıtlı değil. Kayıt olmak için reklam linki üzerinden girin.");
+                  } else {
+                    setHata(veri.error || "Giriş yapılamadı");
+                  }
+                } catch { setHata("Bağlantı kurulamadı"); }
+                finally { setMesgul(false); }
+              }} disabled={mesgul || form.telefon.length < 10}>
+                {mesgul ? "GİRİŞ YAPILIYOR..." : "GİRİŞ YAP →"}
+              </button>
+              <p className="aday-not">Daha önce kayıt olmuş hesabınıza SMS kodu gerekmeden girebilirsiniz.</p>
+            </>) : asama === "form" ? (<>
               <h1 className="aday-baslik" style={{ animationDelay: ".1s" }}>Eseriniz burada korunur, burada parlar</h1>
               <p className="aday-metin" style={{ marginBottom: 32 }}>Türkiye'nin ilk AI destekli yazar adayı programına hoş geldiniz. Eseriniz hiçbir insan gözüne değmeden incelenir; size yalnızca sonuç ve yol haritası ulaşır.</p>
               <input className="aday-input" placeholder="Ad Soyad" value={form.adSoyad} onChange={e => setForm({ ...form, adSoyad: e.target.value })} />

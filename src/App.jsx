@@ -2206,6 +2206,12 @@ function HudCorner({ style }) {
   return <div style={{ position: "absolute", width: 16, height: 16, border: "1.5px solid rgba(45,106,79,.35)", zIndex: 2, ...style }} />;
 }
 
+// Video sadece mobilde tasarlandı — masaüstünde şimdilik video oynatılmaz,
+// doğrudan partikül sistemi devreye girer. Masaüstü videoları sonradan eklenecek.
+function masaustuMu() {
+  try { return window.innerWidth >= 900; } catch { return false; }
+}
+
 // Partiküller sistemi — video bitince arka planı canlı tutar
 function usePartikul(canvasRef, aktif) {
   React.useEffect(() => {
@@ -2249,7 +2255,7 @@ function usePartikul(canvasRef, aktif) {
 function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
   const videoRef = React.useRef(null);
   const partRef = React.useRef(null);
-  const [partAktif, setPartAktif] = React.useState(false);
+  const [partAktif, setPartAktif] = React.useState(() => masaustuMu());
   const [versiyon, setVersiyon] = React.useState(null);
   const [videoHazir, setVideoHazir] = React.useState(false);
   usePartikul(partRef, partAktif);
@@ -2285,7 +2291,8 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
 
   return createPortal(
     <div style={{ position: 'fixed', inset: 0, background: '#050D1A', zIndex: 500, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflowY: 'auto' }}>
-      {/* Video arka plan */}
+      {/* Video arka plan — sadece mobilde, masaüstü videoları henüz yok */}
+      {!masaustuMu() && (
       <video
         ref={videoRef}
         muted playsInline preload="auto"
@@ -2294,6 +2301,7 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
       >
         <source src="/videos/mst-karsilama.mp4" type="video/mp4" />
       </video>
+      )}
 
       {/* Partiküller */}
       <canvas ref={partRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 1, opacity: partAktif ? 1 : 0, transition: 'opacity 1.5s', pointerEvents: 'none' }} />
@@ -2384,9 +2392,9 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
   const [adayKodAsama, setAdayKodAsama] = useState(false);
   const [adayTestKodu, setAdayTestKodu] = useState("");
   const introDone_ls = (() => { try { return !!localStorage.getItem("mst_intro_done"); } catch { return false; } })();
-  const [introDone, setIntroDone] = useState(introDone_ls);
+  const [introDone, setIntroDone] = useState(() => introDone_ls || masaustuMu());
   const girisPartRef = React.useRef(null);
-  const [girisPartAktif, setGirisPartAktif] = useState(false);
+  const [girisPartAktif, setGirisPartAktif] = useState(() => masaustuMu());
   usePartikul(girisPartRef, girisPartAktif);
   const [introFading, setIntroFading] = useState(false); // video->giriş yumuşak geçiş
   // Ekran YATAYSA (PC, yatay tablet) masaüstü videosu; DİKEYSE (telefon, dik tablet) telefon videosu.
@@ -2574,15 +2582,18 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
       <GridBackdrop />
       <ScanLine />
 
-      {/* Giris paneli surekli video arka plani - demo'daki GIRIS ekraniyla tutarli:
-          intro bittikten/gecildikten sonra kart bos gradyanda kalmasin. */}
-      <video
-        autoPlay muted playsInline preload="auto"
-        onEnded={(e) => { e.currentTarget.pause(); setGirisPartAktif(true); }}
-        style={{ position: "fixed", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: girisPartAktif ? 0.12 : 0.38, transition: "opacity .5s", zIndex: 0 }}
-      >
-        <source src="/videos/mst-ofis.mp4" type="video/mp4" />
-      </video>
+      {/* Giris paneli surekli video arka plani - SADECE MOBİLDE. Masaüstü videoları
+          henüz tasarlanmadı; masaüstünde video hiç render edilmez, doğrudan
+          partikül sistemi (aşağıdaki canvas) devrede. */}
+      {!masaustuMu() && (
+        <video
+          autoPlay muted playsInline preload="auto"
+          onEnded={(e) => { e.currentTarget.pause(); setGirisPartAktif(true); }}
+          style={{ position: "fixed", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: girisPartAktif ? 0.12 : 0.38, transition: "opacity .5s", zIndex: 0 }}
+        >
+          <source src="/videos/mst-ofis.mp4" type="video/mp4" />
+        </video>
+      )}
       <canvas ref={girisPartRef} style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: 0, opacity: girisPartAktif ? 1 : 0, transition: "opacity 1.2s ease", pointerEvents: "none" }} />
 
       <div style={{ position: "absolute", top: "-10%", left: "-10%", width: 320, height: 320, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,106,79,0.12), transparent 70%)", filter: "blur(10px)", animation: "mstDriftA 13s ease-in-out infinite" }} />
@@ -6696,6 +6707,8 @@ function AdayVideoZemin({ video, poster, children }) {
   usePartikul(partRef, partAktif);
 
   React.useEffect(() => {
+    // Masaüstünde video henüz tasarlanmadı — doğrudan partikül sistemine geç
+    if (masaustuMu()) { setBitti(true); setPartAktif(true); return; }
     setBitti(false); setPartAktif(false);
     const v = videoRef.current;
     if (!v) { setPartAktif(true); return; }
@@ -6710,6 +6723,7 @@ function AdayVideoZemin({ video, poster, children }) {
 
   return (
     <div className="aday-vz">
+      {!masaustuMu() && (
       <video
         key={video}
         ref={videoRef}
@@ -6721,6 +6735,7 @@ function AdayVideoZemin({ video, poster, children }) {
       >
         <source src={video} type="video/mp4" />
       </video>
+      )}
       <canvas ref={partRef} className={"aday-vz-partikul" + (partAktif ? " ak" : "")} />
       <div className="aday-vz-karart" />
       <div className="aday-vz-cizgi"><div className="aday-vz-cizgi-ic" /></div>

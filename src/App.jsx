@@ -6554,7 +6554,7 @@ function AdayDeneyimi({ kaynak }) {
 
   const cikis = () => {
     localStorage.removeItem("adayOturum");
-    setOturum(null); setAsama("form"); setEserler(null); setPerde(null);
+    window.location.href = "/";
   };
 
   const Ust = () => (
@@ -6595,7 +6595,7 @@ function AdayDeneyimi({ kaynak }) {
             <div className="aday-elmas" style={{ top: -5, right: -5 }} />
             <div className="aday-elmas" style={{ bottom: -5, left: -5 }} />
             <div className="aday-elmas" style={{ bottom: -5, right: -5 }} />
-            {kaynak === "giris" ? (<>
+            {kaynak === "giris" && !oturum ? (<>
               {/* HIZLI GİRİŞ — sadece telefon */}
               <h1 className="aday-baslik" style={{ animationDelay: ".1s" }}>Tekrar hoş geldiniz</h1>
               <p className="aday-metin" style={{ marginBottom: 24 }}>Telefon numaranızı girin, SMS kodu olmadan doğrudan girelim.</p>

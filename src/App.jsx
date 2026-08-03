@@ -2218,6 +2218,8 @@ function LoginScreen({ onLogin }) {
   const [adayYukleniyor, setAdayYukleniyor] = useState(false);
   const [adayOturumAcildi, setAdayOturumAcildi] = useState(false);
   const [adayEkrani, setAdayEkrani] = useState("telefon");
+  const [adaySessionId, setAdaySessionId] = useState(null);
+  const [adayVersiyon, setAdayVersiyon] = useState(null);
   const [adayForm, setAdayForm] = useState({ adSoyad: "", eposta: "" });
   const [adayKod, setAdayKod] = useState("");
   const [adayKodAsama, setAdayKodAsama] = useState(false);
@@ -2272,7 +2274,11 @@ function LoginScreen({ onLogin }) {
         try { localStorage.setItem("adayOturum", JSON.stringify(oturum)); } catch {}
         window.location.href = "/?aday=giris";
       } else if (veri.yonlendir === "kayit") {
-        // Yeni kullanıcı — etki ekranına geç
+        // Yeni kullanıcı — versiyon çek, etki ekranına geç
+        fetch(`${BACKEND_URL}/api/aday/versiyon`)
+          .then(r => r.json())
+          .then(v => { if (v.sessionId) setAdaySessionId(v.sessionId); })
+          .catch(() => {});
         setAdayEkrani("etki");
         setAdayHata("");
       } else {

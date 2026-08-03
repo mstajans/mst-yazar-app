@@ -2376,6 +2376,7 @@ function LoginScreen({ onLogin }) {
   const [adayForm, setAdayForm] = useState({ adSoyad: "", eposta: "" });
   const [adayKod, setAdayKod] = useState("");
   const [adayKodAsama, setAdayKodAsama] = useState(false);
+  const [adayTestKodu, setAdayTestKodu] = useState("");
   const introDone_ls = (() => { try { return !!localStorage.getItem("mst_intro_done"); } catch { return false; } })();
   const [introDone, setIntroDone] = useState(introDone_ls);
   const [introFading, setIntroFading] = useState(false); // video->giriş yumuşak geçiş
@@ -2730,7 +2731,7 @@ function LoginScreen({ onLogin }) {
                         body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayForm.eposta, telefon: adayTelefon, kaynak: "direkt" }),
                       });
                       const v = await r.json();
-                      if (v.ok) setAdayKodAsama(true);
+                      if (v.ok) { setAdayKodAsama(true); if (v.testKodu) setAdayTestKodu(v.testKodu); }
                       else setAdayHata(v.error || "Kod gönderilemedi");
                     } catch { setAdayHata("Bağlantı kurulamadı"); }
                     finally { setAdayYukleniyor(false); }
@@ -2741,6 +2742,11 @@ function LoginScreen({ onLogin }) {
                   <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 12 }}>
                     {adayTelefon} numarasına 6 haneli kod gönderdik.
                   </div>
+                  {adayTestKodu && (
+                    <div style={{ background: "rgba(201,162,75,.1)", border: "1px solid rgba(201,162,75,.3)", padding: "10px 16px", marginBottom: 12, fontSize: 13, color: "#C9A24B" }}>
+                      Test modu — kodunuz: <b style={{ fontSize: 18, letterSpacing: ".2em" }}>{adayTestKodu}</b>
+                    </div>
+                  )}
                   <input className="mst-input" placeholder="Doğrulama kodu" inputMode="numeric"
                     value={adayKod} onChange={e => setAdayKod(e.target.value)} style={{ marginBottom: 12 }} />
                   {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 8 }}>{adayHata}</div>}

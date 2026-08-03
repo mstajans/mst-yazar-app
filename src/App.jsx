@@ -196,15 +196,17 @@ function OkunmamisDuyurular({ duyurular, yazarId }) {
   const sonuncu = sira >= bekleyen.length - 1;
 
   const okundu = () => {
-    const yeni = [...okunanlar, String(bekleyen[gosterilenIdx]?.id)].filter(Boolean);
+    // gosterilenIdx değil sira kullanılıyor — düzeltildi
+    const mevcutId = String(bekleyen[sira]?.id);
+    const yeni = [...okunanlar, mevcutId].filter(Boolean);
     setOkunanlar(yeni);
-    try { localStorage.setItem(`mst_okunan_${yazarId}`, JSON.stringify(yeni.slice(-100))); } catch {}
+    try { localStorage.setItem(`mst_okunan_${yazarId || "genel"}`, JSON.stringify(yeni.slice(-100))); } catch {}
     // Backend'e bildir (fire-and-forget)
     try {
       const tok = localStorage.getItem("mst_token");
       if (tok) fetch(`${BACKEND_URL}/api/author/duyuru-okundu`, {
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}` },
-        body: JSON.stringify({ duyuruIds: [bekleyen[gosterilenIdx]?.id] }),
+        body: JSON.stringify({ duyuruIds: [mevcutId] }),
       }).catch(() => {});
     } catch {}
     if (!sonuncu) setSira(sira + 1);
@@ -2239,7 +2241,7 @@ function LoginScreen({ onLogin }) {
   const introFallback = React.useRef(null);
   React.useEffect(() => {
     // Video hiç yüklenmez/oynamazsa uygulama açılışta takılı kalmasın: 10 sn güvenlik zaman aşımı
-    introFallback.current = setTimeout(() => setIntroDone(true), 10000);
+    introFallback.current = setTimeout(() => setIntroDone(true), 15000);
     return () => { if (introFallback.current) clearTimeout(introFallback.current); };
   }, []);
 
@@ -2354,6 +2356,7 @@ function LoginScreen({ onLogin }) {
               dona dona başlama sorunu böylece görünmez. Hazır olunca kendiliğinden oynar. */}
           <video
             key={introKaynak}
+            autoPlay
             muted
             playsInline
             preload="auto"
@@ -2362,6 +2365,7 @@ function LoginScreen({ onLogin }) {
                 setVideoHazir(true);
                 // Video sağlıklı yüklendi — 10 sn'lik güvenlik zamanlayıcısı videoyu yarıda kesmesin
                 if (introFallback.current) { clearTimeout(introFallback.current); introFallback.current = null; }
+                // autoPlay zaten başlatıyor, play() yedek olarak
                 e.currentTarget.play().catch(() => {});
               }
             }}

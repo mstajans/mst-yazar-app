@@ -2205,6 +2205,157 @@ function HudCorner({ style }) {
   return <div style={{ position: "absolute", width: 16, height: 16, border: "1.5px solid rgba(45,106,79,.35)", zIndex: 2, ...style }} />;
 }
 
+// Partiküller sistemi — video bitince arka planı canlı tutar
+function usePartikul(canvasRef, aktif) {
+  React.useEffect(() => {
+    if (!aktif || !canvasRef.current) return;
+    const c = canvasRef.current;
+    const ctx = c.getContext('2d');
+    c.width = c.offsetWidth || 380;
+    c.height = c.offsetHeight || 580;
+    const W = c.width, H = c.height;
+    const parcalar = Array.from({ length: 60 }, () => ({
+      x: Math.random() * W, y: Math.random() * H,
+      r: Math.random() * 1.6 + 0.3,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: -(Math.random() * 0.55 + 0.15),
+      alpha: Math.random() * 0.55 + 0.15,
+      renk: Math.random() > 0.5 ? '201,162,75' : '240,214,138',
+    }));
+    let raf;
+    const ciz = () => {
+      ctx.clearRect(0, 0, W, H);
+      parcalar.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.renk},${p.alpha})`;
+        ctx.fill();
+        p.x += p.vx; p.y += p.vy; p.alpha -= 0.0008;
+        if (p.y < -5 || p.alpha < 0.04) {
+          p.x = Math.random() * W; p.y = H + 5;
+          p.alpha = Math.random() * 0.5 + 0.15;
+        }
+      });
+      raf = requestAnimationFrame(ciz);
+    };
+    ciz();
+    return () => { cancelAnimationFrame(raf); ctx.clearRect(0, 0, W, H); };
+  }, [aktif]);
+}
+
+
+// Sinematik etki ekranı — partiküller videosu + A/B test versiyonu
+function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
+  const videoRef = React.useRef(null);
+  const partRef = React.useRef(null);
+  const [partAktif, setPartAktif] = React.useState(false);
+  const [versiyon, setVersiyon] = React.useState(null);
+  const [videoHazir, setVideoHazir] = React.useState(false);
+  usePartikul(partRef, partAktif);
+
+  // Backend'den versiyon çek
+  React.useEffect(() => {
+    fetch(`${BACKEND_URL}/api/aday/versiyon`)
+      .then(r => r.json())
+      .then(v => { if (v.versiyon) setVersiyon(v.versiyon); })
+      .catch(() => setVersiyon({ id: 'A1', bas: 'Eseriniz bu kadar değerliyse yayınevini seçme hakkınız var.', alt: '15 online platformda satış, 48 saatte AI inceleme, gizlilik garantisi.', icon: '👑' }));
+  }, []);
+
+  // Video yüklenince oynat
+  React.useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const oyna = () => { v.currentTime = 0; v.play().catch(() => {}); setVideoHazir(true); };
+    if (v.readyState >= 3) oyna();
+    else v.addEventListener('canplaythrough', oyna, { once: true });
+  }, []);
+
+  const tiklandi = () => {
+    if (sessionId && versiyon) {
+      fetch(`${BACKEND_URL}/api/aday/versiyon-tiklama`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, versiyonId: versiyon.id }),
+      }).catch(() => {});
+    }
+    onDevam();
+  };
+
+  const kG = { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '32px 24px', textAlign: 'center', zIndex: 3 };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: '#050D1A', zIndex: 500, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflowY: 'auto' }}>
+      {/* Video arka plan */}
+      <video
+        ref={videoRef}
+        muted playsInline preload="auto"
+        onEnded={(e) => { e.currentTarget.pause(); setPartAktif(true); }}
+        style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: videoHazir ? 0.38 : 0, transition: 'opacity .8s', zIndex: 0 }}
+      >
+        <source src="/videos/Golden_light_particles_rising_up__202608031346.mp4" type="video/mp4" />
+      </video>
+
+      {/* Partiküller */}
+      <canvas ref={partRef} style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', zIndex: 1, opacity: partAktif ? 1 : 0, transition: 'opacity 1.5s', pointerEvents: 'none' }} />
+
+      {/* Karartma */}
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(3,8,18,.62)', zIndex: 2 }} />
+
+      {/* Kayan çizgi */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 2, overflow: 'hidden', zIndex: 10 }}>
+        <div style={{ position: 'absolute', width: '50%', height: '100%', background: 'linear-gradient(90deg,transparent,#F0D68A,transparent)', animation: 'adaySur 2.5s ease-in-out infinite' }} />
+      </div>
+
+      {/* İçerik */}
+      <div style={{ position: 'relative', zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px 24px 32px', maxWidth: 400, width: '100%', textAlign: 'center' }}>
+        <div style={{ fontSize: 9, letterSpacing: '.5em', color: 'rgba(201,162,75,.55)', marginBottom: 6, animation: 'mstFadeUp .6s both .1s' }}>MST YAYINCILIK</div>
+        <div style={{ width: 44, height: 1, background: 'linear-gradient(90deg,transparent,#C9A24B,transparent)', margin: '10px auto' }} />
+
+        {/* A/B test başlığı */}
+        {versiyon && (<>
+          <div style={{ fontSize: 28, marginBottom: 12, animation: 'mstFadeUp .7s both .2s' }}>{versiyon.icon || '✦'}</div>
+          <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 24, fontWeight: 300, color: '#F0D68A', lineHeight: 1.25, marginBottom: 10, animation: 'mstFadeUp .8s both .3s' }}>{versiyon.bas}</div>
+          <div style={{ fontSize: 12.5, color: 'rgba(245,240,228,.48)', lineHeight: 1.8, marginBottom: 22, animation: 'mstFadeUp .7s both .45s' }}>{versiyon.alt}</div>
+        </>)}
+
+        {/* 4 sabit fark */}
+        <div style={{ width: '100%', textAlign: 'left', marginBottom: 20 }}>
+          {[
+            ['🔒', 'Gizlilik garantisi', 'Eseriniz yalnızca AI tarafından incelenir.'],
+            ['📊', 'Anlık takip paneli', 'Satış, telif, stok — 7/24 gözünüzün önünde.'],
+            ['🌐', '15 online platformda satış', 'Trendyol, Hepsiburada, N11 ve 12 platform daha.'],
+            ['🎓', 'Ücretsiz yazarlık akademisi', 'Beklerken 10 modüllük profesyonel eğitim.'],
+          ].map(([ikon, bas, met], i) => (
+            <div key={i} style={{ display: 'flex', gap: 10, marginBottom: 12, alignItems: 'flex-start', animation: `mstFadeUp .5s both ${.3 + i * .1}s` }}>
+              <span style={{ fontSize: 15, flexShrink: 0 }}>{ikon}</span>
+              <div>
+                <div style={{ fontSize: 12.5, color: '#C9A24B', fontWeight: 500, marginBottom: 1 }}>{bas}</div>
+                <div style={{ fontSize: 11.5, color: 'rgba(245,240,228,.38)', lineHeight: 1.6 }}>{met}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA */}
+        <div style={{ height: 1, background: 'rgba(201,162,75,.18)', marginBottom: 16, width: '100%' }} />
+        <button onClick={tiklandi} style={{
+          width: '100%', padding: '14px', background: 'linear-gradient(135deg,#8C6A22,#C9A24B)',
+          border: 'none', color: '#050D1A', fontFamily: "'Jost',sans-serif",
+          fontSize: 9, fontWeight: 700, letterSpacing: '.18em', cursor: 'pointer',
+          position: 'relative', overflow: 'hidden', animation: 'mstFadeUp .6s both .7s',
+        }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '40%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)', animation: 'adaySur 2s ease-in-out infinite' }} />
+          ESER YAYINA UYGUNLUK SERTİFİKA TESTİNİ BAŞLAT →
+        </button>
+
+        {versiyon && (
+          <div style={{ fontSize: 9, color: 'rgba(201,162,75,.2)', marginTop: 8, letterSpacing: '.2em' }}>{versiyon.id}</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
 function LoginScreen({ onLogin }) {
   const [sekme, setSekme] = useState("yazar"); // "yazar" | "aday"
   const [user, setUser] = useState("");
@@ -2231,7 +2382,7 @@ function LoginScreen({ onLogin }) {
   // Masaüstü dosyası bulunamazsa onError telefon videosuna düşürür.
   const [introKaynak, setIntroKaynak] = useState(() =>
     (typeof window !== "undefined" && window.innerWidth > window.innerHeight)
-      ? "/mst-intro-masaustu.mp4"
+      ? "/mst-intro.mp4"
       : "/mst-intro.mp4"
   );
   const [videoHazir, setVideoHazir] = useState(false); // video tamamen yüklenene kadar MST yükleme ekranı
@@ -2251,10 +2402,35 @@ function LoginScreen({ onLogin }) {
     danger: "#E27878",
   };
 
+  // Partiküller — giriş videosu bitince devreye girer
+  const partCanvasRef = React.useRef(null);
+  const [partAktif, setPartAktif] = React.useState(false);
+  usePartikul(partCanvasRef, partAktif);
+
+  // Video yükleme takibi — tüm videolar yüklenince giriş ekranı açılır
+  const [yukluSayac, setYukluSayac] = React.useState(0);
+  const [yukluBar, setYukluBar] = React.useState(0);
+  const [yukluMetin, setYukluMetin] = React.useState('videolar hazırlanıyor...');
+  const toplamVid = 2; // giriş + karşılama (kritik olanlar)
+  const yuklemeTamamlandi = yukluSayac >= toplamVid;
+  const videoYuklendi = React.useCallback(() => {
+    setYukluSayac(n => {
+      const yeni = n + 1;
+      const yuzde = Math.min(100, Math.round((yeni / toplamVid) * 100));
+      setYukluBar(yuzde);
+      const metinler = ['videolar hazırlanıyor...', 'sahne kurgulanıyor...', 'neredeyse hazır...'];
+      setYukluMetin(metinler[Math.min(Math.floor(yuzde / 40), 2)]);
+      return yeni;
+    });
+  }, []);
+
   const introFallback = React.useRef(null);
   React.useEffect(() => {
-    // Video hiç yüklenmez/oynamazsa uygulama açılışta takılı kalmasın: 10 sn güvenlik zaman aşımı
-    introFallback.current = setTimeout(() => setIntroDone(true), 15000);
+    // Video hiç yüklenmez/oynamazsa uygulama açılışta takılı kalmasın: 12 sn güvenlik zaman aşımı
+    introFallback.current = setTimeout(() => {
+      setYukluSayac(toplamVid);
+      setIntroDone(true);
+    }, 12000);
     return () => { if (introFallback.current) clearTimeout(introFallback.current); };
   }, []);
 
@@ -2413,15 +2589,26 @@ function LoginScreen({ onLogin }) {
               }
             }}
             onLoadedMetadata={(e) => { const v = e.currentTarget; if (v.videoWidth && v.videoHeight) setVideoOran(v.videoWidth / v.videoHeight); }}
-            onEnded={() => { setIntroFading(true); setTimeout(() => { setIntroDone(true); try { localStorage.setItem("mst_intro_done","1"); } catch {} }, 700); }}
+            onEnded={(e) => {
+              // Son karede dondur — partiküller devreye girer, giriş formu görünür kalır
+              e.currentTarget.pause();
+              setPartAktif(true);
+              try { localStorage.setItem("mst_intro_done","1"); } catch {}
+            }}
             onError={() => {
-              if (introKaynak === "/mst-intro-masaustu.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
+              videoYuklendi();
+              if (introKaynak === "/mst-intro.mp4") { setVideoHazir(false); setIntroKaynak("/mst-intro.mp4"); }
               else setIntroDone(true);
             }}
             style={{ width: "100%", height: "100%", objectFit: videoUyum, objectPosition: "center", background: "#070D1B" }}
           >
             <source src={introKaynak} type="video/mp4" />
           </video>
+          {/* Partiküller canvas — video bitince yükselir */}
+          <canvas
+            ref={partCanvasRef}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", zIndex: 2, opacity: partAktif ? 1 : 0, transition: "opacity 1.5s ease", pointerEvents: "none" }}
+          />
           {!videoHazir && <GirisAnimasyonu gorunur metin="YÜKLENİYOR" />}
           <button
             onClick={() => { setIntroFading(true); setTimeout(() => setIntroDone(true), 700); }}
@@ -2510,34 +2697,13 @@ function LoginScreen({ onLogin }) {
               </div>
             )}
 
-            {/* YAZAR ADAYIYIM — Adım 2: ETKİ EKRANI (yeni kullanıcı) */}
+            {/* YAZAR ADAYIYIM — Adım 2: ETKİ EKRANI — sinematik, A/B test versiyonu */}
             {sekme === "aday" && adayEkrani === "etki" && (
-              <div style={{ animation: "mstFadeUp .4s both" }}>
-                <div style={{ fontFamily: "'Cormorant Garamond',serif", fontSize: 21, color: LT.gold, marginBottom: 8, lineHeight: 1.3 }}>
-                  Eseriniz yayına uygun mu?
-                </div>
-                <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.55)", marginBottom: 18, lineHeight: 1.75 }}>
-                  48 saat içinde öğrenin. Ücretsiz. Hiçbir insan gözü eserinize değmez.
-                </div>
-                {[
-                  ["🔒", "Gizlilik garantisi", "Eseriniz AI tarafından incelenir, hiçbir editör okumaz."],
-                  ["📊", "Anlık takip paneli", "Sürecin her adımını canlı görürsünüz."],
-                  ["🌐", "15 online platformda satış", "Trendyol, Hepsiburada, N11, İdefix, Pazarama ve 10 platform daha."],
-                  ["🎓", "Ücretsiz akademi", "Beklerken 10 modüllük profesyonel yazarlık eğitimi."],
-                ].map(([ikon, bas, met], i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, marginBottom: 12, alignItems: "flex-start" }}>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>{ikon}</span>
-                    <div>
-                      <div style={{ fontSize: 12.5, color: LT.gold, fontWeight: 500, marginBottom: 1 }}>{bas}</div>
-                      <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.45)", lineHeight: 1.6 }}>{met}</div>
-                    </div>
-                  </div>
-                ))}
-                <div style={{ height: 1, background: "rgba(201,162,75,.18)", margin: "14px 0" }} />
-                <Dugme tur="asil" onClick={() => setAdayEkrani("kayit")}>
-                  ESER YAYINA UYGUNLUK SERTİFİKA TESTİNİ BAŞLAT →
-                </Dugme>
-              </div>
+              <EtkiVideoEkrani
+                LT={LT}
+                onDevam={() => setAdayEkrani("kayit")}
+                sessionId={adaySessionId}
+              />
             )}
 
             {/* YAZAR ADAYIYIM — Adım 3: KAYIT FORMU */}

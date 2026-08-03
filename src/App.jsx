@@ -2374,6 +2374,12 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
   const [adaySessionId, setAdaySessionId] = useState(null);
   const [adayVersiyon, setAdayVersiyon] = useState(null);
   const [adayForm, setAdayForm] = useState({ adSoyad: "", eposta: "" });
+  // Kullanicidan e-posta istemiyoruz ama backend gecerli e-posta formati bekliyor —
+  // telefon numarasindan otomatik, gecerli formatta bir e-posta uretilir. Ekranda hic gorunmez.
+  const adayOtoEposta = () => {
+    const rakam = (adayTelefon || "").replace(/[^0-9]/g, "");
+    return `aday${rakam || Date.now()}@mstyayincilik.com`;
+  };
   const [adayKod, setAdayKod] = useState("");
   const [adayKodAsama, setAdayKodAsama] = useState(false);
   const [adayTestKodu, setAdayTestKodu] = useState("");
@@ -2461,7 +2467,7 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
         try {
           const r2 = await fetch(`${BACKEND_URL}/api/aday/kod-gonder`, {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: "", telefon: adayTelefon, kaynak: "direkt" }),
+            body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayOtoEposta(), telefon: adayTelefon, kaynak: "direkt" }),
           });
           const v2 = await r2.json();
           if (v2.ok) { setAdayKodAsama(true); if (v2.testKodu) setAdayTestKodu(v2.testKodu); }
@@ -2737,7 +2743,7 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
                     try {
                       const r = await fetch(`${BACKEND_URL}/api/aday/kod-dogrula`, {
                         method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: "", telefon: adayTelefon, kod: adayKod, kaynak: "direkt" }),
+                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayOtoEposta(), telefon: adayTelefon, kod: adayKod, kaynak: "direkt" }),
                       });
                       const v = await r.json();
                       if (v.ok) {

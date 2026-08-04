@@ -5860,6 +5860,11 @@ const ADAY_CSS = `
 }
 `;
 
+// Eser türleri — backend soru bankasındaki "tur" seçenekleriyle aynı olmalı.
+// (4 Ağu 2026: bu sabit hiç tanımlanmamıştı; eser yükleme ekranı
+// "ADAY_TURLER is not defined" ile çöküyordu.)
+const ADAY_TURLER = ["Roman", "Öykü", "Şiir", "Deneme", "Anı", "Diğer"];
+
 const SIM_ADIMLAR = [
   "Metin alındı, analiz başlatıldı",
   "Kişi ve kurum referansları taranıyor",
@@ -7420,10 +7425,10 @@ function AdayDeneyimi({ kaynak }) {
         <select className="aday-input" value={eserForm.tur} onChange={e => setEserForm({ ...eserForm, tur: e.target.value })}>
           {ADAY_TURLER.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
-        <input type="file" accept=".docx,.txt" onChange={e => setEserForm({ ...eserForm, dosya: e.target.files?.[0] || null })} className="aday-input" style={{ paddingTop: 13 }} />
+        <input type="file" accept=".docx,.pdf,.txt" onChange={e => setEserForm({ ...eserForm, dosya: e.target.files?.[0] || null })} className="aday-input" style={{ paddingTop: 13 }} />
         {hata && <div className="aday-hata">{hata}</div>}
         <button className="aday-btn-asil" onClick={eserGonder} disabled={mesgul}>{mesgul ? "GÜVENLE YÜKLENİYOR..." : "ESERİMİ İNCELEMEYE GÖNDER →"}</button>
-        <p className="aday-not">.docx ve .txt kabul edilir · en fazla 3 MB</p>
+        <p className="aday-not">.docx, .pdf ve .txt kabul edilir · en fazla 3 MB</p>
       </div>
       );
     }

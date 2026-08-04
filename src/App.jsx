@@ -5740,12 +5740,97 @@ const ADAY_CSS = `
 .aday-vz-elmas { position:absolute; width:8px; height:8px; background:#C9A24B; transform:rotate(45deg); z-index:5; }
 .aday-vz-ic { position:relative; z-index:2; }
 
+/* Amiral gemisi aday karşılama — aday daha formu görmeden değeri deneyimler */
+.aday-amiral { min-height:100svh; position:relative; overflow:hidden; background:
+  radial-gradient(circle at 50% 26%,rgba(37,76,120,.5),transparent 34%),
+  radial-gradient(circle at 80% 75%,rgba(201,162,75,.12),transparent 28%),#030914; }
+.aday-amiral::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.3;
+  background-image:linear-gradient(rgba(201,162,75,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(201,162,75,.05) 1px,transparent 1px); background-size:64px 64px; }
+.aday-amiral-ust { height:78px; padding:0 clamp(18px,5vw,68px); display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(201,162,75,.2); position:relative; z-index:2; }
+.aday-amiral-durum { font-size:8px; letter-spacing:.28em; color:rgba(245,240,228,.72); }
+.aday-amiral-durum i { display:inline-block; width:6px; height:6px; border-radius:50%; background:#65D9AC; box-shadow:0 0 12px #65D9AC; margin-right:9px; }
+.aday-amiral-sahne { min-height:calc(100svh - 78px); padding:48px 24px 72px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; z-index:2; }
+.aday-amiral-muhur { width:104px; height:104px; border:1px solid rgba(201,162,75,.45); border-radius:50%; display:grid; place-items:center; margin-bottom:25px; position:relative; animation:adayParla 3s ease infinite; }
+.aday-amiral-muhur::before { content:''; position:absolute; inset:9px; border:1px dashed rgba(201,162,75,.32); border-radius:50%; animation:adayDon 24s linear infinite; }
+.aday-amiral-muhur b { font:400 31px 'Cormorant Garamond',serif; color:#F0D68A; letter-spacing:.08em; }
+.aday-amiral-muhur small { display:block; font:5px 'Jost',sans-serif; letter-spacing:.22em; color:#C9A24B; }
+@keyframes adayDon { to { transform:rotate(360deg) } }
+.aday-amiral-etiket { font-size:8px; letter-spacing:.45em; color:#D8B95F; margin-bottom:17px; }
+.aday-amiral-baslik { max-width:900px; font:300 clamp(52px,7.4vw,105px)/.92 'Cormorant Garamond',serif; letter-spacing:-.025em; color:#F5F0E4; }
+.aday-amiral-baslik em { color:#F0D68A; font-weight:300; }
+.aday-amiral-aciklama { max-width:610px; margin:24px auto 28px; font:400 17px/1.7 'Cormorant Garamond',serif; color:#D6DEE7; }
+.aday-amiral-gucler { width:min(900px,100%); display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:0 auto 28px; }
+.aday-amiral-guc { padding:17px 14px; border:1px solid rgba(201,162,75,.2); background:rgba(8,20,39,.72); text-align:left; }
+.aday-amiral-guc span { display:block; color:#F0D68A; font:500 18px 'Cormorant Garamond',serif; margin-bottom:5px; }
+.aday-amiral-guc p { color:#C5CFDA; font-size:10px; line-height:1.55; }
+.aday-amiral-cta { width:min(360px,100%); min-height:61px; border:1px solid #E5C873; background:linear-gradient(110deg,#8C6A22,#D8BA62 50%,#96732B); color:#06101D; display:flex; align-items:center; justify-content:space-between; padding:0 16px 0 27px; font-size:9px; font-weight:600; letter-spacing:.24em; cursor:pointer; box-shadow:0 18px 65px rgba(201,162,75,.2); }
+.aday-amiral-cta b { font-size:19px; }
+.aday-amiral-ilke { margin-top:18px; color:#AEB9C5; font-size:8px; letter-spacing:.1em; }
+.aday-amiral-ilke strong { color:#F0D68A; font-weight:400; }
+.aday-amiral-alt { position:absolute; bottom:22px; font-size:6px; letter-spacing:.22em; color:#788493; }
+.aday-deg-kimlik { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+.aday-deg-kimlik span { font-size:8px; letter-spacing:.27em; color:#D8B95F; }
+.aday-deg-kimlik b { font:400 15px 'Cormorant Garamond',serif; color:#F5F0E4; }
+.aday-deg-tanitim { border:1px solid rgba(201,162,75,.24); background:linear-gradient(135deg,rgba(18,39,67,.84),rgba(6,15,29,.9)); padding:20px; margin-bottom:18px; }
+.aday-deg-tanitim h2 { font:400 25px/1.12 'Cormorant Garamond',serif; color:#F0D68A; margin-bottom:8px; }
+.aday-deg-tanitim p { color:#D0D8E1; font-size:12px; line-height:1.65; }
+.aday-deg-guven { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:14px; }
+.aday-deg-guven span { border:1px solid rgba(201,162,75,.16); padding:9px; color:#C6D0DA; font-size:8px; line-height:1.45; }
+.aday-deg-guven b { color:#F0D68A; display:block; font-size:9px; margin-bottom:2px; }
+.aday-deg-soru { font:400 24px/1.25 'Cormorant Garamond',serif; color:#FFF9EE; margin:18px 0 7px; }
+.aday-guven-liste { margin:18px 0 22px; display:flex; flex-direction:column; gap:10px; }
+.aday-guven-madde { border-left:2px solid rgba(201,162,75,.4); padding:11px 12px; background:rgba(7,17,32,.36); }
+.aday-guven-madde strong { display:block; font-size:13px; color:#F0D68A; margin-bottom:3px; font-weight:400; }
+.aday-guven-madde span { display:block; font-size:12.5px; color:#D5DDE5; line-height:1.55; }
+.aday-yukleme-gucler { display:flex; gap:12px; margin:20px 0 28px; flex-wrap:wrap; }
+.aday-yukleme-guc { flex:1 1 130px; min-height:62px; border:1px solid rgba(201,162,75,.18); background:rgba(7,17,32,.42); padding:12px; }
+.aday-yukleme-guc b { display:block; color:#F0D68A; font-size:11px; letter-spacing:.07em; margin-bottom:4px; font-weight:400; }
+.aday-yukleme-guc span { display:block; color:#C8D2DC; font-size:10px; line-height:1.45; }
+
 /* Mobil */
 @media (max-width:768px) {
   .aday-perde-zemin { flex-direction:column; }
   .aday-perde-sag { min-height:220px; flex:none; order:-1; }
   .aday-perde-sol { max-width:none; }
   .aday-perde-numara { font-size:100px; }
+  .aday-amiral-ust { height:64px; }
+  .aday-amiral-durum { font-size:0; }
+  .aday-amiral-durum i { margin:0; }
+  .aday-amiral-sahne { min-height:calc(100svh - 64px); justify-content:flex-start; padding:34px 17px 38px; }
+  .aday-amiral-muhur { width:76px; height:76px; margin-bottom:19px; }
+  .aday-amiral-muhur b { font-size:24px; }
+  .aday-amiral-etiket { font-size:6px; letter-spacing:.32em; }
+  .aday-amiral-baslik { font-size:clamp(47px,14vw,61px); }
+  .aday-amiral-aciklama { font-size:15px; line-height:1.55; margin:18px 4px 22px; }
+  .aday-amiral-gucler { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -17px 23px; padding:0 17px; width:calc(100% + 34px); }
+  .aday-amiral-gucler::-webkit-scrollbar { display:none; }
+  .aday-amiral-guc { min-width:76vw; scroll-snap-align:center; padding:17px; }
+  .aday-amiral-guc p { font-size:11px; color:#D7DEE6; }
+  .aday-amiral-cta { min-height:64px; }
+  .aday-amiral-ilke { font-size:7px; line-height:1.6; }
+  .aday-amiral-alt { display:none; }
+  .aday-deg-kimlik { align-items:flex-start; }
+  .aday-deg-kimlik b { text-align:right; }
+  .aday-deg-tanitim { padding:17px; }
+  .aday-deg-tanitim h2 { font-size:24px; }
+  .aday-deg-tanitim p { font-size:12px; color:#E0E6EC; }
+  .aday-deg-guven { display:flex; overflow-x:auto; margin-right:-17px; padding-right:17px; }
+  .aday-deg-guven span { min-width:145px; font-size:9px; }
+  .aday-deg-soru { font-size:25px; }
+  .aday-tam-ekran { align-items:flex-start; padding-left:16px !important; padding-right:16px !important; }
+  .aday-icerik { width:100%; padding-top:22px; padding-bottom:40px; }
+  .aday-kart { padding:24px 18px; }
+  .aday-baslik { font-size:clamp(32px,10vw,43px); line-height:1.04; color:#FFF9EE; }
+  .aday-metin { color:#DCE3EA; line-height:1.68; }
+  .aday-input { min-height:52px; font-size:16px; color:#FFF9EE; }
+  .aday-btn-asil { min-height:56px; }
+  .aday-not { color:#BAC5CF; line-height:1.55; }
+  .aday-guven-madde { padding:13px 12px; }
+  .aday-guven-madde span { font-size:13px; color:#E1E7EC; }
+  .aday-yukleme-gucler { display:grid; grid-template-columns:1fr; gap:8px; }
+  .aday-yukleme-guc { min-height:0; }
+  .aday-sertifika { padding:38px 20px; }
+  .aday-sertifika-alt { flex-direction:column; gap:7px; align-items:center; }
 }
 `;
 
@@ -6655,10 +6740,16 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
     <div style={{ animation: "mstFadeUp .35s both" }}>
       {/* Neden bu soruları soruyoruz */}
       {ilerleme.cevaplanan === 0 && (
-        <p className="aday-metin" style={{ fontSize: 12.5, marginBottom: 14, opacity: .75 }}>
-          Bu soruları size uygun olmayan bir kapsam önermemek için soruyoruz. Amaç sizi bir pakete
-          yönlendirmek değil, doğru sonraki adımı birlikte belirlemek.
-        </p>
+        <div className="aday-deg-tanitim">
+          <div className="aday-deg-kimlik"><span>60 SANİYELİK KARİYER PROFİLİ</span><b>{oturum.adSoyad}</b></div>
+          <h2>Önce sizi ve hedefinizi anlayalım.</h2>
+          <p>Bu soruları size uygun olmayan bir kapsam önermemek için soruyoruz. Amaç sizi bir pakete yönlendirmek değil; doğrulanması gereken alanları ve güvenli sonraki adımı birlikte belirlemek.</p>
+          <div className="aday-deg-guven">
+            <span><b>Bilmiyorum geçerlidir</b>Eksik bilgi sıfır kabul edilmez.</span>
+            <span><b>Sonuç açıklanır</b>Her önerinin gerekçesi gösterilir.</span>
+            <span><b>Garanti verilmez</b>Bu bir ön değerlendirmedir.</span>
+          </div>
+        </div>
       )}
 
       {/* Gerçek soru sayısına göre ilerleme — dallanmada dinamik güncellenir */}
@@ -6671,8 +6762,7 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
         </span>
       </div>
 
-      <p style={{ fontSize: 17, color: "#F5F0E4", marginBottom: 6, lineHeight: 1.45,
-                  fontFamily: "'Cormorant Garamond', serif" }}>{soru.soru}</p>
+      <p className="aday-deg-soru">{soru.soru}</p>
       {soru.aciklama && (
         <p className="aday-metin" style={{ fontSize: 12.5, marginBottom: 14, opacity: .7 }}>{soru.aciklama}</p>
       )}
@@ -6728,6 +6818,35 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
       )}
 
       {hata && <div style={{ color: "#C0392B", fontSize: 13, marginTop: 10 }}>{hata}</div>}
+    </div>
+  );
+}
+
+function AdayAmiralKarsilama({ onDevam }) {
+  return (
+    <div className="aday-amiral">
+      <style>{ADAY_CSS}</style>
+      <div className="aday-amiral-ust">
+        <div>
+          <span className="aday-logo-ad" style={{ fontSize: 17, letterSpacing: ".22em" }}>MST YAYINCILIK</span>
+          <span className="aday-logo-alt" style={{ textAlign: "left", marginTop: 2 }}>YAZAR BAŞARI PLATFORMU</span>
+        </div>
+        <div className="aday-amiral-durum"><i /> YAZAR ADAYI ÖZEL ALANI</div>
+      </div>
+      <section className="aday-amiral-sahne">
+        <div className="aday-amiral-muhur"><div><b>MST</b><small>EST. 2018</small></div></div>
+        <div className="aday-amiral-etiket">BİR KİTAPTAN DAHA FAZLASI</div>
+        <h1 className="aday-amiral-baslik">Eserinizin geleceği<br/><em>burada görünür olur.</em></h1>
+        <p className="aday-amiral-aciklama">Dosyanız yalnızca incelenmez; yayın hazırlığınız, kariyer hedefiniz ve ihtiyaç duyduğunuz yol haritası birlikte değerlendirilir.</p>
+        <div className="aday-amiral-gucler">
+          <div className="aday-amiral-guc"><span>Kanıtlı Değer</span><p>Sonuçlar kesin hüküm gibi sunulmaz; doğrulanan, bilinmeyen ve geliştirilmesi gereken alanlar açıkça ayrılır.</p></div>
+          <div className="aday-amiral-guc"><span>Teslimat Güveni</span><p>Size sunulan her hizmetin kapsamı, sorumlusu, tarihi ve teslimat karşılığı görünür olur.</p></div>
+          <div className="aday-amiral-guc"><span>Kariyer Devamlılığı</span><p>Yayın kararından sonra satış, telif, stok, reklam ve kariyer gelişiminiz aynı sistemde yönetilir.</p></div>
+        </div>
+        <button className="aday-amiral-cta" onClick={onDevam}><span>ÖZEL ALANIMA GİR</span><b>→</b></button>
+        <div className="aday-amiral-ilke"><strong>Şeffaf değerlendirme:</strong> Satış, görünürlük veya yatırım geri dönüşü garanti edilmez.</div>
+        <div className="aday-amiral-alt">MST · AUTHOR SUCCESS SYSTEM · 2026</div>
+      </section>
     </div>
   );
 }
@@ -6791,8 +6910,10 @@ function AdayDeneyimi({ kaynak }) {
     } catch { return {}; }
   });
   const [asama, setAsama] = useState("form");
+  const [tanitimGoruldu, setTanitimGoruldu] = useState(() => kaynak === "giris");
   const [form, setForm] = useState({ adSoyad: "", telefon: "", eposta: "" });
   const [kod, setKod] = useState("");
+  const [smsDogrulamaAcik, setSmsDogrulamaAcik] = useState(null);
   const [testKodu, setTestKodu] = useState("");
   const [hata, setHata] = useState("");
   const [mesgul, setMesgul] = useState(false);
@@ -6846,6 +6967,18 @@ function AdayDeneyimi({ kaynak }) {
 
   useEffect(() => { if (oturum) { eserleriYukle(); perdeGetir(); } }, [oturum]);
 
+  // SMS sağlayıcısının durumunu backend belirler. İstek başarısız olursa güvenli
+  // varsayılan olarak mevcut SMS akışı korunur; arayüz doğrulamayı kendiliğinden kapatmaz.
+  useEffect(() => {
+    if (oturum) return;
+    let aktif = true;
+    fetch(`${BACKEND_URL}/api/aday/dogrulama-durumu`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error("durum_alinamadi")))
+      .then(d => { if (aktif) setSmsDogrulamaAcik(d.smsDogrulamaAcik !== false); })
+      .catch(() => { if (aktif) setSmsDogrulamaAcik(true); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
   // İnceleme sürücüsü — FAZ 3: AbortController ile bileşen kapanınca durur,
   // ardışık hatalarda artan bekleme süresi (backoff) kullanır, sonsuz döngüye
   // girmemesi için azami deneme sınırı vardır.
@@ -6894,20 +7027,25 @@ function AdayDeneyimi({ kaynak }) {
     setHata("");
     if (form.adSoyad.trim().length < 3) { setHata("Adınızı ve soyadınızı yazın"); return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.eposta.trim())) { setHata("Geçerli bir e-posta yazın"); return; }
+    if (smsDogrulamaAcik === false) {
+      await kodOnayla("");
+      return;
+    }
     setMesgul(true);
     try {
       const r = await yetkili("/api/aday/kod-gonder", { method: "POST", body: JSON.stringify({ ...form }) });
       const d = await r.json();
-      if (d.ok) { setAsama("kod"); if (d.testKodu) setTestKodu(d.testKodu); }
+      if (d.ok && d.dogrulamaAtlandi) await kodOnayla("");
+      else if (d.ok) { setAsama("kod"); if (d.testKodu) setTestKodu(d.testKodu); }
       else setHata(d.error || "Kod gönderilemedi");
     } catch { setHata("Bağlantı kurulamadı"); }
     finally { setMesgul(false); }
   };
 
-  const kodOnayla = async () => {
+  const kodOnayla = async (kodDegeri = kod) => {
     setHata(""); setMesgul(true);
     try {
-      const r = await yetkili("/api/aday/kod-dogrula", { method: "POST", body: JSON.stringify({ ...form, kod, kaynak, izleme: izlemeVerisi }) });
+      const r = await yetkili("/api/aday/kod-dogrula", { method: "POST", body: JSON.stringify({ ...form, kod: kodDegeri, kaynak, izleme: izlemeVerisi }) });
       const d = await r.json();
       if (d.ok) {
         const yeni = { token: d.token, adSoyad: d.aday.adSoyad, tip: d.aday.tip, id: d.aday.id };
@@ -7019,6 +7157,11 @@ function AdayDeneyimi({ kaynak }) {
     </div>
   );
 
+  // ═══ 0 · AMİRAL GEMİSİ KARŞILAMA ═══
+  // Hızlı giriş yapan mevcut aday doğrudan giriş ekranına gider. Yeni aday ise
+  // formdan önce sistemin gerçek değerini, sınırlarını ve devamlılığını görür.
+  if (!oturum && !tanitimGoruldu) return <AdayAmiralKarsilama onDevam={() => setTanitimGoruldu(true)} />;
+
   // ═══ 1 · KAYIT / HIZLI GİRİŞ ═══
   if (!oturum) return (
     <AdayVideoZemin video="/videos/mst-ofis.mp4">
@@ -7065,20 +7208,20 @@ function AdayDeneyimi({ kaynak }) {
               <p className="aday-not">Daha önce kayıt olmuş hesabınıza SMS kodu gerekmeden girebilirsiniz.</p>
             </>) : asama === "form" ? (<>
               <h1 className="aday-baslik" style={{ animationDelay: ".1s" }}>Eseriniz burada korunur, burada parlar</h1>
-              <p className="aday-metin" style={{ marginBottom: 32 }}>Türkiye'nin ilk AI destekli yazar adayı programına hoş geldiniz. Eseriniz hiçbir insan gözüne değmeden incelenir; size yalnızca sonuç ve yol haritası ulaşır.</p>
+              <p className="aday-metin" style={{ marginBottom: 32 }}>Yapay zekâ destekli yazar adayı programına hoş geldiniz. Eseriniz önce yapay zekâ ile analiz edilir; editoryal değerlendirme yetkili ekip kontrolüyle hazırlanır. Size sonuçla birlikte açıklanabilir bir yol haritası sunulur.</p>
               <input className="aday-input" placeholder="Ad Soyad" value={form.adSoyad} onChange={e => setForm({ ...form, adSoyad: e.target.value })} />
               <input className="aday-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} />
               <input className="aday-input" placeholder="E-posta" inputMode="email" value={form.eposta} onChange={e => setForm({ ...form, eposta: e.target.value })} />
               {hata && <div className="aday-hata">{hata}</div>}
-              <button className="aday-btn-asil" onClick={kodIste} disabled={mesgul}>{mesgul ? "GÖNDERİLİYOR..." : "DOĞRULAMA KODU GÖNDER →"}</button>
-              <p className="aday-not">Telefonunuza tek kullanımlık SMS kodu gelecek. Bilgileriniz yalnızca yayın süreciniz için kullanılır.</p>
+              <button className="aday-btn-asil" onClick={kodIste} disabled={mesgul || smsDogrulamaAcik === null}>{mesgul ? "İŞLEM YAPILIYOR..." : smsDogrulamaAcik === false ? "ÖZEL ALANIMI BAŞLAT →" : "DOĞRULAMA KODU GÖNDER →"}</button>
+              <p className="aday-not">{smsDogrulamaAcik === false ? "Bilgileriniz yalnızca yayın değerlendirme süreciniz için kullanılacaktır." : "Telefonunuza tek kullanımlık SMS kodu gelecek. Bilgileriniz yalnızca yayın süreciniz için kullanılır."}</p>
             </>) : (<>
               <h1 className="aday-baslik">Kodunuzu girin</h1>
               <p className="aday-metin" style={{ marginBottom: 24 }}>{form.telefon} numarasına 6 haneli kod gönderildi.</p>
               {testKodu && <div style={{ background: "rgba(201,162,75,.1)", border: "1px solid rgba(201,162,75,.3)", padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#C9A24B" }}>Test modu — kodunuz: <b style={{ fontSize: 18, letterSpacing: ".2em" }}>{testKodu}</b></div>}
               <input className="aday-input" style={{ letterSpacing: ".45em", textAlign: "center", fontSize: 24 }} maxLength={6} inputMode="numeric" placeholder="— — — — — —" value={kod} onChange={e => setKod(e.target.value.replace(/\D/g, ""))} />
               {hata && <div className="aday-hata">{hata}</div>}
-              <button className="aday-btn-asil" onClick={kodOnayla} disabled={mesgul || kod.length !== 6}>{mesgul ? "DOĞRULANIYOR..." : "ÜYELİĞİMİ BAŞLAT →"}</button>
+              <button className="aday-btn-asil" onClick={() => kodOnayla()} disabled={mesgul || kod.length !== 6}>{mesgul ? "DOĞRULANIYOR..." : "ÜYELİĞİMİ BAŞLAT →"}</button>
               <div style={{ marginTop: 12 }}>
                 <button className="aday-btn-sessiz" onClick={() => { setAsama("form"); setKod(""); setHata(""); }}>← Bilgileri düzelt</button>
               </div>
@@ -7132,7 +7275,7 @@ function AdayDeneyimi({ kaynak }) {
           <div className="aday-yol-kart" onClick={() => !mesgul && tipSec("yazar")} style={{ animationDelay: ".2s", animation: "adayGiris .8s both .2s" }}>
             <div className="aday-elmas" style={{ top: -5, right: -5 }} />
             <div className="aday-yol-baslik">Bir eserim var <span className="aday-yol-ok">→</span></div>
-            <p className="aday-metin">Eserinizi güvenle yükleyin. AI ön incelemesinden geçsin, yayına uygunluk sertifikanızı kazanın.</p>
+            <p className="aday-metin">Eserinizi güvenle yükleyin. Yapay zekâ destekli ön analiz ve yetkili editör değerlendirmesiyle güçlü, geliştirilmesi gereken ve henüz doğrulanmayan alanları görün.</p>
           </div>
           <div className="aday-yol-kart" onClick={() => !mesgul && tipSec("okur")} style={{ animationDelay: ".35s", animation: "adayGiris .8s both .35s" }}>
             <div className="aday-elmas" style={{ bottom: -5, left: -5 }} />
@@ -7164,7 +7307,7 @@ function AdayDeneyimi({ kaynak }) {
         <div style={{ animation: "adayGiris .8s both" }}>
           <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 16 }}>GÜVEN VE GİZLİLİK</div>
           <h1 className="aday-baslik">Eserinizi göndermeden önce</h1>
-          <div style={{ margin: "18px 0 22px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <div className="aday-guven-liste">
             {[
               ["Süreç nasıl işler?", "Eseriniz önce yapay zekâ destekli ön analizden geçer; editoryal sonuç yetkili ekip kontrolüyle hazırlanır."],
               ["Kimler erişebilir?", "Ön analizi yapay zekâ yapar. Editoryal değerlendirmeyi tamamlamak için yetkili editör ekibimiz gerektiğinde eserinize erişebilir."],
@@ -7174,9 +7317,9 @@ function AdayDeneyimi({ kaynak }) {
               ["İnceleme süresi", "Ön inceleme yaklaşık 48 saat sürer."],
               ["Satın alma zorunluluğu", "Değerlendirme sonrasında herhangi bir paket satın alma zorunluluğunuz yoktur."],
             ].map(([b, a]) => (
-              <div key={b} style={{ borderLeft: "2px solid rgba(201,162,75,.4)", paddingLeft: 12 }}>
-                <div style={{ fontSize: 13, color: "#F0D68A", marginBottom: 2 }}>{b}</div>
-                <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", lineHeight: 1.5 }}>{a}</div>
+              <div key={b} className="aday-guven-madde">
+                <strong>{b}</strong>
+                <span>{a}</span>
               </div>
             ))}
           </div>
@@ -7227,10 +7370,14 @@ function AdayDeneyimi({ kaynak }) {
         <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 16 }}>ESER YÜKLEME</div>
         <h1 className="aday-baslik">Eserinizi güvenle teslim edin</h1>
         <p className="aday-metin" style={{ marginBottom: 10 }}>Dosyanız şifreli ortamda saklanır. Ön analizi <b style={{ color: "#F0D68A", fontWeight: 400 }}>yapay zekâ</b> yapar; editoryal değerlendirmeyi tamamlamak için <b style={{ color: "#F0D68A", fontWeight: 400 }}>yetkili editör ekibimiz gerektiğinde eserinize erişebilir</b>. Dosyanız üçüncü kişilerle paylaşılmaz ve model eğitiminde kullanılmaz.</p>
-        <div style={{ display: "flex", gap: 24, margin: "20px 0 28px", flexWrap: "wrap" }}>
-          {["Şifreli saklama", "Sadece AI okur", "Anında rapor"].map(f => (
-            <div key={f} style={{ fontSize: 11, color: "rgba(201,162,75,.7)", letterSpacing: ".1em", display: "flex", alignItems: "center", gap: 7 }}>
-              <span style={{ color: "#C9A24B" }}>◆</span> {f}
+        <div className="aday-yukleme-gucler">
+          {[
+            ["Şifreli saklama", "Dosyanız korumalı ortamda tutulur."],
+            ["Yetkili erişim", "Yalnız değerlendirme için görevli ekip erişebilir."],
+            ["Açıklanabilir ön rapor", "Sonuç, gerekçeleri ve belirsiz alanlarıyla sunulur."],
+          ].map(([baslik, aciklama]) => (
+            <div key={baslik} className="aday-yukleme-guc">
+              <b>◆ &nbsp;{baslik}</b><span>{aciklama}</span>
             </div>
           ))}
         </div>

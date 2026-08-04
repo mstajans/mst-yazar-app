@@ -5555,15 +5555,22 @@ const ADAY_CSS = `
   position:relative;
 }
 .aday-perde-sol {
-  flex:1;
+  /* DÜZELTME (5 Ağu 2026): max-width:620px BeklemeIcerigi'ni (kendi başına
+     tam-genişlik grid tasarımı olan, vw-tabanlı yazı boyutları kullanan bir
+     bileşen) dar bir kutuya sıkıştırıyordu. bk-grid içeride TEKRAR ikiye
+     bölününce metin neredeyse tek sütuna, her kelime alt alta düşüyordu.
+     Asıl içerik burası — geniş olmalı, sağdaki dekoratif video değil. */
+  flex:3;
   display:flex;
   flex-direction:column;
   justify-content:center;
-  padding:clamp(32px,6vw,80px);
-  max-width:620px;
+  min-width:0; /* flex item'ın içeriği taşırmasını önler */
 }
 .aday-perde-sag {
+  /* DÜZELTME (5 Ağu 2026): flex:1, sınırsız büyüyüp asıl içeriği (sol)
+     sıkıştırıyordu. Bu dekoratif bir video paneli — dar bir yan panel olmalı. */
   flex:1;
+  max-width:400px;
   position:relative;
   overflow:hidden;
   min-height:300px;

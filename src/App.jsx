@@ -2356,7 +2356,7 @@ function EtkiVideoEkrani({ LT, onDevam, sessionId }) {
           position: 'relative', overflow: 'hidden', animation: 'mstFadeUp .6s both .7s',
         }}>
           <div style={{ position: 'absolute', top: 0, left: 0, width: '40%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.15),transparent)', animation: 'adaySur 2s ease-in-out infinite' }} />
-          ESER YAYINA UYGUNLUK SERTİFİKA TESTİNİ BAŞLAT →
+          ESER YAYINA UYGUNLUK BELGESİ TESTİNİ BAŞLAT →
         </button>
 
         {versiyon && (
@@ -6265,20 +6265,28 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
         <div className="bk-bolum" style={{ background: "radial-gradient(ellipse 90% 60% at 50% 20%,rgba(201,162,75,.14) 0%,transparent 65%),#050D1A" }}>
           <div className="bk-ic bk-grid">
             <div style={{ animation: "bkGelS .8s both .2s" }}>
-              <div className="bk-etiket">SERTİFİKANIZ NE KAZANDIRIR</div>
+              <div className="bk-etiket">YAYINA UYGUNLUK BELGENİZ NE KAZANDIRIR</div>
               <div className="bk-hitap">{ilkAd} Bey,</div>
               <h2 className="bk-bas">Bu belge bir kağıt değil — bir anahtar</h2>
-              <p className="bk-metin">Eseriniz onaylandığında elinize geçecek sertifika, sizi sektördeki diğer yazarlardan ayıran somut bir güçtür.</p>
-              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">🏛</div><div><div className="bk-mad-bas">Kültür Bakanlığı Destek Programları</div><div className="bk-mad-acik">MST sertifikalı eserler bakanlık fonlarına başvurabiliyor.</div></div></div>
-              <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">📚</div><div><div className="bk-mad-bas">Kütüphane Alım Programı</div><div className="bk-mad-acik">Belediye kütüphaneleri sertifikalı eserleri öncelikli satın alıyor.</div></div></div>
+              <p className="bk-metin">Eseriniz onaylandığında elinize geçecek Yayına Uygunluk Belgesi, sizi sektördeki diğer yazarlardan ayıran somut bir güçtür.</p>
+              {/* P0.5 — "Kültür Bakanlığı Destek Programları / MST sertifikalı eserler
+                  bakanlık fonlarına başvurabiliyor" iddiası KALDIRILDI (4 Ağu 2026).
+                  Doğrulanmış bir kamu desteği kaydımız yok; sertifika da bir
+                  akreditasyon belgesi değil. Yerine doğrulanabilir bir madde kondu. */}
+              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">◆</div><div><div className="bk-mad-bas">Yazılı editöryal rapor</div><div className="bk-mad-acik">Eserinizin güçlü ve geliştirilecek yönleri gerekçeleriyle yazılı olarak verilir.</div></div></div>
+              {/* P0.5 TEKRARI (4 Ağu 2026) — "Belediye kütüphaneleri öncelikli satın
+                  alıyor" iddiası da Kültür Bakanlığı iddiasıyla aynı sorunu taşıyordu:
+                  doğrulanmış bir kurum desteği kaydımız yok. Kaldırıldı, doğrulanabilir
+                  bir maddeyle değiştirildi. */}
+              <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">◆</div><div><div className="bk-mad-bas">15 Satış Platformu</div><div className="bk-mad-acik">Eseriniz MST, Trendyol, Hepsiburada, N11, İdefix ve Pazarama dahil 15 platformda görünür olur.</div></div></div>
               <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">🌍</div><div><div className="bk-mad-bas">Uluslararası Kitap Fuarları</div><div className="bk-mad-acik">Frankfurt, Londra, Bologna — MST çatısı altında dünya pazarına açılabilirsiniz.</div></div></div>
-              <div className="bk-mad" style={{ animationDelay: ".85s" }}><div className="bk-mad-ikon">✦</div><div><div className="bk-mad-bas">AI Menajer Aktivasyonu</div><div className="bk-mad-acik">Sertifika onaylandığı an kişisel yapay zekâ danışmanınız devreye girer.</div></div></div>
+              <div className="bk-mad" style={{ animationDelay: ".85s" }}><div className="bk-mad-ikon">✦</div><div><div className="bk-mad-bas">AI Menajer Aktivasyonu</div><div className="bk-mad-acik">Belge onaylandığı an kişisel yapay zekâ danışmanınız devreye girer.</div></div></div>
             </div>
             <div className="bk-g-sag" style={{ animation: "bkGelSag .8s both .3s" }}>
               <div className="bk-sert">
                 <div className="bk-el" style={{ top: -5, left: -5 }} /><div className="bk-el" style={{ top: -5, right: -5 }} />
                 <div className="bk-el" style={{ bottom: -5, left: -5 }} /><div className="bk-el" style={{ bottom: -5, right: -5 }} />
-                <div className="bk-sert-rozet">MST YAYINA UYGUNLUK SERTİFİKASI</div>
+                <div className="bk-sert-rozet">MST YAYINA UYGUNLUK BELGESİ</div>
                 <div className="bk-sert-cizgi" />
                 <div className="bk-sert-isim">{yazarAdi}</div>
                 <div className="bk-sert-eser">"{eserAdi}"</div>
@@ -6351,13 +6359,15 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
         {/* ══ B4: YAZAR YOLCULUKLARI ══ */}
         <div className="bk-bolum" style={{ background: "#050D1A" }}>
           <div className="bk-ic">
-            <div className="bk-etiket">GERÇEK YAZARLAR · GERÇEK RAKAMLAR</div>
-            <div className="bk-hitap">Sizden önce gelenler şöyle anlattı...</div>
-            <h2 className="bk-bas">Adım adım yolculuklar</h2>
+            {/* P0.6 TEKRARI (4 Ağu 2026) — bu bölüm "GERÇEK YAZARLAR · GERÇEK RAKAMLAR"
+                başlığıyla isimli, spesifik satış rakamlı (89/214/156) örnekler sunuyordu.
+                Bu rakamların doğrulandığına dair hiçbir kayıt yok — akademi.jsx'teki
+                "GERÇEK SENARYO" ihlaliyle aynı sorun, TEMSİLİ olarak düzeltildi. */}
+            <div className="bk-etiket">TİPİK BİR SÜREÇ</div>
+            <div className="bk-hitap">Süreç genellikle şöyle ilerler...</div>
+            <h2 className="bk-bas">Adım adım yolculuk</h2>
             {[
-              { isim: "Ayşe H.", tur: "ROMAN", adimlar: [["14 MAR", "Eser yüklendi"], ["19 MAR", "Sertifika"], ["2 NİS", "Vitrine çıktı"], ["İLK AY", "Satış", "89"]] },
-              { isim: "Mehmet K.", tur: "KİŞİSEL GELİŞİM", adimlar: [["3 OCA", "Eser yüklendi"], ["7 OCA", "Sertifika"], ["28 OCA", "Vitrine çıktı"], ["İLK AY", "Satış", "214"]] },
-              { isim: "Zeynep A.", tur: "ŞİİR", adimlar: [["22 ŞUB", "Eser yüklendi"], ["26 ŞUB", "Sertifika"], ["18 MAR", "Vitrine çıktı"], ["İLK AY", "Satış", "156"]] },
+              { isim: "Temsili örnek", tur: "ROMAN", adimlar: [["1. hafta", "Eser yüklendi"], ["~3. hafta", "Değerlendirme sonucu"], ["Sonrası", "Yayın hazırlığı"]] },
             ].map((y, yi) => (
               <div key={y.isim} className="bk-yazar" style={{ animationDelay: `${.2 + yi * .15}s` }}>
                 <div><div className="bk-y-isim">{y.isim}</div><div className="bk-y-tur">{y.tur}</div></div>
@@ -6431,7 +6441,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
               <div className="bk-etiket">MOBİL UYGULAMA · SEKTÖRDE İLK</div>
               <div className="bk-hitap">{ilkAd} Bey, kitabınız cebinizde.</div>
               <h2 className="bk-bas">Pano — her şey bir bakışta</h2>
-              <p className="bk-metin">Sertifikanız onaylandığında kişisel paneliniz açılır. Satışlarınız, telifiniz, stok durumunuz — anlık ve şeffaf.</p>
+              <p className="bk-metin">Belgeniz onaylandığında kişisel paneliniz açılır. Satışlarınız, telifiniz, stok durumunuz — anlık ve şeffaf.</p>
               <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">📊</div><div><div className="bk-mad-bas">Anlık satış takibi</div><div className="bk-mad-acik">15 online platformdan gelen satışlar saniye saniye güncellenir.</div></div></div>
               <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">💰</div><div><div className="bk-mad-bas">Şeffaf telif hesabı</div><div className="bk-mad-acik">Her satışın telifinize katkısını formülle görürsünüz.</div></div></div>
               <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">📦</div><div><div className="bk-mad-bas">Stok yönetimi</div><div className="bk-mad-acik">Tüm platformlardaki stok tek ekranda.</div></div></div>
@@ -6468,7 +6478,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
               </>} />
             </div>
             <div style={{ animation: "bkGelSag .8s both .3s" }}>
-              <div className="bk-etiket">AI MENAJER · SERTİFİKA SONRASI AKTİF</div>
+              <div className="bk-etiket">AI MENAJER · BELGE SONRASI AKTİF</div>
               <div className="bk-hitap">{ilkAd} Bey, bu danışman sadece sizin.</div>
               <h2 className="bk-bas">7/24 yanınızda, sektörü bilen bir danışman</h2>
               <p className="bk-metin">Satış verilerinizi okur, pazar trendlerini analiz eder, size özel strateji üretir. Başka hiçbir yayınevinde böyle bir şey yok.</p>
@@ -7451,7 +7461,7 @@ function AdayDeneyimi({ kaynak }) {
       <div style={{ animation: "adayGiris .8s both" }}>
         {eser.durum === "onaylandi" && eser.sertifika_no && (
         <div className="aday-sertifika">
-          <div className="aday-sertifika-rozet">MST SÜREÇ TAMAMLAMA BELGESİ</div>
+          <div className="aday-sertifika-rozet">MST YAYINA UYGUNLUK BELGESİ</div>
           <div className="aday-altin-cizgi" />
           <div className="aday-sertifika-isim">{oturum.adSoyad}</div>
           <div className="aday-sertifika-eser">"{eser.eser_adi}"</div>
@@ -7561,7 +7571,13 @@ function AdayDeneyimi({ kaynak }) {
       <Ust />
       <div className="aday-perde-zemin" style={{ paddingTop: 64 }}>
         <div className="aday-perde-sol">
-          <AnaIcerik />
+          {/* DİKKAT: {AnaIcerik()} — <AnaIcerik /> DEĞİL.
+              AnaIcerik bu bileşenin İÇİNDE tanımlı; JSX etiketi olarak
+              kullanılırsa her render'da yeni bileşen kimliği oluşur, React
+              tüm ağacı söküp yeniden kurar. Sonuç: yazarken girdi odağı
+              kayıyor ve ekran "yenileniyor" gibi görünüyordu (4 Ağu 2026).
+              Fonksiyon çağrısı olarak yazınca ağaç korunur. */}
+          {AnaIcerik()}
         </div>
         {perde && (
           <div className="aday-perde-sag">
@@ -7582,7 +7598,13 @@ function AdayDeneyimi({ kaynak }) {
       <Ust />
       <div className="aday-tam-ekran" style={{ paddingTop: 80 }}>
         <div className="aday-icerik">
-          <AnaIcerik />
+          {/* DİKKAT: {AnaIcerik()} — <AnaIcerik /> DEĞİL.
+              AnaIcerik bu bileşenin İÇİNDE tanımlı; JSX etiketi olarak
+              kullanılırsa her render'da yeni bileşen kimliği oluşur, React
+              tüm ağacı söküp yeniden kurar. Sonuç: yazarken girdi odağı
+              kayıyor ve ekran "yenileniyor" gibi görünüyordu (4 Ağu 2026).
+              Fonksiyon çağrısı olarak yazınca ağaç korunur. */}
+          {AnaIcerik()}
         </div>
       </div>
     </AdayVideoZemin>

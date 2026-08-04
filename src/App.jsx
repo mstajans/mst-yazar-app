@@ -2394,6 +2394,20 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
   const [adayKod, setAdayKod] = useState("");
   const [adayKodAsama, setAdayKodAsama] = useState(false);
   const [adayTestKodu, setAdayTestKodu] = useState("");
+  // SMS doğrulama anahtarı — AdayDeneyimi'nde vardı ama bu panelde YOKTU.
+  // Aday girişi iki ayrı yerden yapılabiliyor (?aday= adresi ve bu sekme);
+  // ikisinin de aynı kurala uyması gerekir, yoksa anahtar kapalıyken bile
+  // burada kod ekranı çıkar. İstek başarısız olursa güvenli varsayılan:
+  // doğrulama AÇIK kabul edilir; arayüz kendiliğinden kapatmaz.
+  const [smsDogrulamaAcik, setSmsDogrulamaAcik] = useState(null);
+  useEffect(() => {
+    let aktif = true;
+    fetch(`${BACKEND_URL}/api/aday/dogrulama-durumu`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error("durum_alinamadi")))
+      .then(v => { if (aktif) setSmsDogrulamaAcik(v.smsDogrulamaAcik !== false); })
+      .catch(() => { if (aktif) setSmsDogrulamaAcik(true); });
+    return () => { aktif = false; };
+  }, []);
   const introDone_ls = (() => { try { return !!localStorage.getItem("mst_intro_done"); } catch { return false; } })();
   const [introDone, setIntroDone] = useState(() => introDone_ls || masaustuMu());
   const girisPartRef = React.useRef(null);
@@ -2457,6 +2471,25 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
     return () => { if (introFallback.current) clearTimeout(introFallback.current); };
   }, []);
 
+  // Kod doğrulama tek yerde: hem butondan hem doğrulama kapalıyken
+  // otomatik olarak çağrılır. İki ayrı kopya kalırsa biri güncellenmeyi unutulur.
+  const adayKodDogrula = async (kod) => {
+    setAdayHata(""); setAdayYukleniyor(true);
+    try {
+      const r = await fetch(`${BACKEND_URL}/api/aday/kod-dogrula`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayOtoEposta(),
+                               telefon: adayTelefon, kod, kaynak: "direkt" }),
+      });
+      const v = await r.json();
+      if (v.ok) {
+        try { localStorage.setItem("adayOturum", JSON.stringify({ token: v.token, adSoyad: v.aday.adSoyad, tip: v.aday.tip, id: v.aday.id })); } catch {}
+        if (onAdayGirisTamam) onAdayGirisTamam("giris"); else window.location.href = "/?aday=giris";
+      } else setAdayHata(v.error || "Kod hatalı");
+    } catch { setAdayHata("Bağlantı kurulamadı"); }
+    finally { setAdayYukleniyor(false); }
+  };
+
   const adayHizliGiris = async () => {
     if (adayYukleniyor) return;
     setAdayHata(""); setAdayYukleniyor(true);
@@ -2481,8 +2514,13 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
             body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayOtoEposta(), telefon: adayTelefon, kaynak: "direkt" }),
           });
           const v2 = await r2.json();
-          if (v2.ok) { setAdayKodAsama(true); if (v2.testKodu) setAdayTestKodu(v2.testKodu); }
-          else setAdayHata(v2.error || "Kod gönderilemedi");
+          if (v2.ok && v2.dogrulamaAtlandi) {
+            // Doğrulama kapalı: kod ekranı gösterilmez, kayıt doğrudan tamamlanır.
+            await adayKodDogrula("");
+          } else if (v2.ok) {
+            setAdayKodAsama(true);
+            if (v2.testKodu) setAdayTestKodu(v2.testKodu);
+          } else setAdayHata(v2.error || "Kod gönderilemedi");
         } catch { setAdayHata("Bağlantı kurulamadı"); }
       } else {
         setAdayHata(veri.error || "Giriş yapılamadı");
@@ -2737,8 +2775,9 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
                     onKeyDown={e => e.key === "Enter" && adayHizliGiris()} style={{ marginBottom: 12 }} />
                   {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 10 }}>{adayHata}</div>}
                   <Dugme tur="asil" onClick={adayHizliGiris}
-                    disabled={adayYukleniyor || !adayForm.adSoyad || adayTelefon.replace(/[^0-9]/g,"").length < 10}>
-                    {adayYukleniyor ? "KONTROL EDİLİYOR..." : "DEVAM →"}
+                    disabled={adayYukleniyor || smsDogrulamaAcik === null || !adayForm.adSoyad || adayTelefon.replace(/[^0-9]/g,"").length < 10}>
+                    {adayYukleniyor ? "KONTROL EDİLİYOR..."
+                      : smsDogrulamaAcik === false ? "ÖZEL ALANIMI BAŞLAT →" : "DEVAM →"}
                   </Dugme>
                 </>) : (<>
                   <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 12 }}>
@@ -2752,21 +2791,8 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
                   <input className="mst-input" placeholder="Doğrulama kodu" inputMode="numeric"
                     value={adayKod} onChange={e => setAdayKod(e.target.value)} style={{ marginBottom: 12 }} />
                   {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 8 }}>{adayHata}</div>}
-                  <Dugme tur="asil" onClick={async () => {
-                    setAdayHata(""); setAdayYukleniyor(true);
-                    try {
-                      const r = await fetch(`${BACKEND_URL}/api/aday/kod-dogrula`, {
-                        method: "POST", headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayOtoEposta(), telefon: adayTelefon, kod: adayKod, kaynak: "direkt" }),
-                      });
-                      const v = await r.json();
-                      if (v.ok) {
-                        try { localStorage.setItem("adayOturum", JSON.stringify({ token: v.token, adSoyad: v.aday.adSoyad, tip: v.aday.tip, id: v.aday.id })); } catch {}
-                        if (onAdayGirisTamam) onAdayGirisTamam("giris"); else window.location.href = "/?aday=giris";
-                      } else setAdayHata(v.error || "Kod hatalı");
-                    } catch { setAdayHata("Bağlantı kurulamadı"); }
-                    finally { setAdayYukleniyor(false); }
-                  }} disabled={adayYukleniyor || adayKod.length !== 6}>
+                  <Dugme tur="asil" onClick={() => adayKodDogrula(adayKod)}
+                    disabled={adayYukleniyor || adayKod.length !== 6}>
                     {adayYukleniyor ? "DOĞRULANIYOR..." : "GİRİŞ YAP →"}
                   </Dugme>
                   <div style={{ marginTop: 10, fontSize: 11, color: "rgba(245,240,228,.3)", textAlign: "center", cursor: "pointer" }}

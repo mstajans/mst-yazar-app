@@ -6603,12 +6603,15 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${oturum.token}`, ...(ayar.headers || {}) },
   }), [oturum]);
 
-  const sonrakiGetir = React.useCallback(async (oid) => {
-    const r = await yetkili(`/api/aday/degerlendirme/${oid}/sonraki`);
+  const sonrakiGetir = React.useCallback(async (oid, soruId) => {
+    // soruId verilirse o soru getirilir (geri dönüş), yoksa sıradaki.
+    const r = await yetkili(
+      `/api/aday/degerlendirme/${oid}/sonraki` + (soruId ? `?soruId=${encodeURIComponent(soruId)}` : ""));
     const v = await r.json();
     if (v.bitti) { setSoru(null); return v; }
     setSoru(v.soru);
-    setSecim([]);
+    // Geri dönüldüyse önceki cevap işaretli gelsin
+    setSecim(Array.isArray(v.mevcutCevap) ? v.mevcutCevap : []);
     gosterimZamani.current = Date.now();
     setIlerleme({ cevaplanan: v.cevaplanan, toplam: v.toplam, yuzde: v.ilerlemeYuzde });
     return v;
@@ -6668,9 +6671,9 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
     yetkili(`/api/aday/degerlendirme/${oturumId}/olay`, {
       method: "POST", body: JSON.stringify({ eventType: "step_back", soruId: oncekiId }),
     }).catch(() => {});
-    // Sunucu sıradaki cevaplanmamış soruyu verir; cevabı değiştirmek için
-    // aday aynı soruya tekrar cevap verdiğinde değişiklik sayacı artar.
-    await sonrakiGetir(oturumId);
+    // Önceki soruyu ADIYLA iste — sunucu yalnız cevaplanmamış soruyu verdiği
+    // için soruId olmadan hiçbir şey değişmiyordu ("geri dön" çalışmıyordu).
+    await sonrakiGetir(oturumId, oncekiId);
   };
 
   if (hata && !soru && !sonuc) return <div className="aday-metin" style={{ padding: 20 }}>{hata}</div>;
@@ -7147,6 +7150,23 @@ function AdayDeneyimi({ kaynak }) {
   const [gorusmeForm, setGorusmeForm] = useState({ uygunGun: "", uygunSaat: "", yontem: "telefon", soru: "" });
   const [gorusmeGonderiliyor, setGorusmeGonderiliyor] = useState(false);
   const [gorusmeGonderildi, setGorusmeGonderildi] = useState(false);
+
+  // DİKKAT — HOOK SIRASI: aşağıda birden çok erken return var
+  // (tanıtım, giriş formu, değerlendirme, yol ayrımı). Bu yüzden HER hook
+  // o return'lerden ÖNCE tanımlanmalıdır. Aksi hâlde aday giriş yaptığı anda
+  // bileşen bir önceki render'dan daha çok hook çalıştırır ve React #310 ile
+  // çöker (4 Ağu 2026'da yaşandı: giriş sonrası ekran kararıyordu).
+  const eser = (eserler || [])[0];
+  const raporGorulduRef = React.useRef({});
+  // Madde 8/10 — report_viewed artık istemciden gönderilmez (aday taklit edemesin).
+  // Bunun yerine backend ucu çağrılır; olay orada, rapor gerçekten yayınlanmışsa üretilir.
+  React.useEffect(() => {
+    const raporVar = eser && (eser.rapor_yayinlandi || eser.durum === "onaylandi");
+    if (raporVar && !raporGorulduRef.current[eser.id]) {
+      raporGorulduRef.current[eser.id] = true;
+      yetkili(`/api/aday/eser/${eser.id}/rapor-goruntulendi`, { method: "POST" }).catch(() => {});
+    }
+  }, [eser]);
   const gorusmeTalepEt = async () => {
     if (gorusmeGonderiliyor || gorusmeGonderildi) return;
     setGorusmeGonderiliyor(true);
@@ -7314,17 +7334,6 @@ function AdayDeneyimi({ kaynak }) {
   );
 
   // ═══ 3 · YAZAR YOLU ═══
-  const eser = (eserler || [])[0];
-  const raporGorulduRef = React.useRef({});
-  // Madde 8/10 — report_viewed artık istemciden gönderilmez (aday taklit edemesin).
-  // Bunun yerine backend ucu çağrılır; olay orada, rapor gerçekten yayınlanmışsa üretilir.
-  React.useEffect(() => {
-    const raporVar = eser && (eser.rapor_yayinlandi || eser.durum === "onaylandi");
-    if (raporVar && !raporGorulduRef.current[eser.id]) {
-      raporGorulduRef.current[eser.id] = true;
-      yetkili(`/api/aday/eser/${eser.id}/rapor-goruntulendi`, { method: "POST" }).catch(() => {});
-    }
-  }, [eser]);
   const AnaIcerik = () => {
     if (eserler === null) return <div className="aday-metin" style={{ padding: "40px 0" }}>Yükleniyor…</div>;
     if (!eser) {

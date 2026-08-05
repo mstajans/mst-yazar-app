@@ -6160,6 +6160,76 @@ const BK_CSS = `
 .bk-ozellik-bas{font-size:14px;color:#F0D68A;font-weight:400;margin-bottom:6px}
 .bk-ozellik-acik{font-size:12.5px;color:rgba(245,240,228,.6);line-height:1.6}
 
+/* ═══ YÖRÜNGE (5 Ağu 2026, onaylanan gelişmiş konsept) ═══
+   Merkezde gerçek uygulama ekranlarını gösteren telefon, etrafında
+   ışık çizgileriyle bağlı özellik kartları. Telefon 3 görünüm arasında
+   geçiş yapıyor (satış · telif · AI Menajer). 1100px altında yörünge
+   çalışmaz — mobilde otomatik olarak ızgaraya düşer (aşağıdaki
+   @media bloğu). */
+.bk-yor{position:relative;width:100%;height:540px;display:flex;align-items:center;justify-content:center;margin-top:10px}
+.bk-yor-halka{position:absolute;left:50%;top:50%;border-radius:50%;border:1px solid rgba(201,162,75,.08);pointer-events:none}
+.bk-yor-h1{width:380px;height:380px;transform:translate(-50%,-50%)}
+.bk-yor-h2{width:580px;height:580px;transform:translate(-50%,-50%)}
+.bk-yor-donen{position:absolute;left:50%;top:50%;width:380px;height:380px;transform:translate(-50%,-50%);
+  border-radius:50%;border:1px dashed rgba(201,162,75,.12);animation:bkYorDon 40s linear infinite;pointer-events:none}
+@keyframes bkYorDon{from{transform:translate(-50%,-50%) rotate(0)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+
+.bk-yor-tel{position:relative;z-index:10;width:196px;height:398px;border-radius:26px;flex-shrink:0;
+  border:2px solid rgba(201,162,75,.55);background:linear-gradient(165deg,#0A1628,#050D1A);
+  box-shadow:0 0 70px rgba(201,162,75,.16),inset 0 0 40px rgba(0,0,0,.5);overflow:hidden}
+.bk-yor-cent{position:absolute;top:0;left:50%;transform:translateX(-50%);width:56px;height:16px;
+  background:#050D1A;border-radius:0 0 9px 9px;z-index:5}
+.bk-yor-tel-ic{padding:26px 14px 14px;height:100%;display:flex;flex-direction:column}
+.bk-yor-logo{font-family:'Cormorant Garamond',serif;font-size:9px;letter-spacing:.24em;color:#F0D68A;text-align:center;margin-bottom:3px}
+.bk-yor-logo-alt{font-size:6.5px;letter-spacing:.18em;color:rgba(201,162,75,.45);text-align:center;margin-bottom:14px}
+.bk-yor-ekran{flex:1;position:relative}
+.bk-yor-view{position:absolute;inset:0;opacity:0;animation:bkYorView 18s ease-in-out infinite}
+@keyframes bkYorView{0%,2%{opacity:0;transform:translateY(6px)}6%,31%{opacity:1;transform:none}35%,100%{opacity:0;transform:translateY(-6px)}}
+.bk-yor-tv-bas{font-size:7.5px;letter-spacing:.14em;color:rgba(201,162,75,.6);margin-bottom:9px}
+.bk-yor-tv-satir{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(245,240,228,.05)}
+.bk-yor-tv-sol{font-size:7.5px;color:rgba(245,240,228,.55)}
+.bk-yor-tv-sag{font-family:'JetBrains Mono',monospace;font-size:8px;color:#F0D68A}
+.bk-yor-tv-buyuk{font-family:'JetBrains Mono',monospace;font-size:24px;color:#F0D68A;text-align:center;margin:14px 0 3px}
+.bk-yor-tv-buyuk-alt{font-size:7px;color:rgba(245,240,228,.4);text-align:center;letter-spacing:.1em}
+.bk-yor-tv-bar{height:3px;background:rgba(201,162,75,.15);margin-top:11px;overflow:hidden;border-radius:2px}
+.bk-yor-tv-bar-ic{height:100%;width:68%;background:linear-gradient(90deg,#C9A24B,#F0D68A)}
+.bk-yor-tv-balon{padding:6px 8px;border-radius:8px;font-size:7px;line-height:1.45;margin-bottom:5px}
+.bk-yor-tv-balon.ai{background:rgba(201,162,75,.1);border:1px solid rgba(201,162,75,.2);border-bottom-left-radius:2px;color:rgba(245,240,228,.75)}
+.bk-yor-tv-balon.ben{background:rgba(245,240,228,.06);border-bottom-right-radius:2px;color:rgba(245,240,228,.6);margin-left:22px}
+.bk-yor-tel-nav{display:flex;justify-content:space-around;padding-top:9px;border-top:1px solid rgba(201,162,75,.12)}
+.bk-yor-tel-nav div{font-size:6px;letter-spacing:.06em;color:rgba(245,240,228,.28)}
+.bk-yor-tel-nav div.ak{color:#F0D68A}
+.bk-yor-temsili{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:8.5px;
+  letter-spacing:.1em;color:rgba(245,240,228,.28)}
+
+.bk-yor-oz{position:absolute;width:186px;padding:12px 13px;
+  background:linear-gradient(160deg,rgba(201,162,75,.09),rgba(10,22,40,.92));
+  border:1px solid rgba(201,162,75,.26);backdrop-filter:blur(6px);
+  animation:bkYorGel .8s both,bkYorSup 5s ease-in-out infinite;z-index:8}
+@keyframes bkYorGel{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+@keyframes bkYorSup{0%,100%{margin-top:0}50%{margin-top:-7px}}
+.bk-yor-oz-bas{font-size:12px;color:#F0D68A;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.bk-yor-oz-ac{font-size:10px;color:rgba(245,240,228,.5);line-height:1.5}
+.bk-yor-oz-ikon{width:16px;height:16px;border:1px solid rgba(201,162,75,.4);display:flex;
+  align-items:center;justify-content:center;font-size:8px;flex-shrink:0}
+.bk-yor-cizgi{position:absolute;height:1px;background:linear-gradient(90deg,rgba(201,162,75,.3),transparent);
+  z-index:6;animation:bkYorCizgi 4s ease-in-out infinite;transform-origin:left center;pointer-events:none}
+@keyframes bkYorCizgi{0%,100%{opacity:.2}50%{opacity:.7}}
+
+/* Dar ekran: yörünge yerine dikey akış — telefon üstte, kartlar altında ızgarada */
+@media (max-width:1100px){
+  .bk-yor{height:auto;flex-direction:column;gap:28px}
+  .bk-yor-halka,.bk-yor-donen,.bk-yor-cizgi{display:none}
+  /* !important gerekli: kart konumları JSX'te inline style ile veriliyor
+     (yörünge yerleşimi için); dar ekranda bunları ancak böyle ezebiliriz,
+     aksi hâlde kartlar ızgara içinde kayık dururdu. */
+  .bk-yor-oz{position:static!important;width:100%;margin:0!important;
+    top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+    animation:bkYorGel .8s both}
+  .bk-yor-kartlar{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;width:100%}
+}
+@media (min-width:1101px){ .bk-yor-kartlar{display:contents} }
+
 /* Scroll göstergesi */
 .bk-asagi{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
   display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
@@ -6529,21 +6599,88 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
             <p className="bk-metin" style={{ marginBottom: 28, maxWidth: 640 }}>
               Değerlendirme sürecinden itibaren, tüm bu araçlar kişisel panelinizde sizi bekliyor.
             </p>
-            <div className="bk-ozellik-grid">
-              {[
-                { ikon: "📢", bas: "Reklam yönetimi", acik: "Reklam talebinizi iletin, MST Ajans kurup yönetsin. Performansı — erişim, tıklama, dönüşüm — kendi panelinizden anlık izleyin." },
-                { ikon: "📊", bas: "Anlık satış takibi", acik: "MST, Trendyol, Hepsiburada, N11, İdefix, Pazarama — 15 platformdaki satışlarınız tek ekranda, gecikmeden." },
-                { ikon: "💰", bas: "Şeffaf telif", acik: "Her satış anında panele düşer. Hangi platformdan, ne zaman, ne kadar — hepsi kayıtlı ve görünür." },
-                { ikon: "🤖", bas: "AI Menajer", acik: "Sorularınıza 7/24 yanıt veren, sürecin neresinde olduğunuzu bilen kişisel yapay zekâ desteği." },
-                { ikon: "🎓", bas: "Yazarlık Akademisi", acik: "Yayına hazırlıktan pazarlamaya, modül modül ilerleyen eğitim içeriği — süreç boyunca açık." },
-                { ikon: "👤", bas: "Danışman desteği", acik: "Sorularınız olduğunda gerçek bir kişiyle görüşme talep edebilirsiniz." },
-              ].map((o, i) => (
-                <div key={o.bas} className="bk-ozellik-kart" style={{ animationDelay: `${.15 + i * .1}s` }}>
-                  <div className="bk-ozellik-ikon">{o.ikon}</div>
-                  <div className="bk-ozellik-bas">{o.bas}</div>
-                  <div className="bk-ozellik-acik">{o.acik}</div>
+            {/* YÖRÜNGE (5 Ağu 2026): düz kart ızgarası yerine, merkezde
+                gerçek uygulama ekranlarını gösteren telefon ve etrafında
+                ışık çizgileriyle bağlı özellik kartları. Özelliklerin
+                METİNLERİ DEĞİŞMEDİ — hepsi hâlâ backend'de kanıtlı gerçek
+                yetenekler, yalnız sunum değişti. */}
+            <div className="bk-yor">
+              <div className="bk-yor-halka bk-yor-h1" />
+              <div className="bk-yor-halka bk-yor-h2" />
+              <div className="bk-yor-donen" />
+
+              {/* Bağlantı çizgileri — yalnız geniş ekranda görünür */}
+              <div className="bk-yor-cizgi" style={{ top: 128, left: 268, width: 120, transform: "rotate(18deg)" }} />
+              <div className="bk-yor-cizgi" style={{ top: 128, right: 268, width: 120, transform: "rotate(162deg)" }} />
+              <div className="bk-yor-cizgi" style={{ top: 268, left: 236, width: 100, animationDelay: ".8s" }} />
+              <div className="bk-yor-cizgi" style={{ top: 268, right: 236, width: 100, transform: "rotate(180deg)", animationDelay: ".8s" }} />
+              <div className="bk-yor-cizgi" style={{ bottom: 138, left: 268, width: 120, transform: "rotate(-18deg)", animationDelay: "1.6s" }} />
+              <div className="bk-yor-cizgi" style={{ bottom: 138, right: 268, width: 120, transform: "rotate(198deg)", animationDelay: "1.6s" }} />
+
+              {/* MERKEZ TELEFON — 3 görünüm arasında geçiş yapar */}
+              <div className="bk-yor-tel">
+                <div className="bk-yor-cent" />
+                <div className="bk-yor-tel-ic">
+                  <div className="bk-yor-logo">MST YAYINCILIK</div>
+                  <div className="bk-yor-logo-alt">YAZAR PANELİ</div>
+                  <div className="bk-yor-ekran">
+                    {/* Görünüm 1 — satış paneli */}
+                    <div className="bk-yor-view" style={{ animationDelay: "0s" }}>
+                      <div className="bk-yor-tv-bas">15 PLATFORM · ANLIK</div>
+                      {[["Trendyol", "14"], ["Hepsiburada", "9"], ["MST Mağaza", "23"], ["İdefix", "6"], ["N11", "11"]].map(([p, s], i, a) => (
+                        <div key={p} className="bk-yor-tv-satir" style={i === a.length - 1 ? { border: "none" } : undefined}>
+                          <span className="bk-yor-tv-sol">{p}</span><span className="bk-yor-tv-sag">{s}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Görünüm 2 — telif */}
+                    <div className="bk-yor-view" style={{ animationDelay: "6s" }}>
+                      <div className="bk-yor-tv-bas">TELİF DÖKÜMÜ</div>
+                      <div className="bk-yor-tv-buyuk">₺ 4.280</div>
+                      <div className="bk-yor-tv-buyuk-alt">BU AY · HAK EDİŞ</div>
+                      <div className="bk-yor-tv-bar"><div className="bk-yor-tv-bar-ic" /></div>
+                      <div className="bk-yor-tv-satir" style={{ marginTop: 10 }}>
+                        <span className="bk-yor-tv-sol">Ödenen</span><span className="bk-yor-tv-sag">₺2.900</span>
+                      </div>
+                      <div className="bk-yor-tv-satir" style={{ border: "none" }}>
+                        <span className="bk-yor-tv-sol">Bekleyen</span><span className="bk-yor-tv-sag">₺1.380</span>
+                      </div>
+                    </div>
+                    {/* Görünüm 3 — AI Menajer */}
+                    <div className="bk-yor-view" style={{ animationDelay: "12s" }}>
+                      <div className="bk-yor-tv-bas">◆ AI MENAJER</div>
+                      <div className="bk-yor-tv-balon ai">Kitabınız bu hafta 3 platformda ilk sayfaya çıktı.</div>
+                      <div className="bk-yor-tv-balon ben">Reklamı artıralım mı?</div>
+                      <div className="bk-yor-tv-balon ai">Önce mevcut kampanyanın 7 günlük verisini görelim — hazırladım.</div>
+                    </div>
+                  </div>
+                  <div className="bk-yor-tel-nav">
+                    <div className="ak">PANO</div><div>SATIŞ</div><div>TELİF</div><div>AKADEMİ</div>
+                  </div>
                 </div>
-              ))}
+                {/* Ekrandaki rakamlar örnek amaçlıdır — bunu AÇIKÇA belirtiyoruz,
+                    aksi hâlde adayın kendi verisi sanılabilirdi. */}
+                <div className="bk-yor-temsili">temsili panel görünümü</div>
+              </div>
+
+              {/* ÖZELLİK KARTLARI — konumlar geniş ekranda yörüngeye,
+                  dar ekranda otomatik ızgaraya düşer (bkz. @media) */}
+              <div className="bk-yor-kartlar">
+                {[
+                  { ikon: "◈", bas: "Reklam yönetimi", acik: "Reklam talebinizi iletin, MST Ajans kurup yönetsin. Performansı — erişim, tıklama, dönüşüm — kendi panelinizden anlık izleyin.", k: { top: 78, left: 34 }, g: "0s" },
+                  { ikon: "◫", bas: "Anlık satış takibi", acik: "MST, Trendyol, Hepsiburada, N11, İdefix, Pazarama — 15 platformdaki satışlarınız tek ekranda, gecikmeden.", k: { top: 78, right: 34 }, g: ".6s" },
+                  { ikon: "◆", bas: "Şeffaf telif", acik: "Her satış anında panele düşer. Hangi platformdan, ne zaman, ne kadar — hepsi kayıtlı ve görünür.", k: { top: 242, left: 0 }, g: "1.2s" },
+                  { ikon: "✦", bas: "AI Menajer", acik: "Sorularınıza 7/24 yanıt veren, sürecin neresinde olduğunuzu bilen kişisel yapay zekâ desteği.", k: { top: 242, right: 0 }, g: "1.8s" },
+                  { ikon: "◉", bas: "Yazarlık Akademisi", acik: "Yayına hazırlıktan pazarlamaya, modül modül ilerleyen eğitim içeriği — süreç boyunca açık.", k: { bottom: 88, left: 34 }, g: "2.4s" },
+                  { ikon: "◇", bas: "Danışman desteği", acik: "Sorularınız olduğunda gerçek bir kişiyle görüşme talep edebilirsiniz.", k: { bottom: 88, right: 34 }, g: "3s" },
+                ].map((o, i) => (
+                  <div key={o.bas} className="bk-yor-oz"
+                    style={{ ...o.k, animationDelay: `${.15 + i * .15}s, ${o.g}` }}>
+                    <div className="bk-yor-oz-bas"><span className="bk-yor-oz-ikon">{o.ikon}</span>{o.bas}</div>
+                    <div className="bk-yor-oz-ac">{o.acik}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <Asagi />

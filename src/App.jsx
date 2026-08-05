@@ -5895,31 +5895,27 @@ const ADAY_CSS = `
   position: relative; z-index: 3; }
 .aday-tarama-lock svg { width: 18px; height: 18px; stroke: #F0D68A; fill: none; stroke-width: 1.6; }
 .aday-tarama-baslik { font-size: 10.5px; letter-spacing: .2em; color: #F0D68A; margin-bottom: 26px; position: relative; z-index: 3; }
-.aday-tarama-kutu { width: 100%; max-width: 340px; padding: 20px; border: 1px solid rgba(201,162,75,.22);
+/* SÜREKLİ AKAN METİN (5 Ağu 2026, onaylanan Konsept 4) — statik barlar
+   KALDIRILDI. Metin blokları kutunun içinde çok yavaş (22s döngü) yukarı
+   akıyor; üst/alt kenarlarda mask ile yumuşak kararma var, böylece metin
+   aniden kesilmiyor — uzun bir belgenin ortasından bakılıyormuş hissi.
+   Tarama çizgisi akan metnin ÜZERİNDE (z-index:5). */
+.aday-tarama-kutu { width: 100%; max-width: 340px; height: 150px; padding: 0;
+  border: 1px solid rgba(201,162,75,.22);
   background: rgba(5,13,26,.5); position: relative; z-index: 2; margin-bottom: 22px; overflow: hidden; }
-/* DÜZELTME (5 Ağu 2026, kullanıcı geri bildirimi): "inceleme çizgisi
-   altta daha da yavaş olsun ama sayfa sayfalar dönüyor gibi olsun."
-   Çizgi belirgin şekilde yavaşlatıldı (3s → 9s) ve satırlar artık
-   kademeli, yavaş bir "sayfa çevirme" animasyonuyla soluk/net arası
-   geçiş yapıyor — statik durmuyorlar. */
 .aday-tarama-cizgi { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #F0D68A, transparent);
-  box-shadow: 0 0 14px rgba(240,214,138,.55); animation: adayTaramaCizgi 9s ease-in-out infinite; z-index: 3; }
-@keyframes adayTaramaCizgi { 0%, 100% { top: 6%; } 50% { top: 90%; } }
-.aday-tarama-satir { height: 8px; background: rgba(245,240,228,.12); margin-bottom: 11px; border-radius: 2px;
-  animation: adaySayfaCevir 6s ease-in-out infinite; }
-.aday-tarama-satir.net { animation: adaySayfaCevirNet 6s ease-in-out infinite; }
-@keyframes adaySayfaCevir {
-  0%, 100% { background: rgba(245,240,228,.12); transform: translateX(0); }
-  45% { background: rgba(245,240,228,.05); transform: translateX(-3px); }
-  50% { background: rgba(245,240,228,.05); transform: translateX(3px); }
-  55% { background: rgba(245,240,228,.2); transform: translateX(0); }
-}
-@keyframes adaySayfaCevirNet {
-  0%, 100% { background: rgba(240,214,138,.32); transform: translateX(0); }
-  45% { background: rgba(240,214,138,.1); transform: translateX(-3px); }
-  50% { background: rgba(240,214,138,.1); transform: translateX(3px); }
-  55% { background: rgba(240,214,138,.42); transform: translateX(0); }
-}
+  box-shadow: 0 0 14px rgba(240,214,138,.55); animation: adayTaramaCizgi 9s ease-in-out infinite; z-index: 5; }
+@keyframes adayTaramaCizgi { 0%, 100% { top: 5%; } 50% { top: 92%; } }
+.aday-akis-cerceve { position: absolute; inset: 16px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 82%, transparent); }
+.aday-akis-sutun { display: flex; flex-direction: column; gap: 18px; animation: adayAkis 22s linear infinite; }
+@keyframes adayAkis { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+.aday-akis-blok { display: flex; flex-direction: column; gap: 7px; }
+.aday-akis-blok div { height: 5px; background: rgba(245,240,228,.16); border-radius: 1px; }
+.aday-akis-blok div:nth-child(2) { width: 76%; }
+.aday-akis-blok div:nth-child(3) { width: 55%; }
+.aday-akis-blok div:nth-child(4) { width: 88%; }
 .aday-tarama-durum { font-size: 12.5px; color: rgba(245,240,228,.6); text-align: center; margin-bottom: 4px; position: relative; z-index: 3; }
 .aday-tarama-yuzde { font-family: 'JetBrains Mono', monospace; font-size: 30px; color: #F0D68A; text-align: center;
   margin-bottom: 22px; position: relative; z-index: 3; }
@@ -6466,11 +6462,17 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
 
             <div className="aday-tarama-kutu">
               <div className="aday-tarama-cizgi" />
-              <div className="aday-tarama-satir net" style={{ animationDelay: "0s" }} />
-              <div className="aday-tarama-satir" style={{ animationDelay: ".4s" }} />
-              <div className="aday-tarama-satir net" style={{ width: "70%", animationDelay: ".8s" }} />
-              <div className="aday-tarama-satir" style={{ animationDelay: "1.2s" }} />
-              <div className="aday-tarama-satir" style={{ width: "55%", animationDelay: "1.6s" }} />
+              <div className="aday-akis-cerceve">
+                {/* Blok listesi iki kez tekrarlanır — CSS animasyonu -50%
+                    kaydırdığı için döngü dikişsiz (seamless) görünür. */}
+                <div className="aday-akis-sutun">
+                  {Array.from({ length: 6 }, (_, i) => (
+                    <div key={i} className="aday-akis-blok">
+                      <div /><div /><div /><div />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="aday-tarama-durum">{SIM_ADIMLAR[simAdim] || SIM_ADIMLAR[0]}</div>

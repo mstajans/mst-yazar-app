@@ -45,6 +45,27 @@ const AKADEMI_CSS_KODU = `
 .ak-soru-m{font-family:'Cormorant Garamond',serif;font-size:20px;color:#F0D68A;line-height:1.35}
 .ak-kiy{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
 @media(max-width:560px){.ak-kiy{grid-template-columns:1fr}}
+
+/* MOBİL DÜZELTME (5 Ağu 2026, gerçek cihaz raporu): akademi.jsx'te
+   neredeyse hiç mobil desteği yoktu. Başlıktaki öğelerde nowrap/flex-shrink
+   olmadığı için dar ekranda "MST YAYINCILIK" ve "GERİ" harf harf alt alta
+   kırılıyordu. Başlık artık iki satıra düzgün sarıyor, hiçbir metin
+   kırılmıyor. */
+.ak-logo,.ak-alt-logo,.ak-il-metin{white-space:nowrap}
+@media(max-width:720px){
+  .ak-ust{padding:10px 14px;flex-wrap:wrap;gap:8px}
+  .ak-logo{font-size:12px;letter-spacing:.16em}
+  .ak-alt-logo{font-size:7.5px;letter-spacing:.18em}
+  .ak-il-wrap{width:100%;gap:8px;justify-content:space-between}
+  .ak-il-bar{flex:1;width:auto;min-width:40px}
+  .ak-il-metin{font-size:9px;letter-spacing:.1em;flex-shrink:0}
+  .ak-geri-btn{flex-shrink:0;white-space:nowrap}
+  .ak-ic{padding:28px 16px 60px}
+}
+@media(max-width:400px){
+  .ak-alt-logo{font-size:7px;letter-spacing:.12em}
+  .ak-logo{font-size:11px}
+}
 .ak-kiy-k{padding:20px 22px;border:1px solid}
 .ak-kiy-k.y{border-color:rgba(220,80,80,.22);background:rgba(220,80,80,.03)}
 .ak-kiy-k.d{border-color:rgba(109,191,138,.22);background:rgba(109,191,138,.03)}
@@ -238,7 +259,7 @@ function MSTAkademi({ yazarAdi, yazarUnvan, yazarId, onKapat, onIlerlemeGuncelle
           <div className="ak-il-metin">MODÜL {aktifMod+1}/10</div>
           <div className="ak-il-bar"><div className="ak-il-ic" style={{width: ilerleme+'%'}} /></div>
           <div className="ak-il-metin">%{ilerleme}</div>
-          {onKapat && <button onClick={onKapat} style={{background:'none',border:'1px solid rgba(245,240,228,.15)',color:'rgba(245,240,228,.4)',fontFamily:'Jost,sans-serif',fontSize:10,letterSpacing:'.14em',padding:'5px 12px',cursor:'pointer',marginLeft:8}}>GERİ</button>}
+          {onKapat && <button onClick={onKapat} className="ak-geri-btn" style={{background:'none',border:'1px solid rgba(245,240,228,.15)',color:'rgba(245,240,228,.4)',fontFamily:'Jost,sans-serif',fontSize:10,letterSpacing:'.14em',padding:'5px 12px',cursor:'pointer',marginLeft:8}}>GERİ</button>}
         </div>
       </div>
 

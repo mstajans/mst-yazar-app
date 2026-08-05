@@ -5897,11 +5897,29 @@ const ADAY_CSS = `
 .aday-tarama-baslik { font-size: 10.5px; letter-spacing: .2em; color: #F0D68A; margin-bottom: 26px; position: relative; z-index: 3; }
 .aday-tarama-kutu { width: 100%; max-width: 340px; padding: 20px; border: 1px solid rgba(201,162,75,.22);
   background: rgba(5,13,26,.5); position: relative; z-index: 2; margin-bottom: 22px; overflow: hidden; }
+/* DÜZELTME (5 Ağu 2026, kullanıcı geri bildirimi): "inceleme çizgisi
+   altta daha da yavaş olsun ama sayfa sayfalar dönüyor gibi olsun."
+   Çizgi belirgin şekilde yavaşlatıldı (3s → 9s) ve satırlar artık
+   kademeli, yavaş bir "sayfa çevirme" animasyonuyla soluk/net arası
+   geçiş yapıyor — statik durmuyorlar. */
 .aday-tarama-cizgi { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #F0D68A, transparent);
-  box-shadow: 0 0 14px rgba(240,214,138,.55); animation: adayTaramaCizgi 3s ease-in-out infinite; z-index: 3; }
-@keyframes adayTaramaCizgi { 0%, 100% { top: 8%; } 50% { top: 88%; } }
-.aday-tarama-satir { height: 8px; background: rgba(245,240,228,.12); margin-bottom: 11px; border-radius: 2px; }
-.aday-tarama-satir.net { background: rgba(240,214,138,.32); }
+  box-shadow: 0 0 14px rgba(240,214,138,.55); animation: adayTaramaCizgi 9s ease-in-out infinite; z-index: 3; }
+@keyframes adayTaramaCizgi { 0%, 100% { top: 6%; } 50% { top: 90%; } }
+.aday-tarama-satir { height: 8px; background: rgba(245,240,228,.12); margin-bottom: 11px; border-radius: 2px;
+  animation: adaySayfaCevir 6s ease-in-out infinite; }
+.aday-tarama-satir.net { animation: adaySayfaCevirNet 6s ease-in-out infinite; }
+@keyframes adaySayfaCevir {
+  0%, 100% { background: rgba(245,240,228,.12); transform: translateX(0); }
+  45% { background: rgba(245,240,228,.05); transform: translateX(-3px); }
+  50% { background: rgba(245,240,228,.05); transform: translateX(3px); }
+  55% { background: rgba(245,240,228,.2); transform: translateX(0); }
+}
+@keyframes adaySayfaCevirNet {
+  0%, 100% { background: rgba(240,214,138,.32); transform: translateX(0); }
+  45% { background: rgba(240,214,138,.1); transform: translateX(-3px); }
+  50% { background: rgba(240,214,138,.1); transform: translateX(3px); }
+  55% { background: rgba(240,214,138,.42); transform: translateX(0); }
+}
 .aday-tarama-durum { font-size: 12.5px; color: rgba(245,240,228,.6); text-align: center; margin-bottom: 4px; position: relative; z-index: 3; }
 .aday-tarama-yuzde { font-family: 'JetBrains Mono', monospace; font-size: 30px; color: #F0D68A; text-align: center;
   margin-bottom: 22px; position: relative; z-index: 3; }
@@ -6078,9 +6096,14 @@ const BK_CSS = `
   background:none;border:1px solid rgba(245,240,228,.1);font-family:'Jost',sans-serif;
   padding:5px 12px;transition:all .2s;flex-shrink:0;white-space:nowrap}
 .bk-serit-atla:hover{color:rgba(201,162,75,.7);border-color:rgba(201,162,75,.3)}
+/* DÜZELTME (5 Ağu 2026, kullanıcı geri bildirimi): üst şerit ve B1 alt
+   tarama çizgisi AYNI keyframe'i (adayKasaTara) paylaşıyordu — "üstte de
+   altta da aynı çizgi var" izlenimi buradan geliyordu. Üst şerit artık
+   kendi, daha yavaş ve ince bir animasyona sahip. */
 .bk-serit-tarama{position:absolute;bottom:-1px;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,#F0D68A,transparent);
-  box-shadow:0 0 6px rgba(240,214,138,.4);animation:adayKasaTara 3.4s linear infinite}
+  background:linear-gradient(90deg,transparent,rgba(240,214,138,.7),transparent);
+  box-shadow:0 0 4px rgba(240,214,138,.25);animation:bkSeritTaramaYavas 7.5s ease-in-out infinite}
+@keyframes bkSeritTaramaYavas { 0% { opacity:0; transform:translateX(-100%); } 15% { opacity:.8; } 85% { opacity:.8; } 100% { opacity:0; transform:translateX(100%); } }
 
 /* Her bölüm tam ekran yüksekliği */
 .bk-bolum{
@@ -6315,6 +6338,29 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
   // component'in üst seviyesinde, koşulsuz çağrılmalı). Erken return'lerden
   // (örn. akademiAcik) SONRA farklı sayıda hook çalışma riski (React #310)
   // taşıyordu. Artık diğer hook'larla birlikte üstte, tek seferde üretiliyor.
+  // DÜZELTME (5 Ağu 2026, kullanıcı geri bildirimi): "ilerleme çubuğu
+  // gerçek veriye göre ilerlesin, hemen dolmasın — yazarın içeride zaman
+  // geçirmesi gerekiyor." Backend'in gerçek `ilerleme` değeri HEDEF olarak
+  // alınıyor; ekranda gösterilen değer bu hedefe YAVAŞÇA yaklaşıyor, asla
+  // hedefi AŞMIYOR (sahte/rastgele bir sayaç değil, gerçek veriye
+  // sınırlanmış bir yumuşatma). Rapor gerçekten tamamlandığında
+  // (ilerleme >= 1) ekran da makul bir hızda tamamlanır — sonsuza kadar
+  // geride kalmaz.
+  const [gosterilenYuzde, setGosterilenYuzde] = React.useState(0);
+  React.useEffect(() => {
+    const hedef = ilerleme || 0;
+    const t = setInterval(() => {
+      setGosterilenYuzde(mevcut => {
+        if (mevcut >= hedef) return mevcut;
+        // Tamamlanmamışken çok yavaş (~saniyede %1.5), tamamlandığında
+        // (hedef >= 1) daha hızlı toparlar — sonsuza dek geride kalmaz.
+        const adim = hedef >= 1 ? 0.03 : 0.0025;
+        return Math.min(hedef, mevcut + adim);
+      });
+    }, 100);
+    return () => clearInterval(t);
+  }, [ilerleme]);
+
   const taramaHarfleri = React.useMemo(() => {
     const kaynak = "AaBbCcDdEeFfGgŞşĞğİiZzMmNnRrTtÖöÜü";
     return Array.from({ length: 14 }, (_, i) => ({
@@ -6417,15 +6463,15 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
 
             <div className="aday-tarama-kutu">
               <div className="aday-tarama-cizgi" />
-              <div className="aday-tarama-satir net" />
-              <div className="aday-tarama-satir" />
-              <div className="aday-tarama-satir net" style={{ width: "70%" }} />
-              <div className="aday-tarama-satir" />
-              <div className="aday-tarama-satir" style={{ width: "55%" }} />
+              <div className="aday-tarama-satir net" style={{ animationDelay: "0s" }} />
+              <div className="aday-tarama-satir" style={{ animationDelay: ".4s" }} />
+              <div className="aday-tarama-satir net" style={{ width: "70%", animationDelay: ".8s" }} />
+              <div className="aday-tarama-satir" style={{ animationDelay: "1.2s" }} />
+              <div className="aday-tarama-satir" style={{ width: "55%", animationDelay: "1.6s" }} />
             </div>
 
             <div className="aday-tarama-durum">{SIM_ADIMLAR[simAdim] || SIM_ADIMLAR[0]}</div>
-            <div className="aday-tarama-yuzde">%{Math.round((ilerleme || 0) * 100)}</div>
+            <div className="aday-tarama-yuzde">%{Math.round(gosterilenYuzde * 100)}</div>
 
             <div className="aday-tarama-guvenlik">
               <div className="aday-tarama-guv-item">

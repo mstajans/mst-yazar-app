@@ -5758,19 +5758,26 @@ const ADAY_CSS = `
 }
 
 /* Tam ekran video zemin — kayıt, yol ayrımı, eser yükleme, sertifika, red ekranları */
-.aday-vz { position:relative; min-height:100vh; overflow:hidden; }
+/* DÜZELTME (5 Ağu 2026, gerçek kullanıcı raporu): .aday-vz'nin
+   overflow:hidden'i, içerik (örn. sohbet ekranındaki büyüyen mesaj listesi)
+   min-height:100vh'i aştığında TAŞAN KISMI KIRPIYORDU — kullanıcı "fare ile
+   aşağı yukarı yapamıyorum" diye bildirdi, bu onun kanıtlanmış sebebiydi.
+   Çözüm: dekoratif katmanları (video/partikül/karartma/çizgi/elmas) fixed
+   yapıp viewport'a sabitledik — sayfa ne kadar uzarsa uzasın hep ekranı
+   kaplarlar. Container'ın kendisi artık taşabilir, body scroll çalışır. */
+.aday-vz { position:relative; min-height:100vh; }
 .aday-vz-video {
-  position:absolute; inset:0; width:100%; height:100%;
+  position:fixed; inset:0; width:100%; height:100%;
   object-fit:cover; opacity:.38; z-index:0; transition:opacity .6s;
 }
 .aday-vz-video.bitti { opacity:.12; }
-.aday-vz-partikul { position:absolute; inset:0; width:100%; height:100%; z-index:0; opacity:0; transition:opacity 1.2s ease; }
+.aday-vz-partikul { position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:0; transition:opacity 1.2s ease; }
 .aday-vz-partikul.ak { opacity:1; }
-.aday-vz-karart { position:absolute; inset:0; background:rgba(3,8,18,.6); z-index:1; }
-.aday-vz-cizgi { position:absolute; top:0; left:0; right:0; height:2px; overflow:hidden; z-index:5; }
+.aday-vz-karart { position:fixed; inset:0; background:rgba(3,8,18,.6); z-index:1; }
+.aday-vz-cizgi { position:fixed; top:0; left:0; right:0; height:2px; overflow:hidden; z-index:5; }
 .aday-vz-cizgi-ic { position:absolute; width:50%; height:100%; background:linear-gradient(90deg,transparent,#F0D68A,transparent); animation:adaySur2 2.5s ease-in-out infinite; }
 @keyframes adaySur2 { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
-.aday-vz-elmas { position:absolute; width:8px; height:8px; background:#C9A24B; transform:rotate(45deg); z-index:5; }
+.aday-vz-elmas { position:fixed; width:8px; height:8px; background:#C9A24B; transform:rotate(45deg); z-index:5; }
 .aday-vz-ic { position:relative; z-index:2; }
 
 /* Amiral gemisi aday karşılama — aday daha formu görmeden değeri deneyimler */
@@ -7995,15 +8002,21 @@ function AdayDeneyimi({ kaynak }) {
   const [perde, setPerde] = useState(null);
   const [perdeGecmis, setPerdeGecmis] = useState([]);
   const [eserForm, setEserForm] = useState({ eserAdi: "", tur: "Roman", dosya: null });
-  // Değerlendirme bir kez tamamlanınca tekrar sorulmaz (oturum bazlı)
-  const degerlendirmeAnahtari = "mst_degerlendirme_" + (oturum && oturum.token ? oturum.token.slice(-12) : "gecici");
+  // GERÇEK HATA (5 Ağu 2026, kullanıcı raporu): anahtar oturum.token'ın son
+  // 12 karakterine bağlıydı — ama JWT token her yeni girişte YENİDEN
+  // İMZALANIR (imza her seferinde farklı), yani aday testi bitirse bile
+  // BİR SONRAKİ GİRİŞTE anahtar değişiyor, localStorage hep boş dönüyor,
+  // test her seferinde baştan gösteriliyordu. oturum.id (adayın sabit
+  // veritabanı kimliği) her girişte aynı kalır — buna bağlandı.
+  const degerlendirmeAnahtari = "mst_degerlendirme_" + (oturum && oturum.id ? oturum.id : "gecici");
   const [degerlendirmeBitti, setDegerlendirmeBitti] = useState(() => {
     try { return localStorage.getItem(degerlendirmeAnahtari) === "1"; } catch { return false; }
   });
   // FAZ 2 — Güven ve gizlilik ekranı: KVKK aydınlatma ve açık rıza AYRI, ticari
   // ileti izni ayrı ve isteğe bağlı. Not: onay şu an oturum içinde tutuluyor;
   // backend'e kalıcı kayıt (tarih/versiyon damgalı) sonraki fazda eklenecek.
-  const gizlilikOnayAnahtari = "mst_aday_gizlilik_onay_" + (oturum && oturum.token ? oturum.token.slice(-12) : "gecici");
+  // AYNI HATA KALIBI (5 Ağu 2026): token'a bağlıydı, her girişte değişiyordu.
+  const gizlilikOnayAnahtari = "mst_aday_gizlilik_onay_" + (oturum && oturum.id ? oturum.id : "gecici");
   const [gizlilikOnaylandi, setGizlilikOnaylandi] = useState(() => {
     try { return localStorage.getItem(gizlilikOnayAnahtari) === "1"; } catch { return false; }
   });
@@ -8026,6 +8039,33 @@ function AdayDeneyimi({ kaynak }) {
       ...(ayar.headers || {}),
     },
   });
+
+  // GERÇEK HATA DÜZELTMESİ (5 Ağu 2026): degerlendirmeBitti/gizlilikOnaylandi
+  // localStorage'a bağımlıydı — aynı cihazdaki token hatasını düzelttik ama
+  // localStorage yine de CİHAZ BAZLI kalır. Aday farklı bir telefon/tarayıcı
+  // ile girerse yerel kayıt boş olur, testi baştan görür. Bu, akademi
+  // ilerlemesinde bulduğumuz hatayla AYNI KALIP. Çözüm: backend'den gerçek
+  // durumu bir kez sorup, yalnız "zaten tamamlanmış" ise localStorage'ı
+  // DÜZELTİYORUZ (asla ters yönde false'a çevirmiyoruz — backend'e
+  // ulaşılamazsa yerel değer olduğu gibi kalır, kullanıcı mağdur olmaz).
+  React.useEffect(() => {
+    if (!oturum || degerlendirmeBitti) return;
+    let iptal = false;
+    (async () => {
+      try {
+        const r = await yetkili("/api/aday/yolculuk-ozeti");
+        const d = await r.json();
+        if (iptal || !d || !d.sonraki_aksiyon) return;
+        // sonraki_aksiyon.hedef "degerlendirme" DEĞİLSE, aday testi zaten
+        // bitirmiş demektir (bkz. aday.js yolculuk-ozeti mantığı).
+        if (d.sonraki_aksiyon.hedef !== "degerlendirme") {
+          setDegerlendirmeBitti(true);
+          try { localStorage.setItem(degerlendirmeAnahtari, "1"); } catch {}
+        }
+      } catch { /* backend'e ulaşılamazsa yerel değerle devam */ }
+    })();
+    return () => { iptal = true; };
+  }, [oturum]);
 
   const eserleriYukle = async () => {
     try { const r = await yetkili("/api/aday/eserlerim"); const d = await r.json(); setEserler(d.eserler || []); return d.eserler || []; }

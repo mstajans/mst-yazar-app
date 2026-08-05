@@ -6035,38 +6035,49 @@ const ADAY_CSS = `
   .aday-amiral-sahne { min-height:calc(100svh - 64px); justify-content:flex-start; padding:34px 17px 38px; }
   .aday-amiral-muhur { width:76px; height:76px; margin-bottom:19px; }
   .aday-amiral-muhur b { font-size:24px; }
-  .aday-amiral-etiket { font-size:6px; letter-spacing:.32em; }
+  .aday-amiral-etiket { font-size:10px; letter-spacing:.26em; }
   .aday-amiral-baslik { font-size:clamp(47px,14vw,61px); }
   .aday-amiral-aciklama { font-size:15px; line-height:1.55; margin:18px 4px 22px; }
   .aday-amiral-gucler { display:flex; overflow-x:auto; scroll-snap-type:x mandatory; margin:0 -17px 23px; padding:0 17px; width:calc(100% + 34px); }
   .aday-amiral-gucler::-webkit-scrollbar { display:none; }
   .aday-amiral-guc { min-width:76vw; scroll-snap-align:center; padding:17px; }
-  .aday-amiral-guc p { font-size:11px; color:#D7DEE6; }
+  .aday-amiral-guc p { font-size:14px; line-height:1.6; color:#D7DEE6; }
   .aday-amiral-cta { min-height:64px; }
-  .aday-amiral-ilke { font-size:7px; line-height:1.6; }
+  .aday-amiral-ilke { font-size:10.5px; line-height:1.65; }
   .aday-amiral-alt { display:none; }
   .aday-deg-kimlik { align-items:flex-start; }
   .aday-deg-kimlik b { text-align:right; }
   .aday-deg-tanitim { padding:17px; }
   .aday-deg-tanitim h2 { font-size:24px; }
-  .aday-deg-tanitim p { font-size:12px; color:#E0E6EC; }
+  .aday-deg-tanitim p { font-size:14.5px; line-height:1.65; color:#E0E6EC; }
   .aday-deg-guven { display:flex; overflow-x:auto; margin-right:-17px; padding-right:17px; }
-  .aday-deg-guven span { min-width:145px; font-size:9px; }
+  .aday-deg-guven span { min-width:160px; font-size:12px; line-height:1.55; }
   .aday-deg-soru { font-size:25px; }
   .aday-tam-ekran { align-items:flex-start; padding-left:16px !important; padding-right:16px !important; }
   .aday-icerik { width:100%; padding-top:22px; padding-bottom:40px; }
   .aday-kart { padding:24px 18px; }
   .aday-baslik { font-size:clamp(32px,10vw,43px); line-height:1.04; color:#FFF9EE; }
-  .aday-metin { color:#DCE3EA; line-height:1.68; }
+  .aday-metin { color:#DCE3EA; font-size:16px; line-height:1.7; }
   .aday-input { min-height:52px; font-size:16px; color:#FFF9EE; }
   .aday-btn-asil { min-height:56px; }
   .aday-not { color:#BAC5CF; line-height:1.55; }
   .aday-guven-madde { padding:13px 12px; }
-  .aday-guven-madde span { font-size:13px; color:#E1E7EC; }
+  .aday-guven-madde span { font-size:15px; line-height:1.65; color:#E1E7EC; }
   .aday-yukleme-gucler { display:grid; grid-template-columns:1fr; gap:8px; }
   .aday-yukleme-guc { min-height:0; }
   .aday-sertifika { padding:38px 20px; }
   .aday-sertifika-alt { flex-direction:column; gap:7px; align-items:center; }
+  /* TİPOGRAFİ (5 Ağu 2026, "yazılar çok küçük, özellikle mobilde"):
+     aşağıdakiler okunabilirlik eşiğinin altındaydı, yükseltildi. */
+  .aday-guven-madde strong { font-size:15px; }
+  .aday-tarama-durum { font-size:14px; }
+  .aday-tarama-baslik { font-size:12px; letter-spacing:.18em; }
+  .aday-tarama-guv-item { font-size:11.5px; }
+  .aday-balon { font-size:15px; line-height:1.55; }
+  .aday-sohbet-chip { font-size:15px; padding:14px 16px; }
+  .aday-sohbet-ad { font-size:14px; }
+  .aday-sohbet-durum { font-size:11px; }
+  .aday-balon-aciklama { font-size:13px; }
 }
 `;
 
@@ -6150,12 +6161,22 @@ const BK_CSS = `
    olduğunda taşan kısım KIRPILIYOR ve asla görülemiyordu (mandatory snap
    ile birleşince tam bir kilitlenme). Artık taşan içerik görünür ve
    min-height sabit yükseklik dayatmıyor. */
+/* DÜZELTME (5 Ağu 2026, mobil rapor — "gelen her menü ekrana tam sığmıyor,
+   sayfalar taşıyor üstten ve alttan"): justify-content:center, içerik
+   ekrandan uzun olduğunda taşan kısmı HEM ÜSTTEN HEM ALTTAN erişilemez
+   yapıyordu (flexbox merkezleme tuzağı — .aday-tam-ekran'da da aynısını
+   düzeltmiştik). safe center: sığıyorsa ortalar, sığmıyorsa üstten
+   hizalar ve her yer kaydırılabilir kalır. */
 .bk-bolum{
   min-height:100dvh;
   scroll-snap-align:start;
   position:relative;
-  display:flex;flex-direction:column;justify-content:center;
+  display:flex;flex-direction:column;justify-content:safe center;
   padding-bottom:24px;
+}
+@supports not (justify-content: safe center){
+  .bk-bolum{justify-content:flex-start}
+  .bk-bolum > *{margin-top:auto;margin-bottom:auto}
 }
 
 /* Ortak iç padding — responsive */
@@ -6175,10 +6196,15 @@ const BK_CSS = `
 }
 
 /* Ortak tipografi */
-.bk-etiket{font-size:9px;letter-spacing:.4em;color:rgba(201,162,75,.6);margin-bottom:16px}
-.bk-hitap{font-family:'Cormorant Garamond',serif;font-size:clamp(15px,2.2vw,17px);font-style:italic;color:rgba(201,162,75,.72);margin-bottom:10px}
-.bk-bas{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4.5vw,44px);font-weight:300;color:#F0D68A;line-height:1.15;margin-bottom:14px}
-.bk-metin{font-size:clamp(13px,1.6vw,15px);color:rgba(245,240,228,.65);line-height:1.82;margin-bottom:20px}
+/* TİPOGRAFİ (5 Ağu 2026, "yazılar genel olarak çok küçük, özellikle
+   mobilde"): clamp'lerin ALT sınırları yükseltildi. Önceki değerler
+   (gövde 13px, etiket 9px) mobilde okunabilirlik eşiğinin altındaydı —
+   vw tabanlı ölçek dar ekranda her zaman alt sınıra düşüyor, yani
+   telefonda hep en küçük değer görünüyordu. */
+.bk-etiket{font-size:clamp(10.5px,1.4vw,11px);letter-spacing:.32em;color:rgba(201,162,75,.6);margin-bottom:16px}
+.bk-hitap{font-family:'Cormorant Garamond',serif;font-size:clamp(17px,2.2vw,19px);font-style:italic;color:rgba(201,162,75,.72);margin-bottom:10px}
+.bk-bas{font-family:'Cormorant Garamond',serif;font-size:clamp(30px,4.5vw,44px);font-weight:300;color:#F0D68A;line-height:1.18;margin-bottom:14px}
+.bk-metin{font-size:clamp(15.5px,1.6vw,16.5px);color:rgba(245,240,228,.72);line-height:1.75;margin-bottom:20px}
 
 /* Sertifika kutu */
 .bk-sert{border:1px solid rgba(201,162,75,.55);padding:clamp(24px,4vw,44px) clamp(20px,3vw,40px);
@@ -6634,7 +6660,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
         <div className="bk-bolum" style={{ background: "#0A1628" }}>
           <div className="bk-ic" style={{ textAlign: "center", maxWidth: 680, margin: "0 auto" }}>
             <div style={{ width: 1, height: 50, background: "linear-gradient(180deg,transparent,#C9A24B,transparent)", margin: "0 auto 28px", animation: "bkGel .5s both .1s" }} />
-            <div className="bk-hitap" style={{ animation: "bkGel .7s both .2s" }}>{ilkAd} Bey,</div>
+            <div className="bk-hitap" style={{ animation: "bkGel .7s both .2s" }}>{ilkAd},</div>
             <h2 className="bk-bas" style={{ fontSize: "clamp(30px,5vw,46px)", animation: "bkGel .9s both .35s" }}>
               Eseriniz elimize ulaştı.<br />Şimdi size biraz kendimizden bahsetmek istiyoruz.
             </h2>
@@ -6807,7 +6833,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
           <div className="bk-ic bk-grid">
             <div style={{ animation: "bkGelS .8s both .2s" }}>
               <div className="bk-etiket">MOBİL UYGULAMA · SEKTÖRDE İLK</div>
-              <div className="bk-hitap">{ilkAd} Bey, kitabınız cebinizde.</div>
+              <div className="bk-hitap">{ilkAd}, kitabınız cebinizde.</div>
               <h2 className="bk-bas">Pano — her şey bir bakışta</h2>
               <p className="bk-metin">Belgeniz onaylandığında kişisel paneliniz açılır. Satışlarınız, telifiniz, stok durumunuz — anlık ve şeffaf.</p>
               <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">📊</div><div><div className="bk-mad-bas">Anlık satış takibi</div><div className="bk-mad-acik">15 online platformdan gelen satışlar saniye saniye güncellenir.</div></div></div>
@@ -6847,7 +6873,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
             </div>
             <div style={{ animation: "bkGelSag .8s both .3s" }}>
               <div className="bk-etiket">AI MENAJER · BELGE SONRASI AKTİF</div>
-              <div className="bk-hitap">{ilkAd} Bey, bu danışman sadece sizin.</div>
+              <div className="bk-hitap">{ilkAd}, bu danışman sadece sizin.</div>
               <h2 className="bk-bas">7/24 yanınızda, sektörü bilen bir danışman</h2>
               <p className="bk-metin">Satış verilerinizi okur, pazar trendlerini analiz eder, size özel strateji üretir. Başka hiçbir yayınevinde böyle bir şey yok.</p>
               <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">🧠</div><div><div className="bk-mad-bas">Satış analizi</div><div className="bk-mad-acik">"Bu ay neden düştüm?" sorusunu 15 saniyede cevaplar.</div></div></div>
@@ -9042,7 +9068,9 @@ function PerdeSahnesi() { return null; }
 // Akademi kutlama ekranı — 1 kere çıkar
 function AkademiKutlama({ adSoyad, unvan, onKapat }) {
   const ilkAd = (adSoyad || '').split(' ')[0];
-  const hitapKut = `${ilkAd} ${unvan || 'Bey'}`;
+  // DÜZELTME (5 Ağu 2026): unvan yoksa 'Bey' varsayılıyordu — kadın
+  // yazarlara yanlış hitap ediyordu. Artık unvan yoksa yalnız isim.
+  const hitapKut = unvan ? `${ilkAd} ${unvan}` : ilkAd;
   React.useEffect(() => {
     const t = setTimeout(onKapat, 8000);
     return () => clearTimeout(t);

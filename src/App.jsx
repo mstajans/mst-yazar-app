@@ -5944,7 +5944,20 @@ const ADAY_CSS = `
 .aday-sohbet-ilerleme-dolu { height: 100%; background: #C9A24B; transition: width .3s; }
 .aday-sohbet-ilerleme-sayi { font-size: 10.5px; color: rgba(245,240,228,.4); flex-shrink: 0; }
 
-.aday-sohbet-govde { display: flex; flex-direction: column; gap: 10px; padding: 12px 2px 6px; }
+/* DÜZELTME (5 Ağu 2026, kullanıcı raporu — "mobilde cevap gönderince
+   ekran küçülüp büyüyor, görüşmeler aşağı yukarı gidiyor"): sohbet gövdesi
+   kendi yüksekliği/kaydırması olmayan sıradan bir div'di. scrollIntoView
+   çağrısı bu yüzden TÜM SAYFAYI kaydırıyordu; her cevapta sayfa boyu da
+   değiştiği için (seçenekler açılıp kapandıkça) ekran zıplıyordu.
+   Artık sohbet kendi içinde kaydırılan sabit yükseklikli bir alan —
+   sayfa hiç oynamıyor, yalnız sohbetin içi kayıyor. */
+.aday-sohbet-sarmal { display: flex; flex-direction: column; height: calc(100dvh - 150px);
+  max-height: 620px; min-height: 380px; }
+.aday-sohbet-govde { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  display: flex; flex-direction: column; gap: 10px; padding: 12px 2px 6px;
+  scrollbar-width: none; }
+.aday-sohbet-govde::-webkit-scrollbar { display: none; }
 .aday-balon {
   max-width: 84%; padding: 11px 15px; border-radius: 16px; font-size: 13.5px; line-height: 1.5;
   animation: adayBalonGir .4s cubic-bezier(.22,1,.36,1) both;
@@ -7751,12 +7764,20 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
   // ============================================================
   const [sohbet, setSohbet] = useState([]);
   const [yaziyor, setYaziyor] = useState(false);
-  const sohbetSonRef = React.useRef(null);
   const gosterilenSoruIdler = React.useRef(new Set());
 
+  // DÜZELTME (5 Ağu 2026): önceden scrollIntoView kullanılıyordu — bu, sohbet
+  // kendi kaydırma alanına sahip olmadığı için TÜM SAYFAYI kaydırıyordu ve
+  // mobilde ekranın zıplamasına yol açıyordu. Ayrıca bağımlılık listesinde
+  // `yaziyor` da vardı; tek bir cevapta üç kez tetikleniyordu (yazıyor açıldı,
+  // kapandı, balon eklendi). Artık yalnız sohbet uzunluğu değişince ve yalnız
+  // KONTEYNERİN KENDİ İÇİNDE kaydırıyor.
+  const sohbetGovdeRef = React.useRef(null);
   React.useEffect(() => {
-    sohbetSonRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [sohbet, yaziyor]);
+    const el = sohbetGovdeRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [sohbet.length]);
 
   // Yeni soru geldiğinde (aynı soru tekrar gösterilmiyorsa) kısa bir
   // "yazıyor..." arasıyla AI balonunu sohbete ekle.
@@ -7939,7 +7960,7 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
     m.tip === "ai" && m.id === soru.id && sohbet[i + 1]?.tip === "user");
 
   return (
-    <div style={{ animation: "mstFadeUp .35s both" }}>
+    <div className="aday-sohbet-sarmal" style={{ animation: "mstFadeUp .35s both" }}>
       <div className="aday-sohbet-ust">
         <div className="aday-sohbet-kimlik">
           <div className="aday-sohbet-avatar">◆</div>
@@ -7954,7 +7975,7 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
         </div>
       </div>
 
-      <div className="aday-sohbet-govde">
+      <div className="aday-sohbet-govde" ref={sohbetGovdeRef}>
         {sohbet.length === 0 && (
           <div className="aday-balon aday-balon-ai">
             Merhaba{oturum.adSoyad ? `, ${oturum.adSoyad.split(" ")[0]}` : ""}! Ben MST'nin yapay zekâ danışmanıyım.
@@ -8009,15 +8030,18 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
           </div>
         )}
 
-        <div ref={sohbetSonRef} />
       </div>
 
-      {gecmis.length > 0 && !yaziyor && (
-        <div style={{ marginTop: 12, fontSize: 12, color: "rgba(245,240,228,.4)",
-                      textAlign: "center", cursor: "pointer" }} onClick={geriDon}>
-          ← Önceki soruya dön
-        </div>
-      )}
+      {/* DÜZELTME (5 Ağu 2026): bu link önceden koşullu render ediliyordu —
+          her "yazıyor" geçişinde DOM'dan çıkıp giriyor, yükseklik oynatıyordu.
+          Artık her zaman yerinde duruyor, yalnız görünürlüğü değişiyor. */}
+      <div style={{ marginTop: 12, fontSize: 12, color: "rgba(245,240,228,.4)",
+                    textAlign: "center", cursor: gecmis.length ? "pointer" : "default",
+                    visibility: (gecmis.length > 0 && !yaziyor) ? "visible" : "hidden",
+                    transition: "opacity .2s", opacity: (gecmis.length > 0 && !yaziyor) ? 1 : 0 }}
+           onClick={() => { if (gecmis.length > 0 && !yaziyor) geriDon(); }}>
+        ← Önceki soruya dön
+      </div>
 
       {hata && <div style={{ color: "#C0392B", fontSize: 13, marginTop: 10 }}>{hata}</div>}
     </div>

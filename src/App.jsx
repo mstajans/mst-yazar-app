@@ -185,34 +185,56 @@ function BasarimKutlama({ k }) {
 // ============ Okunmamış duyuru katmanı ============
 // Yayınevinden gelen duyuru (genel ya da kişiye özel) uygulama açılır açılmaz
 // karşıya çıkar. Okunanlar cihazda işaretlenir, bir daha gösterilmez.
-function OkunmamisDuyurular({ duyurular, yazarId }) {
-  // Backend kayıtlı okundu — cihaz/tarayıcı bağımsız çalışır
+function OkunmamisDuyurular({ duyurular, yazarId, token }) {
+  // GERÇEK HATA (5 Ağu 2026, kullanıcı raporu — "40 kez ANLADIM'a tıklamama
+  // rağmen çıkıyor, bazen takılıp kalıyor"): bu bileşen backend'e bildirmek
+  // için localStorage.getItem("mst_token") kullanıyordu ama bu anahtar
+  // UYGULAMANIN HİÇBİR YERİNDE YAZILMIYORDU — her zaman null, backend'e
+  // "okundu" isteği HİÇ GİTMEMİŞTİ. Farklı cihaz/tarayıcı/PWA örneğinden
+  // girildiğinde her biri kendi localStorage'ında "okunmadı" görüyordu,
+  // birbirleriyle hiç senkronize olamıyorlardı. Artık gerçek session
+  // token'ı prop olarak geçiliyor (session.token) — backend GERÇEK ortak
+  // kaynak oluyor, localStorage yalnız hızlı önbellek.
   const [okunanlar, setOkunanlar] = useState(() => {
     try { return JSON.parse(localStorage.getItem(`mst_okunan_${yazarId || "genel"}`) || "[]"); } catch { return []; }
   });
   const [sira, setSira] = useState(0);
 
-  const bekleyen = (duyurular || []).filter((d) => !okunanlar.includes(String(d.id)));
+  // yazarId geç gelirse (account henüz yüklenmeden ilk render) — doğru
+  // anahtardan yeniden yükle. Eskiden bu hiç yapılmıyordu, "genel"
+  // anahtarında takılı kalabiliyordu.
+  React.useEffect(() => {
+    if (!yazarId) return;
+    try {
+      const v = JSON.parse(localStorage.getItem(`mst_okunan_${yazarId}`) || "[]");
+      setOkunanlar(v);
+    } catch {}
+  }, [yazarId]);
+
+  const bekleyen = (duyurular || []).filter((d) => d && d.id != null && !okunanlar.includes(String(d.id)));
   if (!bekleyen.length) return null;
 
-  const d = bekleyen[Math.min(sira, bekleyen.length - 1)];
-  const sonuncu = sira >= bekleyen.length - 1;
+  // Index güvenliği: sira, bekleyen.length'i aşarsa (liste küçüldüğünde)
+  // "bazen takılıp kalıyor" sorununun bir sebebi buydu — artık her zaman
+  // geçerli bir aralığa sıkıştırılıyor.
+  const guvenliSira = Math.min(sira, bekleyen.length - 1);
+  const d = bekleyen[guvenliSira];
+  const sonuncu = guvenliSira >= bekleyen.length - 1;
 
   const okundu = () => {
-    // gosterilenIdx değil sira kullanılıyor — düzeltildi
-    const mevcutId = String(bekleyen[sira]?.id);
+    if (!d) return; // güvenlik — hiçbir zaman undefined'a işlem yapılmaz
+    const mevcutId = String(d.id);
     const yeni = [...okunanlar, mevcutId].filter(Boolean);
     setOkunanlar(yeni);
     try { localStorage.setItem(`mst_okunan_${yazarId || "genel"}`, JSON.stringify(yeni.slice(-100))); } catch {}
-    // Backend'e bildir (fire-and-forget)
-    try {
-      const tok = localStorage.getItem("mst_token");
-      if (tok) fetch(`${BACKEND_URL}/api/author/duyuru-okundu`, {
-        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${tok}` },
+    // Backend'e bildir — artık GERÇEKTEN gidiyor (token doğru kaynaktan).
+    if (token) {
+      fetch(`${BACKEND_URL}/api/author/duyuru-okundu`, {
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ duyuruIds: [mevcutId] }),
       }).catch(() => {});
-    } catch {}
-    if (!sonuncu) setSira(sira + 1);
+    }
+    if (!sonuncu) setSira(s => s + 1);
   };
 
   return (
@@ -6261,76 +6283,9 @@ const BK_CSS = `
 // ══════════════════════════════════════════════════════════
 // BeklemeIcerigi — Eser beklerken gösterilen ikna sahnesi
 // ══════════════════════════════════════════════════════════
-// ============================================================
-// ESER TARAMA GEÇİŞİ (5 Ağu 2026) — eser başarıyla yüklendiği AN gösterilen
-// kısa ara sahne. Yüzde GERÇEK backend verisinden gelir: `ilerleme` prop'u
-// AdayDeneyimi'ndeki /incele polling döngüsünden geliyor (aynı state,
-// BeklemeIcerigi'nin kullandığıyla birebir aynı kaynak) — burada ayrı,
-// sahte bir sayaç YOK. "Akademiye göz atın" CTA'sı asıl bekleme salonuna
-// (Akademi zaten orada) yönlendirir; bu ekran zorunlu bir adım değil.
-// ============================================================
-function EserTaramaGecisi({ ilerleme, simAdim, onDevam }) {
-  const harfler = React.useMemo(() => {
-    const kaynak = "AaBbCcDdEeFfGgŞşĞğİiZzMmNnRrTtÖöÜü";
-    return Array.from({ length: 14 }, (_, i) => ({
-      id: i,
-      harf: kaynak[Math.floor(Math.random() * kaynak.length)],
-      left: 8 + Math.random() * 84,
-      top: 8 + Math.random() * 72,
-      boyut: 14 + Math.random() * 14,
-      gecikme: Math.random() * 6,
-      sure: 4 + Math.random() * 3,
-    }));
-  }, []);
-
-  const yuzde = Math.round((ilerleme || 0) * 100);
-  const durumMetni = SIM_ADIMLAR[simAdim] || SIM_ADIMLAR[0];
-
-  return (
-    <div className="aday-tarama-ekran">
-      <div className="aday-tarama-izgara" />
-      {harfler.map(h => (
-        <span key={h.id} className="aday-tarama-harf" style={{
-          left: `${h.left}%`, top: `${h.top}%`, fontSize: h.boyut,
-          animationDelay: `${h.gecikme}s`, animationDuration: `${h.sure}s`,
-        }}>{h.harf}</span>
-      ))}
-
-      <div className="aday-tarama-lock">
-        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="1" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
-      </div>
-      <div className="aday-tarama-baslik">ESERİNİZ TARANIYOR</div>
-
-      <div className="aday-tarama-kutu">
-        <div className="aday-tarama-cizgi" />
-        <div className="aday-tarama-satir net" />
-        <div className="aday-tarama-satir" />
-        <div className="aday-tarama-satir net" style={{ width: "70%" }} />
-        <div className="aday-tarama-satir" />
-        <div className="aday-tarama-satir" style={{ width: "55%" }} />
-      </div>
-
-      <div className="aday-tarama-durum">{durumMetni}</div>
-      <div className="aday-tarama-yuzde">%{yuzde}</div>
-
-      <div className="aday-tarama-guvenlik">
-        <div className="aday-tarama-guv-item">
-          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="1" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
-          ŞİFRELİ ORTAM
-        </div>
-        <div className="aday-tarama-guv-item">
-          <svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /></svg>
-          ÜÇÜNCÜ KİŞİYLE PAYLAŞILMAZ
-        </div>
-      </div>
-
-      <div className="aday-tarama-cta">
-        <div className="aday-tarama-cta-alt">Bu, birkaç dakika sürebilir — beklerken:</div>
-        <button className="aday-btn-asil" onClick={onDevam}>AKADEMİYE GÖZ ATIN →</button>
-      </div>
-    </div>
-  );
-}
+// KALDIRILDI (5 Ağu 2026): EserTaramaGecisi ayrı ara ekranı — B1'in
+// içine taşındı, artık BeklemeIcerigi'nin kendisi bu görseli sürekli
+// gösteriyor (bkz. B1: AI TARAMA bölümü aşağıda).
 
 function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
   const ilkAd = (yazarAdi || "").split(" ")[0];
@@ -6355,6 +6310,19 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
   };
 
   const scrollRef = React.useRef(null);
+  // DÜZELTME (5 Ağu 2026): bu useMemo önceden B1 JSX'inin İÇİNDE, inline
+  // çağrılıyordu — React Hook kuralını ihlal ediyordu (hook'lar her zaman
+  // component'in üst seviyesinde, koşulsuz çağrılmalı). Erken return'lerden
+  // (örn. akademiAcik) SONRA farklı sayıda hook çalışma riski (React #310)
+  // taşıyordu. Artık diğer hook'larla birlikte üstte, tek seferde üretiliyor.
+  const taramaHarfleri = React.useMemo(() => {
+    const kaynak = "AaBbCcDdEeFfGgŞşĞğİiZzMmNnRrTtÖöÜü";
+    return Array.from({ length: 14 }, (_, i) => ({
+      id: i, harf: kaynak[Math.floor(Math.random() * kaynak.length)],
+      left: 8 + Math.random() * 84, top: 8 + Math.random() * 72,
+      boyut: 14 + Math.random() * 14, gecikme: Math.random() * 6, sure: 4 + Math.random() * 3,
+    }));
+  }, []);
   const Asagi = () => (
     <div className="bk-asagi" onClick={() => scrollRef.current?.scrollBy({ top: window.innerHeight, behavior: 'smooth' })}>
       <div className="bk-asagi-ok" />
@@ -6424,39 +6392,49 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
 
       <div className="bk-scroll" ref={scrollRef}>
 
-        {/* ══ B1: SERTİFİKA DEĞERİ ══ */}
+        {/* ══ B1: AI TARAMA — DEĞİŞTİRİLDİ (5 Ağu 2026, kullanıcı geri
+            bildirimi: "sertifika ve yazı karşılıyor, onu tamamen kaldıralım,
+            eserin incelenme yüzdesi gibi şeyler olsun — daha önce
+            onaylattığın yapay zeka inceleme alanı, harfler uçuşuyordu vs").
+            Sertifika tanıtımı KALDIRILDI. Yerine, eser gönderildiği andaki
+            EserTaramaGecisi ile AYNI görsel dil (kilit, tarama çizgisi,
+            uçuşan harfler, GERÇEK ilerleme yüzdesi) burada SÜREKLİ —
+            eser incelenirken kaydırıp geçilen ilk ve tek karşılama bu. */}
         <div className="bk-bolum" style={{ background: "radial-gradient(ellipse 90% 60% at 50% 20%,rgba(201,162,75,.14) 0%,transparent 65%),#050D1A" }}>
-          <div className="bk-ic bk-grid">
-            <div style={{ animation: "bkGelS .8s both .2s" }}>
-              <div className="bk-etiket">YAYINA UYGUNLUK BELGENİZ NE KAZANDIRIR</div>
-              <div className="bk-hitap">{ilkAd} Bey,</div>
-              <h2 className="bk-bas">Bu belge bir kağıt değil — bir anahtar</h2>
-              <p className="bk-metin">Eseriniz onaylandığında elinize geçecek Yayına Uygunluk Belgesi, sizi sektördeki diğer yazarlardan ayıran somut bir güçtür.</p>
-              {/* P0.5 — "Kültür Bakanlığı Destek Programları / MST sertifikalı eserler
-                  bakanlık fonlarına başvurabiliyor" iddiası KALDIRILDI (4 Ağu 2026).
-                  Doğrulanmış bir kamu desteği kaydımız yok; sertifika da bir
-                  akreditasyon belgesi değil. Yerine doğrulanabilir bir madde kondu. */}
-              <div className="bk-mad" style={{ animationDelay: ".4s" }}><div className="bk-mad-ikon">◆</div><div><div className="bk-mad-bas">Yazılı editöryal rapor</div><div className="bk-mad-acik">Eserinizin güçlü ve geliştirilecek yönleri gerekçeleriyle yazılı olarak verilir.</div></div></div>
-              {/* P0.5 TEKRARI (4 Ağu 2026) — "Belediye kütüphaneleri öncelikli satın
-                  alıyor" iddiası da Kültür Bakanlığı iddiasıyla aynı sorunu taşıyordu:
-                  doğrulanmış bir kurum desteği kaydımız yok. Kaldırıldı, doğrulanabilir
-                  bir maddeyle değiştirildi. */}
-              <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">◆</div><div><div className="bk-mad-bas">15 Satış Platformu</div><div className="bk-mad-acik">Eseriniz MST, Trendyol, Hepsiburada, N11, İdefix ve Pazarama dahil 15 platformda görünür olur.</div></div></div>
-              {/* DEĞİŞTİRİLDİ (5 Ağu 2026): "Frankfurt, Londra, Bologna" isimli fuar
-                  iddiası doğrulanamıyordu. Backend'de zaten var olan gerçek hizmete
-                  (uluslararasi_haklar vaat kataloğu kaydı) atıfla değiştirildi. */}
-              <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">🌍</div><div><div className="bk-mad-bas">Uluslararası Satış</div><div className="bk-mad-acik">Talep üzerine eserinizin yabancı yayıncılara sunulması ve hak satışı süreci MST tarafından yürütülür.</div></div></div>
-              <div className="bk-mad" style={{ animationDelay: ".85s" }}><div className="bk-mad-ikon">✦</div><div><div className="bk-mad-bas">AI Menajer Aktivasyonu</div><div className="bk-mad-acik">Belge onaylandığı an kişisel yapay zekâ danışmanınız devreye girer.</div></div></div>
+          <div className="aday-tarama-ekran" style={{ minHeight: "auto", padding: "40px 24px" }}>
+            <div className="aday-tarama-izgara" />
+            {taramaHarfleri.map(h => (
+              <span key={h.id} className="aday-tarama-harf" style={{
+                left: `${h.left}%`, top: `${h.top}%`, fontSize: h.boyut,
+                animationDelay: `${h.gecikme}s`, animationDuration: `${h.sure}s`,
+              }}>{h.harf}</span>
+            ))}
+
+            <div className="aday-tarama-lock">
+              <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="1" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
             </div>
-            <div className="bk-g-sag" style={{ animation: "bkGelSag .8s both .3s" }}>
-              <div className="bk-sert">
-                <div className="bk-el" style={{ top: -5, left: -5 }} /><div className="bk-el" style={{ top: -5, right: -5 }} />
-                <div className="bk-el" style={{ bottom: -5, left: -5 }} /><div className="bk-el" style={{ bottom: -5, right: -5 }} />
-                <div className="bk-sert-rozet">MST YAYINA UYGUNLUK BELGESİ</div>
-                <div className="bk-sert-cizgi" />
-                <div className="bk-sert-isim">{yazarAdi}</div>
-                <div className="bk-sert-eser">"{eserAdi}"</div>
-                <div className="bk-sert-bekleme">ONAY BEKLENİYOR</div>
+            <div className="aday-tarama-baslik">ESERİNİZ TARANIYOR</div>
+
+            <div className="aday-tarama-kutu">
+              <div className="aday-tarama-cizgi" />
+              <div className="aday-tarama-satir net" />
+              <div className="aday-tarama-satir" />
+              <div className="aday-tarama-satir net" style={{ width: "70%" }} />
+              <div className="aday-tarama-satir" />
+              <div className="aday-tarama-satir" style={{ width: "55%" }} />
+            </div>
+
+            <div className="aday-tarama-durum">{SIM_ADIMLAR[simAdim] || SIM_ADIMLAR[0]}</div>
+            <div className="aday-tarama-yuzde">%{Math.round((ilerleme || 0) * 100)}</div>
+
+            <div className="aday-tarama-guvenlik">
+              <div className="aday-tarama-guv-item">
+                <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="1" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
+                ŞİFRELİ ORTAM
+              </div>
+              <div className="aday-tarama-guv-item">
+                <svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /></svg>
+                ÜÇÜNCÜ KİŞİYLE PAYLAŞILMAZ
               </div>
             </div>
           </div>
@@ -7702,75 +7680,31 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
 
   if (hata && !soru && !sonuc) return <div className="aday-metin" style={{ padding: 20 }}>{hata}</div>;
 
-  // ---------- SONUÇ EKRANI (Bölüm 7 sırası) ----------
+  // ---------- SONUÇ EKRANI — SADELEŞTİRİLDİ (5 Ağu 2026, kullanıcı geri
+  // bildirimi: "ön değerlendirme sonucu yazara değil danışmana gitmeli,
+  // yazar bunu görüp ne yapacak?"). Önceden burada göstergelerin HAM İÇ
+  // SİSTEM İSİMLERİ (yanit_guvenilirligi, beklenti_riski, gosterge kodları)
+  // doğrudan, hiç çevrilmeden yazdırılıyordu — teknik bir rapor, adayın
+  // eyleme geçirebileceği bir şey değildi. Bu detaylı analiz zaten backend
+  // tarafından DANIŞMAN PANELİNE gidiyor (GET /admin/adaylar/:id/gorusme-
+  // plani, "Görüşme Oyun Planı" ekranı) — adaya aynısını ham haliyle
+  // tekrar göstermenin faydası yoktu, kafa karıştırıyordu. Aday artık
+  // yalnız özet ve net bir sonraki adım görüyor. ----------
   if (sonuc) {
-    const B = ({ baslik, children }) => (
-      <div style={{ marginBottom: 18 }}>
-        <div style={{ fontSize: 11, letterSpacing: ".22em", color: "rgba(201,162,75,.7)", marginBottom: 6 }}>{baslik}</div>
-        {children}
-      </div>
-    );
-    const Liste = ({ veri, bos }) => {
-      const dizi = Array.isArray(veri) ? veri : [];
-      if (!dizi.length) return <p className="aday-metin" style={{ fontSize: 13 }}>{bos}</p>;
-      return dizi.map((x, i) => (
-        <div key={i} style={{ fontSize: 13, color: "rgba(245,240,228,.72)", marginBottom: 5, lineHeight: 1.55 }}>
-          · {x.gosterge || x.hizmet || x.risk || x.adim || JSON.stringify(x)}
-          {x.neden && <span style={{ color: "rgba(245,240,228,.45)" }}> — {Array.isArray(x.neden) ? x.neden.join(", ") : x.neden}</span>}
-          {x.gerekce && <span style={{ color: "rgba(245,240,228,.45)" }}> — {Array.isArray(x.gerekce) ? x.gerekce.join(", ") : x.gerekce}</span>}
-          {x.dayanak && <span style={{ color: "rgba(245,240,228,.45)" }}> — {Array.isArray(x.dayanak) ? x.dayanak.join(", ") : x.dayanak}</span>}
-        </div>
-      ));
-    };
-    const guvenRengi = { yuksek: "#2E7D32", orta: "#C9A24B", dusuk: "#C0392B" }[sonuc.analiz_guveni] || "#C9A24B";
-
     return (
       <div style={{ animation: "adayGiris .8s both", paddingBottom: 30 }}>
         <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 14 }}>
           ÖN DEĞERLENDİRME SONUCUNUZ
         </div>
 
-        <B baslik="DURUMUNUZUN ÖZETİ">
-          <p className="aday-metin">{sonuc.ozet}</p>
-        </B>
+        <p className="aday-metin" style={{ fontSize: 15, lineHeight: 1.65, marginBottom: 22 }}>{sonuc.ozet}</p>
 
-        <B baslik="DOĞRULANMIŞ GÜÇLÜ TARAFLAR">
-          <Liste veri={sonuc.guclu_taraflar} bos="Henüz doğrulanmış bir alan yok — bu olağan, süreç yeni başlıyor." />
-        </B>
-
-        <B baslik="ÖNCELİKLİ İHTİYAÇLAR">
-          <Liste veri={sonuc.oncelikli_ihtiyaclar} bos="Belirgin bir eksik görünmüyor." />
-        </B>
-
-        <B baslik="ŞU AN ÖNERİLMEYEN / ERTELENEN HİZMETLER">
-          <Liste veri={sonuc.ertelenen_hizmetler} bos="Ertelenmesi gereken bir hizmet yok." />
-        </B>
-
-        <B baslik="OLASI RİSKLER VE NASIL AZALTILIR">
-          <Liste veri={sonuc.riskler} bos="Belirgin bir risk sinyali yok." />
-        </B>
-
-        <B baslik="GÜVENLİ BAŞLANGIÇ YOLU">
-          <p className="aday-metin">{sonuc.guvenli_baslangic?.aciklama || "—"}</p>
-        </B>
-
-        <B baslik="ALTERNATİF YOL">
-          <p className="aday-metin">{sonuc.alternatif_yol?.aciklama || "—"}</p>
-        </B>
-
-        <B baslik="ANALİZ GÜVEN SEVİYESİ">
-          <div style={{ fontSize: 14, color: guvenRengi, fontWeight: 600 }}>
-            {({ yuksek: "Yüksek", orta: "Orta", dusuk: "Düşük" })[sonuc.analiz_guveni] || sonuc.analiz_guveni}
+        {sonuc.guvenli_baslangic?.aciklama && (
+          <div style={{ marginBottom: 22 }}>
+            <div style={{ fontSize: 11, letterSpacing: ".22em", color: "rgba(201,162,75,.7)", marginBottom: 6 }}>SONRAKİ ADIM</div>
+            <p className="aday-metin">{sonuc.guvenli_baslangic.aciklama}</p>
           </div>
-          <p className="aday-metin" style={{ fontSize: 12.5 }}>{sonuc.analiz_guven_nedeni}</p>
-        </B>
-
-        <B baslik="DANIŞMANLA DOĞRULANACAK KONULAR">
-          {(sonuc.danismanla_dogrulanacak || []).length
-            ? (sonuc.danismanla_dogrulanacak || []).map((x, i) => (
-                <div key={i} style={{ fontSize: 13, color: "rgba(245,240,228,.72)", marginBottom: 4 }}>· {x}</div>))
-            : <p className="aday-metin" style={{ fontSize: 13 }}>—</p>}
-        </B>
+        )}
 
         <div style={{ padding: "12px 14px", background: "rgba(201,162,75,.07)",
                       border: "1px solid rgba(201,162,75,.25)", marginBottom: 16 }}>
@@ -8671,14 +8605,12 @@ function AdayDeneyimi({ kaynak }) {
   // bölümler) — artık dar bir yan panele sıkıştırılmadan tüm genişliği alıyor.
   const bekleniyor = eser && (eser.durum === "incelemede" || eser.durum === "rapor_hazir");
 
-  if (bekleniyor && taramaAktif) return (
-    <div className="aday-zemin">
-      <style>{ADAY_CSS}</style>
-      <Ust />
-      <EserTaramaGecisi ilerleme={ilerleme} simAdim={simAdim} onDevam={() => setTaramaAktif(false)} />
-    </div>
-  );
-
+  // KALDIRILDI (5 Ağu 2026, kullanıcı geri bildirimi): ayrı bir
+  // EserTaramaGecisi ARA ekranı vardı — eser gönderilince önce bu açılıyor,
+  // "AKADEMİYE GÖZ ATIN" ile BeklemeIcerigi'ne geçiliyordu. Kullanıcı iki
+  // katmanlı bu yapıyı "sertifika ekranı hâlâ karşılıyor, kaldıralım" diye
+  // bildirdi. BeklemeIcerigi'nin B1 bölümü artık AYNI tarama görselini
+  // (gerçek ilerleme yüzdesiyle) SÜREKLİ gösteriyor — tek katman, tek ekran.
   if (bekleniyor) return (
     <div className="aday-zemin">
       <style>{ADAY_CSS}</style>
@@ -9122,7 +9054,7 @@ function YazarUygulamasi({ onAdayGirisTamam } = {}) {
       {/* Kadife dokusu — sitedeki .vel katmanı */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", opacity: 0.35, zIndex: 1, background: THEME.kadife }} />
       <UygulamaIndirSeridi />
-      <OkunmamisDuyurular duyurular={myAnnouncements} yazarId={account && account.id} />
+      <OkunmamisDuyurular duyurular={myAnnouncements} yazarId={account && account.id} token={session?.token} />
       {akademiKutlama && <AkademiKutlama adSoyad={account && account.name} unvan={account && account.title} onKapat={() => { setAkademiKutlama(false); setAkademiAcik(true); setTab("akademi"); }} />}
       {aktifKutlamalar.length > 0 && <KutlamaOverlay kutlamalar={aktifKutlamalar} onKapat={kutlamaKapat} />}
       <GridBackdrop />

@@ -5405,14 +5405,28 @@ const ADAY_CSS = `
   font-family:'Jost',sans-serif;
   overflow-x:hidden;
 }
+/* DÜZELTME (5 Ağu 2026, gerçek cihaz raporu — "KVKK metni donuyor,
+   açıldığında sorun yaşıyoruz"): justify-content:center kullanılıyordu.
+   Flexbox'ta içerik konteynerden uzun olduğunda merkezleme, taşan kısmı
+   ERİŞİLEMEZ hale getirir (üst kısım kaydırma alanının dışında kalır) —
+   uzun KVKK/gizlilik ekranında tam olarak bu yaşanıyordu, ekran "donmuş"
+   gibi görünüyordu. safe center: içerik sığıyorsa ortalar, sığmıyorsa
+   üstten hizalar ve tamamı kaydırılabilir kalır.
+   Ayrıca 100vh → 100dvh: mobil adres çubuğu 100vh'yi bozuyordu. */
 .aday-tam-ekran {
-  min-height:100vh;
+  min-height:100dvh;
   display:flex;
   flex-direction:column;
   align-items:center;
-  justify-content:center;
+  justify-content:safe center;
   padding:32px 20px;
   position:relative;
+}
+/* safe center desteklemeyen tarayıcılar için geri düşüş — auto margin ile
+   aynı etkiyi verir ve taşmada asla kırpmaz. */
+@supports not (justify-content: safe center){
+  .aday-tam-ekran{justify-content:flex-start}
+  .aday-tam-ekran > *{margin-top:auto;margin-bottom:auto}
 }
 .aday-icerik {
   width:100%;
@@ -5787,19 +5801,27 @@ const ADAY_CSS = `
    Çözüm: dekoratif katmanları (video/partikül/karartma/çizgi/elmas) fixed
    yapıp viewport'a sabitledik — sayfa ne kadar uzarsa uzasın hep ekranı
    kaplarlar. Container'ın kendisi artık taşabilir, body scroll çalışır. */
-.aday-vz { position:relative; min-height:100vh; }
+/* DÜZELTME #2 (5 Ağu 2026, "Güven ve Gizlilik sayfasında hep takılıyor,
+   aşağı kaymıyor"): katmanları fixed yapmak kırpma sorununu çözdü ama YENİ
+   bir sorun yarattı — tüm ekranı kaplayan bu SABİT katmanlar dokunma
+   olaylarını YAKALIYORDU. İçeriğin bulunmadığı boşluklara (kenar boşlukları,
+   maddeler arası) parmak değdiğinde sabit katmana denk geliyor ve sayfa
+   kaymıyordu; "bazı yerlerde takılıyor" tam olarak buydu.
+   pointer-events:none ile tüm dekoratif katmanlar dokunmayı ALTLARINDAKİ
+   içeriğe geçiriyor — hiçbiri tıklanabilir/etkileşimli değil zaten. */
+.aday-vz { position:relative; min-height:100dvh; }
 .aday-vz-video {
-  position:fixed; inset:0; width:100%; height:100%;
+  position:fixed; inset:0; width:100%; height:100%; pointer-events:none;
   object-fit:cover; opacity:.38; z-index:0; transition:opacity .6s;
 }
 .aday-vz-video.bitti { opacity:.12; }
-.aday-vz-partikul { position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:0; transition:opacity 1.2s ease; }
+.aday-vz-partikul { position:fixed; inset:0; width:100%; height:100%; z-index:0; opacity:0; transition:opacity 1.2s ease; pointer-events:none; }
 .aday-vz-partikul.ak { opacity:1; }
-.aday-vz-karart { position:fixed; inset:0; background:rgba(3,8,18,.6); z-index:1; }
-.aday-vz-cizgi { position:fixed; top:0; left:0; right:0; height:2px; overflow:hidden; z-index:5; }
+.aday-vz-karart { position:fixed; inset:0; background:rgba(3,8,18,.6); z-index:1; pointer-events:none; }
+.aday-vz-cizgi { position:fixed; top:0; left:0; right:0; height:2px; overflow:hidden; z-index:5; pointer-events:none; }
 .aday-vz-cizgi-ic { position:absolute; width:50%; height:100%; background:linear-gradient(90deg,transparent,#F0D68A,transparent); animation:adaySur2 2.5s ease-in-out infinite; }
 @keyframes adaySur2 { 0%{transform:translateX(-100%)} 100%{transform:translateX(400%)} }
-.aday-vz-elmas { position:fixed; width:8px; height:8px; background:#C9A24B; transform:rotate(45deg); z-index:5; }
+.aday-vz-elmas { position:fixed; width:8px; height:8px; background:#C9A24B; transform:rotate(45deg); z-index:5; pointer-events:none; }
 .aday-vz-ic { position:relative; z-index:2; }
 
 /* Amiral gemisi aday karşılama — aday daha formu görmeden değeri deneyimler */
@@ -6080,7 +6102,15 @@ const BK_CSS = `
    Mobil + Masaüstü responsive
 ══════════════════════════════════════════ */
 .bk{font-family:'Jost',sans-serif;font-weight:300;color:rgba(245,240,228,1);overflow-x:hidden}
-.bk-scroll{overflow-y:auto;max-height:100vh;scroll-snap-type:y mandatory;scroll-behavior:smooth}
+/* DÜZELTME (5 Ağu 2026, gerçek cihaz raporu — "aşağıya kaydıramıyoruz,
+   bazı yerlerde takılıyor"): scroll-snap-type MANDATORY idi. Mandatory,
+   her bölüme zorla yapışır; bir bölümün içeriği ekrandan uzunsa geri kalanı
+   GÖRÜLEMEZ hale gelir (kaydırma geri sıçrar) — mobilde tam olarak
+   "takılma" hissi buradan geliyordu. PROXIMITY'ye çevrildi: yakınsa
+   yapışır, kullanıcı serbestçe kaydırabilir.
+   Ayrıca 100vh → 100dvh: mobil tarayıcıda adres çubuğu 100vh'yi bozar. */
+.bk-scroll{overflow-y:auto;max-height:100dvh;scroll-snap-type:y proximity;
+  scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain}
 .bk-scroll::-webkit-scrollbar{width:2px}
 .bk-scroll::-webkit-scrollbar-thumb{background:rgba(201,162,75,.3)}
 
@@ -6116,11 +6146,16 @@ const BK_CSS = `
 @keyframes bkSeritTaramaYavas { 0% { opacity:0; transform:translateX(-100%); } 12% { opacity:1; } 88% { opacity:1; } 100% { opacity:0; transform:translateX(100%); } }
 
 /* Her bölüm tam ekran yüksekliği */
+/* DÜZELTME (5 Ağu 2026): overflow:hidden idi — içerik ekrandan uzun
+   olduğunda taşan kısım KIRPILIYOR ve asla görülemiyordu (mandatory snap
+   ile birleşince tam bir kilitlenme). Artık taşan içerik görünür ve
+   min-height sabit yükseklik dayatmıyor. */
 .bk-bolum{
   min-height:100dvh;
   scroll-snap-align:start;
-  position:relative;overflow:hidden;
+  position:relative;
   display:flex;flex-direction:column;justify-content:center;
+  padding-bottom:24px;
 }
 
 /* Ortak iç padding — responsive */
@@ -6244,10 +6279,21 @@ const BK_CSS = `
 @media (min-width:1101px){ .bk-yor-kartlar{display:contents} }
 
 /* Scroll göstergesi */
-.bk-asagi{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
-  display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;
-  font-size:9px;letter-spacing:.22em;color:rgba(201,162,75,.45)}
-.bk-asagi-ok{width:1px;height:28px;background:linear-gradient(180deg,rgba(201,162,75,.5),transparent);animation:bkAsagi 2s ease infinite}
+/* DÜZELTME (5 Ağu 2026, kullanıcı gözlemi — "insanlar o ekrana gelip
+   bekliyor, başka bir şey yok sanıyorlar"): aşağı kaydırma işareti
+   9px ve %45 opaklıkla neredeyse görünmezdi. Artık belirgin: daha büyük
+   metin, çerçeveli buton görünümü, kalın çift ok ve nefes alan bir
+   hareket. Kullanıcının aşağıda içerik olduğunu kaçırması zor. */
+.bk-asagi{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;
+  font-size:10.5px;letter-spacing:.2em;color:#F0D68A;
+  padding:10px 18px;border:1px solid rgba(201,162,75,.4);
+  background:rgba(5,13,26,.72);backdrop-filter:blur(6px);
+  animation:bkAsagiNefes 2.6s ease-in-out infinite;z-index:20}
+.bk-asagi:hover{background:rgba(201,162,75,.14)}
+.bk-asagi-ok{width:14px;height:14px;border-right:2px solid #F0D68A;border-bottom:2px solid #F0D68A;
+  transform:rotate(45deg);animation:bkAsagi 2s ease infinite;margin-bottom:2px}
+@keyframes bkAsagiNefes{0%,100%{box-shadow:0 0 0 rgba(201,162,75,0)}50%{box-shadow:0 0 22px rgba(201,162,75,.28)}}
 
 /* Karşılaştırma kartları */
 .bk-krt{padding:clamp(20px,3vw,28px);animation:bkGel .6s both}
@@ -6570,6 +6616,15 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
                 <svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /></svg>
                 ÜÇÜNCÜ KİŞİYLE PAYLAŞILMAZ
               </div>
+            </div>
+            {/* EKLENDİ (5 Ağu 2026, kullanıcı gözlemi): adaylar bu ekranda
+                bekleyip "başka bir şey yok" sanıyordu. Aşağıda içerik
+                olduğu artık açıkça söyleniyor. */}
+            <div style={{ marginTop: 26, textAlign: "center", position: "relative", zIndex: 3,
+                          fontSize: 13, color: "rgba(245,240,228,.6)", lineHeight: 1.7, maxWidth: 380 }}>
+              İnceleme yaklaşık <b style={{ color: "#F0D68A", fontWeight: 400 }}>48 saat</b> sürer —
+              beklemek zorunda değilsiniz.<br />
+              Aşağıda sizi neler beklediğini keşfedin.
             </div>
           </div>
           <Asagi />
@@ -8573,11 +8628,45 @@ function AdayDeneyimi({ kaynak }) {
         <div style={{ animation: "adayGiris .8s both" }}>
           <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 16 }}>GÜVEN VE GİZLİLİK</div>
           <h1 className="aday-baslik">Eserinizi göndermeden önce</h1>
+
+          {/* YENİDEN YAZILDI (5 Ağu 2026): Yapay zekâ incelemesi önceden
+              sadece bir "işlem adımı" gibi anlatılıyordu — aday için bu
+              kaygı verici duruyordu. Artık MST'nin editöryal gücü olarak
+              konumlandırılıyor. Buradaki her cümle sistemin GERÇEKTEN
+              yaptığı işe dayanır (bkz. aday.js EDITORYAL_TALIMATI):
+              eserin tamamı bölüm bölüm okunur; yapı, dil ve kurgu AYRI
+              AYRI değerlendirilir; talimat seti abartılı övgüyü ve karar
+              vermeyi açıkça yasaklar; nihai karar editöre bırakılır. */}
+          <div className="aday-kasa-cerceve" style={{ marginBottom: 20 }}>
+            <div className="aday-kasa-izgara" />
+            <div style={{ fontSize: 10.5, letterSpacing: ".22em", color: "#F0D68A", marginBottom: 10 }}>
+              MST EDİTÖRYAL ZEKÂ
+            </div>
+            <p className="aday-metin" style={{ marginBottom: 12 }}>
+              Eserinizi, MST'nin <b style={{ color: "#F0D68A", fontWeight: 400 }}>kendi editöryal ölçütleriyle
+              yapılandırdığı</b> bir yapay zekâ inceler. Genel amaçlı bir sohbet aracı değil —
+              yayıncılık değerlendirmesi için özel olarak talimatlandırılmış, tek işi eser okumak olan bir sistem.
+            </p>
+            <div className="aday-guven-liste" style={{ margin: 0 }}>
+              {[
+                ["Eserinizin tamamı okunur", "Birkaç sayfaya bakıp geçmez. Metin bölüm bölüm işlenir; hiçbir kısım atlanmaz."],
+                ["Üç ayrı gözle değerlendirilir", "Yapı, dil-anlatım ve kurgu ayrı ayrı incelenir — her biri için ayrı gözlem üretilir."],
+                ["Övgü değil, gerçek geri bildirim", "Sistem abartılı övgü ve satış dili kullanmaktan açıkça men edilmiştir. Emin olmadığı yerde 'bu bölümden anlaşılmıyor' der."],
+                ["Karar vermez, gözlem üretir", "Yapay zekâ hiçbir koşulda 'yayınlanır' ya da 'yayınlanmaz' demez. Bu yetki yalnızca editördedir."],
+              ].map(([b, a]) => (
+                <div key={b} className="aday-guven-madde">
+                  <strong>{b}</strong>
+                  <span>{a}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="aday-guven-liste">
             {[
-              ["Süreç nasıl işler?", "Eseriniz önce yapay zekâ destekli ön analizden geçer; editoryal sonuç yetkili ekip kontrolüyle hazırlanır."],
-              ["Kimler erişebilir?", "Ön analizi yapay zekâ yapar. Editoryal değerlendirmeyi tamamlamak için yetkili editör ekibimiz gerektiğinde eserinize erişebilir."],
-              ["İnsan kontrolü var mı?", "Evet — nihai karar her zaman bir editöre aittir, yapay zekâya değil. Yapay zekâ çıktısı kesin hüküm değil, ön analizdir."],
+              ["Sonrasında ne olur?", "Yapay zekânın bulguları, alanında deneyimli editörlerimize iletilir. Onlar bulguları eserinizin bütünü içinde değerlendirir ve nihai kararı verir."],
+              ["Son söz kimde?", "Her zaman bir editörde — yapay zekâda değil. Yapay zekâ çıktısı kesin hüküm değil, editörün önünü açan ayrıntılı bir ön analizdir."],
+              ["Kimler erişebilir?", "Yalnızca değerlendirmeyi yürüten yetkili editör ekibimiz, yalnızca gerektiğinde."],
               ["Üçüncü kişilerle paylaşım", "Dosyanız hiçbir üçüncü kişi veya kurumla paylaşılmaz."],
               ["Model eğitimi", "Eseriniz hiçbir yapay zekâ modelinin eğitiminde kullanılmaz."],
               ["İnceleme süresi", "Ön inceleme yaklaşık 48 saat sürer."],
@@ -8596,7 +8685,7 @@ function AdayDeneyimi({ kaynak }) {
           </label>
           <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12, fontSize: 12.5, color: "rgba(245,240,228,.75)", cursor: "pointer", lineHeight: 1.5 }}>
             <input type="checkbox" checked={acikRizaOnay} onChange={e => setAcikRizaOnay(e.target.checked)} style={{ marginTop: 2 }} />
-            <span>Eserimin <b style={{ color: "#F0D68A" }}>yapay zekâ tarafından incelenmesine</b> açık rıza veriyorum.</span>
+            <span>Eserimin <b style={{ color: "#F0D68A" }}>MST editöryal zekâsı tarafından incelenmesine</b> ve bulguların editör ekibine iletilmesine açık rıza veriyorum.</span>
           </label>
           <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 20, fontSize: 12.5, color: "rgba(245,240,228,.5)", cursor: "pointer", lineHeight: 1.5 }}>
             <input type="checkbox" checked={ticariIletiOnay} onChange={e => setTicariIletiOnay(e.target.checked)} style={{ marginTop: 2 }} />

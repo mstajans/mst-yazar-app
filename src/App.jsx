@@ -1512,7 +1512,7 @@ function DemoDeneyimi({ kod }) {
               ["ISBN & bandrol", "Kendiniz başvurursunuz", "Biz alırız"],
               ["Editör & redaksiyon", "Ayrıca ödersiniz", "Pakete dahil"],
               ["Kapak tasarımı", "Ayrıca ödersiniz", "Pakete dahil"],
-              ["6 pazaryerinde satış", "Her biri ayrı başvuru", "Otomatik"],
+              ["15 pazaryerinde satış", "Her biri ayrı başvuru", "Otomatik"],
               ["Satış takibi", "Excel tutarsınız", "Uygulamada canlı"],
               ["Tanıtım", "Kendiniz öğrenirsiniz", "Uzman ekip"],
             ].map(([konu, tek, biz]) => (
@@ -5815,6 +5815,131 @@ const ADAY_CSS = `
 .aday-guven-madde { border-left:2px solid rgba(201,162,75,.4); padding:11px 12px; background:rgba(7,17,32,.36); }
 .aday-guven-madde strong { display:block; font-size:13px; color:#F0D68A; margin-bottom:3px; font-weight:400; }
 .aday-guven-madde span { display:block; font-size:12.5px; color:#D5DDE5; line-height:1.55; }
+/* KASA PROTOKOLÜ — güven/güvenlik teması (5 Ağu 2026). Eser yükleme,
+   bekleme salonu ve Süreç Merkezi'nde tekrar kullanılan ortak parçalar.
+   MST paleti: zemin #050D1A/#0A1628, altın #C9A24B/#F0D68A — siber-güvenlik
+   yeşili YOK, marka rengiyle aynı dil. */
+.aday-kasa-cerceve {
+  position: relative; overflow: hidden;
+  border: 1px solid rgba(201,162,75,.28);
+  background: linear-gradient(160deg, rgba(5,13,26,.85), rgba(10,22,40,.75));
+  padding: 18px 20px; margin-bottom: 20px;
+}
+.aday-kasa-izgara {
+  position: absolute; inset: 0; opacity: .05; pointer-events: none;
+  background-image: linear-gradient(#C9A24B 1px, transparent 1px), linear-gradient(90deg, #C9A24B 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.aday-kasa-tarama {
+  position: absolute; left: 0; right: 0; height: 2px; top: 0;
+  background: linear-gradient(90deg, transparent, #F0D68A, transparent);
+  box-shadow: 0 0 8px rgba(240,214,138,.45);
+  animation: adayKasaTara 3.4s linear infinite;
+  pointer-events: none;
+}
+@keyframes adayKasaTara { 0% { top: 0; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+.aday-kasa-elmas { position: absolute; width: 6px; height: 6px; background: #C9A24B; transform: rotate(45deg); z-index: 2; }
+.aday-kasa-ust { display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; margin-bottom: 4px; }
+.aday-kasa-kilit {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%;
+  border: 1px solid rgba(201,162,75,.4); background: rgba(201,162,75,.07);
+  display: flex; align-items: center; justify-content: center;
+}
+.aday-kasa-kilit svg { width: 17px; height: 17px; stroke: #F0D68A; fill: none; stroke-width: 1.6; }
+.aday-kasa-baslik { font-family: 'Jost', sans-serif; font-size: 12px; letter-spacing: .12em; color: #F0D68A; margin-bottom: 2px; }
+.aday-kasa-alt { font-size: 11px; color: rgba(245,240,228,.45); }
+.aday-sekme-serit::-webkit-scrollbar { display: none; }
+/* ESER TARAMA GEÇİŞİ — eser yüklendiği an gösterilen kısa ara sahne
+   (5 Ağu 2026). Konsept 1 (Parçacık Bulutu + Tarama Çizgisi). Yüzde GERÇEK
+   backend verisinden gelir (ilerleme prop'u) — burada sahte animasyon yok. */
+.aday-tarama-ekran { min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 32px 24px; position: relative; overflow: hidden; }
+.aday-tarama-izgara { position: absolute; inset: 0; opacity: .04; pointer-events: none;
+  background-image: linear-gradient(#C9A24B 1px, transparent 1px), linear-gradient(90deg, #C9A24B 1px, transparent 1px);
+  background-size: 26px 26px; }
+.aday-tarama-harf { position: absolute; font-family: 'Cormorant Garamond', serif; font-style: italic;
+  color: rgba(240,214,138,.5); pointer-events: none; animation: adayTaramaSuzul linear infinite; }
+@keyframes adayTaramaSuzul { 0% { opacity: 0; transform: translateY(0) rotate(0deg); } 15% { opacity: .75; }
+  85% { opacity: .55; } 100% { opacity: 0; transform: translateY(-90px) rotate(10deg); } }
+.aday-tarama-lock { width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(201,162,75,.4);
+  background: rgba(201,162,75,.07); display: flex; align-items: center; justify-content: center; margin-bottom: 14px;
+  position: relative; z-index: 3; }
+.aday-tarama-lock svg { width: 18px; height: 18px; stroke: #F0D68A; fill: none; stroke-width: 1.6; }
+.aday-tarama-baslik { font-size: 10.5px; letter-spacing: .2em; color: #F0D68A; margin-bottom: 26px; position: relative; z-index: 3; }
+.aday-tarama-kutu { width: 100%; max-width: 340px; padding: 20px; border: 1px solid rgba(201,162,75,.22);
+  background: rgba(5,13,26,.5); position: relative; z-index: 2; margin-bottom: 22px; overflow: hidden; }
+.aday-tarama-cizgi { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #F0D68A, transparent);
+  box-shadow: 0 0 14px rgba(240,214,138,.55); animation: adayTaramaCizgi 3s ease-in-out infinite; z-index: 3; }
+@keyframes adayTaramaCizgi { 0%, 100% { top: 8%; } 50% { top: 88%; } }
+.aday-tarama-satir { height: 8px; background: rgba(245,240,228,.12); margin-bottom: 11px; border-radius: 2px; }
+.aday-tarama-satir.net { background: rgba(240,214,138,.32); }
+.aday-tarama-durum { font-size: 12.5px; color: rgba(245,240,228,.6); text-align: center; margin-bottom: 4px; position: relative; z-index: 3; }
+.aday-tarama-yuzde { font-family: 'JetBrains Mono', monospace; font-size: 30px; color: #F0D68A; text-align: center;
+  margin-bottom: 22px; position: relative; z-index: 3; }
+.aday-tarama-guvenlik { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-bottom: 30px; position: relative; z-index: 3; }
+.aday-tarama-guv-item { display: flex; align-items: center; gap: 5px; font-size: 10px; letter-spacing: .04em; color: rgba(201,162,75,.65); }
+.aday-tarama-guv-item svg { width: 12px; height: 12px; stroke: #C9A24B; fill: none; stroke-width: 1.7; flex-shrink: 0; }
+.aday-tarama-cta { position: relative; z-index: 3; text-align: center; }
+.aday-tarama-cta-alt { font-size: 12px; color: rgba(245,240,228,.4); margin-bottom: 12px; }
+
+/* SOHBET BALONU — AI karşılama (5 Ağu 2026) */
+.aday-sohbet-ust {
+  position: sticky; top: 0; z-index: 5; background: rgba(5,13,26,.92);
+  backdrop-filter: blur(6px); padding: 14px 4px 12px; margin-bottom: 4px;
+  border-bottom: 1px solid rgba(201,162,75,.15);
+}
+.aday-sohbet-kimlik { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.aday-sohbet-avatar {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(201,162,75,.08); border: 1px solid rgba(201,162,75,.4);
+  display: flex; align-items: center; justify-content: center; font-size: 13px; color: #F0D68A;
+}
+.aday-sohbet-ad { font-size: 12.5px; color: #F0D68A; }
+.aday-sohbet-durum { font-size: 9.5px; color: rgba(74,222,148,.75); margin-top: 1px; }
+.aday-sohbet-ilerleme { display: flex; align-items: center; gap: 8px; }
+.aday-sohbet-ilerleme-bar { flex: 1; height: 2px; background: rgba(201,162,75,.15); }
+.aday-sohbet-ilerleme-dolu { height: 100%; background: #C9A24B; transition: width .3s; }
+.aday-sohbet-ilerleme-sayi { font-size: 10.5px; color: rgba(245,240,228,.4); flex-shrink: 0; }
+
+.aday-sohbet-govde { display: flex; flex-direction: column; gap: 10px; padding: 12px 2px 6px; }
+.aday-balon {
+  max-width: 84%; padding: 11px 15px; border-radius: 16px; font-size: 13.5px; line-height: 1.5;
+  animation: adayBalonGir .4s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes adayBalonGir { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.aday-balon-ai {
+  background: rgba(201,162,75,.09); border: 1px solid rgba(201,162,75,.22);
+  border-bottom-left-radius: 4px; align-self: flex-start; color: #F5F0E4;
+}
+.aday-balon-user {
+  background: rgba(245,240,228,.07); border: 1px solid rgba(245,240,228,.1);
+  border-bottom-right-radius: 4px; align-self: flex-end; color: rgba(245,240,228,.9);
+}
+.aday-balon-aciklama { font-size: 11.5px; color: rgba(245,240,228,.5); margin-top: 6px; }
+.aday-yaziyor {
+  align-self: flex-start; padding: 12px 16px; background: rgba(201,162,75,.07);
+  border: 1px solid rgba(201,162,75,.18); border-radius: 16px; border-bottom-left-radius: 4px;
+  display: flex; gap: 4px; animation: adayBalonGir .3s both;
+}
+.aday-yaziyor span { width: 5px; height: 5px; border-radius: 50%; background: rgba(240,214,138,.65); animation: adayNoktaVurgu 1.2s ease infinite; }
+.aday-yaziyor span:nth-child(2) { animation-delay: .15s; }
+.aday-yaziyor span:nth-child(3) { animation-delay: .3s; }
+@keyframes adayNoktaVurgu { 0%,60%,100% { opacity: .3; transform: translateY(0); } 30% { opacity: 1; transform: translateY(-2px); } }
+
+.aday-sohbet-secenekler { display: flex; flex-direction: column; gap: 8px; padding: 4px 2px 0; animation: adayBalonGir .35s both; }
+.aday-sohbet-chip {
+  padding: 12px 16px; text-align: left; background: rgba(7,13,27,.2);
+  border: 1px solid rgba(201,162,75,.3); color: #F5F0E4; font-family: 'Jost', sans-serif;
+  font-size: 13px; border-radius: 14px; cursor: pointer; transition: background .15s, border-color .15s;
+}
+.aday-sohbet-chip.secili { background: rgba(201,162,75,.16); border-color: #C9A24B; }
+.aday-sohbet-chip:disabled { opacity: .4; cursor: not-allowed; }
+
+.aday-kasa-rozet {
+  position: absolute; top: 14px; right: 16px; z-index: 2;
+  font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: .1em; color: rgba(240,214,138,.75);
+  border: 1px solid rgba(201,162,75,.3); padding: 3px 9px;
+}
 .aday-yukleme-gucler { display:flex; gap:12px; margin:20px 0 28px; flex-wrap:wrap; }
 .aday-yukleme-guc { flex:1 1 130px; min-height:62px; border:1px solid rgba(201,162,75,.18); background:rgba(7,17,32,.42); padding:12px; }
 .aday-yukleme-guc b { display:block; color:#F0D68A; font-size:11px; letter-spacing:.07em; margin-bottom:4px; font-weight:400; }
@@ -5924,6 +6049,9 @@ const BK_CSS = `
   background:none;border:1px solid rgba(245,240,228,.1);font-family:'Jost',sans-serif;
   padding:5px 12px;transition:all .2s;flex-shrink:0;white-space:nowrap}
 .bk-serit-atla:hover{color:rgba(201,162,75,.7);border-color:rgba(201,162,75,.3)}
+.bk-serit-tarama{position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,#F0D68A,transparent);
+  box-shadow:0 0 6px rgba(240,214,138,.4);animation:adayKasaTara 3.4s linear infinite}
 
 /* Her bölüm tam ekran yüksekliği */
 .bk-bolum{
@@ -5974,7 +6102,14 @@ const BK_CSS = `
 .bk-mad-ikon{width:clamp(32px,4vw,38px);height:clamp(32px,4vw,38px);border:1px solid rgba(201,162,75,.3);
   display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:clamp(14px,2vw,17px)}
 .bk-mad-bas{font-size:clamp(12px,1.5vw,13.5px);color:rgba(245,240,228,.85);margin-bottom:3px;font-weight:400}
-.bk-mad-acik{font-size:clamp(11px,1.3vw,12.5px);color:rgba(245,240,228,.42);line-height:1.65}
+.bk-mad-acik{font-size:clamp(12px,1.4vw,13.5px);color:rgba(245,240,228,.58);line-height:1.68}
+
+/* Özellik kartı grid — B4 uygulama tanıtımı */
+.bk-ozellik-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;margin-top:8px}
+.bk-ozellik-kart{border:1px solid rgba(201,162,75,.22);background:rgba(8,16,40,.5);padding:20px;animation:bkGel .6s both}
+.bk-ozellik-ikon{font-size:22px;margin-bottom:10px}
+.bk-ozellik-bas{font-size:14px;color:#F0D68A;font-weight:400;margin-bottom:6px}
+.bk-ozellik-acik{font-size:12.5px;color:rgba(245,240,228,.6);line-height:1.6}
 
 /* Scroll göstergesi */
 .bk-asagi{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
@@ -5994,9 +6129,9 @@ const BK_CSS = `
 .bk-krt-mad-bas{font-size:clamp(12px,1.5vw,13px);margin-bottom:2px;font-weight:400}
 .bk-krt.diger .bk-krt-mad-bas{color:rgba(245,240,228,.42)}
 .bk-krt.mst .bk-krt-mad-bas{color:rgba(245,240,228,.85)}
-.bk-krt-mad-acik{font-size:clamp(11px,1.3vw,12px);line-height:1.6}
-.bk-krt.diger .bk-krt-mad-acik{color:rgba(220,100,100,.5)}
-.bk-krt.mst .bk-krt-mad-acik{color:rgba(245,240,228,.38)}
+.bk-krt-mad-acik{font-size:clamp(12px,1.4vw,13.5px);line-height:1.65}
+.bk-krt.diger .bk-krt-mad-acik{color:rgba(220,120,120,.62)}
+.bk-krt.mst .bk-krt-mad-acik{color:rgba(245,240,228,.56)}
 
 /* Yazarlık testi */
 .bk-test-soru{font-size:clamp(12px,1.6vw,13px);letter-spacing:.12em;color:rgba(245,240,228,.65);margin-bottom:14px}
@@ -6054,7 +6189,7 @@ const BK_CSS = `
 .bk-gercek-num{font-family:'Cormorant Garamond',serif;font-size:clamp(28px,4vw,36px);font-weight:300;color:#C9A24B}
 .bk-gercek.t .bk-gercek-num{color:rgba(220,100,100,.8)}
 .bk-gercek-bas{font-size:clamp(12px,1.5vw,13px);color:rgba(245,240,228,.85);margin:5px 0;font-weight:400}
-.bk-gercek-acik{font-size:clamp(11px,1.3vw,12.5px);color:rgba(245,240,228,.38);line-height:1.7}
+.bk-gercek-acik{font-size:clamp(12px,1.4vw,13.5px);color:rgba(245,240,228,.56);line-height:1.7}
 
 /* Telefon simülasyonu */
 .bk-tel-wrap{display:flex;justify-content:center}
@@ -6075,7 +6210,7 @@ const BK_CSS = `
 .bk-tel-logo{font-family:'Cormorant Garamond',serif;font-size:clamp(7px,1.2vw,9px);letter-spacing:.14em;color:#C9A24B}
 .bk-tel-pul{width:5px;height:5px;border-radius:50%;background:#C9A24B;animation:bkPar 1.5s ease infinite}
 .bk-tel-k{border:1px solid rgba(201,162,75,.15);padding:clamp(6px,1vw,8px);background:rgba(10,22,40,.6)}
-.bk-tel-k-bas{font-size:clamp(6px,1vw,7.5px);letter-spacing:.14em;color:rgba(245,240,228,.3);margin-bottom:3px}
+.bk-tel-k-bas{font-size:clamp(8px,1.1vw,9.5px);letter-spacing:.14em;color:rgba(245,240,228,.5);margin-bottom:3px}
 .bk-tel-k-val{font-family:'Cormorant Garamond',serif;font-size:clamp(13px,2vw,17px);color:#F0D68A}
 .bk-tel-k-bar-wrap{height:2px;background:rgba(201,162,75,.1);margin-top:3px}
 .bk-tel-k-bar{height:100%;background:linear-gradient(90deg,#8C6A22,#F0D68A)}
@@ -6102,7 +6237,7 @@ const BK_CSS = `
 .bk-ders.ak .bk-ders-gun{color:#C9A24B}
 .bk-ders-bas{font-family:'Cormorant Garamond',serif;font-size:clamp(15px,2vw,18px);color:#F0D68A;
   margin-bottom:6px;line-height:1.3}
-.bk-ders-met{font-size:clamp(11px,1.4vw,12.5px);color:rgba(245,240,228,.38);line-height:1.65}
+.bk-ders-met{font-size:clamp(12px,1.5vw,13.5px);color:rgba(245,240,228,.56);line-height:1.65}
 
 /* Animations */
 @keyframes bkGel{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
@@ -6119,74 +6254,82 @@ const BK_CSS = `
 // ══════════════════════════════════════════════════════════
 // BeklemeIcerigi — Eser beklerken gösterilen ikna sahnesi
 // ══════════════════════════════════════════════════════════
+// ============================================================
+// ESER TARAMA GEÇİŞİ (5 Ağu 2026) — eser başarıyla yüklendiği AN gösterilen
+// kısa ara sahne. Yüzde GERÇEK backend verisinden gelir: `ilerleme` prop'u
+// AdayDeneyimi'ndeki /incele polling döngüsünden geliyor (aynı state,
+// BeklemeIcerigi'nin kullandığıyla birebir aynı kaynak) — burada ayrı,
+// sahte bir sayaç YOK. "Akademiye göz atın" CTA'sı asıl bekleme salonuna
+// (Akademi zaten orada) yönlendirir; bu ekran zorunlu bir adım değil.
+// ============================================================
+function EserTaramaGecisi({ ilerleme, simAdim, onDevam }) {
+  const harfler = React.useMemo(() => {
+    const kaynak = "AaBbCcDdEeFfGgŞşĞğİiZzMmNnRrTtÖöÜü";
+    return Array.from({ length: 14 }, (_, i) => ({
+      id: i,
+      harf: kaynak[Math.floor(Math.random() * kaynak.length)],
+      left: 8 + Math.random() * 84,
+      top: 8 + Math.random() * 72,
+      boyut: 14 + Math.random() * 14,
+      gecikme: Math.random() * 6,
+      sure: 4 + Math.random() * 3,
+    }));
+  }, []);
+
+  const yuzde = Math.round((ilerleme || 0) * 100);
+  const durumMetni = SIM_ADIMLAR[simAdim] || SIM_ADIMLAR[0];
+
+  return (
+    <div className="aday-tarama-ekran">
+      <div className="aday-tarama-izgara" />
+      {harfler.map(h => (
+        <span key={h.id} className="aday-tarama-harf" style={{
+          left: `${h.left}%`, top: `${h.top}%`, fontSize: h.boyut,
+          animationDelay: `${h.gecikme}s`, animationDuration: `${h.sure}s`,
+        }}>{h.harf}</span>
+      ))}
+
+      <div className="aday-tarama-lock">
+        <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="1" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
+      </div>
+      <div className="aday-tarama-baslik">ESERİNİZ TARANIYOR</div>
+
+      <div className="aday-tarama-kutu">
+        <div className="aday-tarama-cizgi" />
+        <div className="aday-tarama-satir net" />
+        <div className="aday-tarama-satir" />
+        <div className="aday-tarama-satir net" style={{ width: "70%" }} />
+        <div className="aday-tarama-satir" />
+        <div className="aday-tarama-satir" style={{ width: "55%" }} />
+      </div>
+
+      <div className="aday-tarama-durum">{durumMetni}</div>
+      <div className="aday-tarama-yuzde">%{yuzde}</div>
+
+      <div className="aday-tarama-guvenlik">
+        <div className="aday-tarama-guv-item">
+          <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="1" /><path d="M8 11V7a4 4 0 018 0v4" /></svg>
+          ŞİFRELİ ORTAM
+        </div>
+        <div className="aday-tarama-guv-item">
+          <svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z" /></svg>
+          ÜÇÜNCÜ KİŞİYLE PAYLAŞILMAZ
+        </div>
+      </div>
+
+      <div className="aday-tarama-cta">
+        <div className="aday-tarama-cta-alt">Bu, birkaç dakika sürebilir — beklerken:</div>
+        <button className="aday-btn-asil" onClick={onDevam}>AKADEMİYE GÖZ ATIN →</button>
+      </div>
+    </div>
+  );
+}
+
 function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
   const ilkAd = (yazarAdi || "").split(" ")[0];
   const [gunSecim, setGunSecim] = React.useState(1);
   const [akademiAcik, setAkademiAcik] = React.useState(false);
-  const [testIdx, setTestIdx] = React.useState(0);
-  const [testCvp, setTestCvp] = React.useState({});
-  const [testBitti, setTestBitti] = React.useState(false);
 
-  const TEST_SORULAR = [
-    { s: "Sosyal medyada toplam kaç takipçiniz var?", o: ["Yok ya da çok az", "1.000 – 10.000", "10.000 ve üzeri"], k: "takipci" },
-    { s: "Daha önce yayınladınız mı?", o: ["Hayır, ilk kitabım", "Evet, 1–2 kitap", "Evet, 3 ve daha fazla"], k: "yayin" },
-    { s: "Temel hedefiniz nedir?", o: ["Kitabım yayınlansın", "Okur kitlesi oluşturmak", "Profesyonel yazar olmak"], k: "hedef" },
-  ];
-
-  const testCevap = (key, val) => {
-    const yeni = { ...testCvp, [key]: val };
-    setTestCvp(yeni);
-    // P0.2 DÜZELTMESİ: burada daha önce testCevaplari/setTestCevaplari/kayitEt/
-    // aktifMod/aktifAsama/tamamlananlar kullanılıyordu. Bunların hiçbiri bu
-    // bileşenin kapsamında tanımlı DEĞİLDİ (MSTAkademi'ye aitler) — aday teste
-    // cevap verdiği anda ReferenceError ile ekran çöküyordu.
-    // Cevaplar artık backend'e, kendi oturumu üzerinden kaydediliyor.
-    if (oturum?.token) {
-      fetch(`${BACKEND_URL}/api/aday/degerlendirme`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${oturum.token}` },
-        body: JSON.stringify({
-          cevaplar: yeni,
-          sonAdim: testIdx + 1,
-          tamamlandi: testIdx >= TEST_SORULAR.length - 1,
-        }),
-      }).catch(() => {});
-    }
-    if (testIdx < TEST_SORULAR.length - 1) setTestIdx(testIdx + 1);
-    else setTestBitti(true);
-  };
-
-  // ============================================================
-  // P0.7 DÜZELTMESİ — profil() KALDIRILDI.
-  // Eski hâli iki sorudan (takipçi + yayın geçmişi) doğrudan
-  // "STANDART/PROFESYONEL/VIP PAKET ÖNERİLİR" sonucu üretiyordu.
-  // Bu, direktifin açıkça yasakladığı davranıştı: doğrulanmamış beyandan
-  // kesin ticari sonuç çıkarmak.
-  //
-  // Yerine gelen: kesin öneri değil, ÖN İZLENİM + neyin doğrulanması
-  // gerektiği. Paket adı geçmez, garanti dili kullanılmaz.
-  // Gerçek karar dosyası backend'deki değerlendirme akışında üretilir.
-  // ============================================================
-  const onIzlenim = () => {
-    const cevapSayisi = Object.keys(testCvp).length;
-    const eksik = TEST_SORULAR.length - cevapSayisi;
-
-    // Bu üç soru bir karar için yeterli veri DEĞİLDİR — bunu açıkça söyle.
-    const dogrulanacak = [];
-    if (!testCvp.eser) dogrulanacak.push("eserinizin tamamlanma durumu");
-    if (testCvp.takipci === "10.000 ve üzeri") dogrulanacak.push("kitle erişiminizin kanal verisiyle teyidi");
-    if (!testCvp.hedef) dogrulanacak.push("birincil hedefiniz");
-    dogrulanacak.push("yayın takviminiz ve yatırım tercihiniz");
-
-    return {
-      baslik: "Ön izlenim",
-      metin: eksik > 0
-        ? "Birkaç soru yanıtsız kaldı. Aşağıdaki değerlendirme eksik veriye dayanıyor."
-        : "Bu üç soru bir başlangıç noktası verir; tek başına yayın planı için yeterli değildir.",
-      dogrulanacak,
-      not: "Size uygun yolu belirlemek için eserinizin editoryal ön değerlendirmesi ve kısa bir danışman görüşmesi gerekir. Bu aşamada paket önerilmez.",
-    };
-  };
 
 
   const GUN_DERSLER = {
@@ -6260,9 +6403,15 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
       `}</style>
 
       {/* SABİT ŞERİT */}
-      <div className="bk-serit">
+      <div className="bk-serit" style={{ position: "sticky" }}>
+        <div className="bk-serit-tarama" />
         <div className="bk-serit-logo">MST YAYINCILIK</div>
-        <div className="bk-serit-durum"><div className="bk-serit-nokta" />ESERİNİZ İNCELENİYOR</div>
+        <div className="bk-serit-durum">
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#C9A24B" strokeWidth="2" style={{ marginRight: 2 }}>
+            <rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/>
+          </svg>
+          ESERİNİZ İNCELENİYOR
+        </div>
         <button className="bk-serit-atla" onClick={() => scrollRef.current?.scrollTo({ top: 999999, behavior: 'smooth' })}>DERSLERE GEÇ ↓</button>
       </div>
 
@@ -6286,7 +6435,10 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
                   doğrulanmış bir kurum desteği kaydımız yok. Kaldırıldı, doğrulanabilir
                   bir maddeyle değiştirildi. */}
               <div className="bk-mad" style={{ animationDelay: ".55s" }}><div className="bk-mad-ikon">◆</div><div><div className="bk-mad-bas">15 Satış Platformu</div><div className="bk-mad-acik">Eseriniz MST, Trendyol, Hepsiburada, N11, İdefix ve Pazarama dahil 15 platformda görünür olur.</div></div></div>
-              <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">🌍</div><div><div className="bk-mad-bas">Uluslararası Kitap Fuarları</div><div className="bk-mad-acik">Frankfurt, Londra, Bologna — MST çatısı altında dünya pazarına açılabilirsiniz.</div></div></div>
+              {/* DEĞİŞTİRİLDİ (5 Ağu 2026): "Frankfurt, Londra, Bologna" isimli fuar
+                  iddiası doğrulanamıyordu. Backend'de zaten var olan gerçek hizmete
+                  (uluslararasi_haklar vaat kataloğu kaydı) atıfla değiştirildi. */}
+              <div className="bk-mad" style={{ animationDelay: ".7s" }}><div className="bk-mad-ikon">🌍</div><div><div className="bk-mad-bas">Uluslararası Satış</div><div className="bk-mad-acik">Talep üzerine eserinizin yabancı yayıncılara sunulması ve hak satışı süreci MST tarafından yürütülür.</div></div></div>
               <div className="bk-mad" style={{ animationDelay: ".85s" }}><div className="bk-mad-ikon">✦</div><div><div className="bk-mad-bas">AI Menajer Aktivasyonu</div><div className="bk-mad-acik">Belge onaylandığı an kişisel yapay zekâ danışmanınız devreye girer.</div></div></div>
             </div>
             <div className="bk-g-sag" style={{ animation: "bkGelSag .8s both .3s" }}>
@@ -6316,7 +6468,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
               MST Yayıncılık, yayınevi değil bir ekosistemdir. Kitabınızı basmak sadece başlangıçtır — asıl işimiz onu doğru insanlarla buluşturmak, telifinizi şeffaf tutmak ve yazarlık yolculuğunuzda her adımda yanınızda olmaktır.
             </p>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap", justifyContent: "center", animation: "bkGel .7s both .65s" }}>
-              {["6 Pazaryeri", "MST Ajans Medya", "AI Menajer", "Şeffaf Telif"].map(m => (
+              {["15 Pazaryeri", "MST Ajans Medya", "AI Menajer", "Şeffaf Telif"].map(m => (
                 <div key={m} style={{ fontSize: 11, letterSpacing: ".18em", color: "rgba(201,162,75,.65)", display: "flex", alignItems: "center", gap: 7 }}>
                   <span style={{ color: "#C9A24B", fontSize: 7 }}>◆</span>{m}
                 </div>
@@ -6326,69 +6478,37 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
           <Asagi />
         </div>
 
-        {/* ══ B3: YAZARLIK TESTİ ══ */}
-        <div className="bk-bolum" style={{ background: "linear-gradient(160deg,#040C1A,#081525)" }}>
-          <div className="bk-ic bk-grid">
-            <div style={{ animation: "bkGelS .8s both .2s" }}>
-              <div className="bk-etiket">KİŞİSEL ANALİZ</div>
-              <div className="bk-hitap">Sizi tanımak istiyoruz.</div>
-              <h2 className="bk-bas">Siz hangi yazar profilsiniz?</h2>
-              <p className="bk-metin">3 kısa soru. Size özel yayın stratejisi ve en uygun MST paketi belirleyelim. 2 dakika, kalıcı fark.</p>
-            </div>
-            <div style={{ animation: "bkGelSag .8s both .3s" }}>
-              <div className="bk-test-il">
-                {[0, 1, 2].map(i => <div key={i} className={`bk-test-dot${i <= testIdx ? " ak" : ""}`} />)}
-              </div>
-              {!testBitti ? (<>
-                <div className="bk-test-soru">{TEST_SORULAR[testIdx].s}</div>
-                {TEST_SORULAR[testIdx].o.map(o => (
-                  <button key={o} className="bk-test-btn" onClick={() => testCevap(TEST_SORULAR[testIdx].k, o)}>{o}</button>
-                ))}
-              </>) : (() => { const p = onIzlenim(); return (
-                <div className="bk-sonuc">
-                  <div className="bk-sonuc-profil">{p.baslik}</div>
-                  <div className="bk-sonuc-metin">{p.metin}</div>
-                  <div style={{ margin: "14px 0", textAlign: "left" }}>
-                    <div style={{ fontSize: 12, color: "rgba(201,162,75,.75)", marginBottom: 6 }}>DOĞRULANMASI GEREKENLER</div>
-                    {p.dogrulanacak.map((x, i) => (
-                      <div key={i} style={{ fontSize: 13, color: "rgba(245,240,228,.7)", marginBottom: 4 }}>· {x}</div>
-                    ))}
-                  </div>
-                  <div className="bk-sonuc-metin" style={{ fontSize: 13 }}>{p.not}</div>
-                  <button className="bk-cta">DANIŞMAN GÖRÜŞMESİ TALEP ET →</button>
-                </div>
-              ); })()}
-            </div>
-          </div>
-          <Asagi />
-        </div>
-
-        {/* ══ B4: YAZAR YOLCULUKLARI ══ */}
+        {/* ══ B4: UYGULAMANIN ÖZELLİKLERİ ══
+            DEĞİŞTİRİLDİ (5 Ağu 2026): burada önce isimli/rakamlı "gerçek yazar"
+            örnekleri (P0.6 ihlali), sonra tek bir "temsili örnek" duruyordu —
+            içerik olarak zayıftı. Yerine MST'nin amiral gemisi olan mobil
+            uygulamanın GERÇEKTEN VAR OLAN özellikleri tanıtılıyor: reklam
+            yönetimi, anlık satış takibi, şeffaf telif, AI menajer, Akademi,
+            danışman desteği. Uydurma değil — hepsi backend'de kanıtlı. */}
         <div className="bk-bolum" style={{ background: "#050D1A" }}>
           <div className="bk-ic">
-            {/* P0.6 TEKRARI (4 Ağu 2026) — bu bölüm "GERÇEK YAZARLAR · GERÇEK RAKAMLAR"
-                başlığıyla isimli, spesifik satış rakamlı (89/214/156) örnekler sunuyordu.
-                Bu rakamların doğrulandığına dair hiçbir kayıt yok — akademi.jsx'teki
-                "GERÇEK SENARYO" ihlaliyle aynı sorun, TEMSİLİ olarak düzeltildi. */}
-            <div className="bk-etiket">TİPİK BİR SÜREÇ</div>
-            <div className="bk-hitap">Süreç genellikle şöyle ilerler...</div>
-            <h2 className="bk-bas">Adım adım yolculuk</h2>
-            {[
-              { isim: "Temsili örnek", tur: "ROMAN", adimlar: [["1. hafta", "Eser yüklendi"], ["~3. hafta", "Değerlendirme sonucu"], ["Sonrası", "Yayın hazırlığı"]] },
-            ].map((y, yi) => (
-              <div key={y.isim} className="bk-yazar" style={{ animationDelay: `${.2 + yi * .15}s` }}>
-                <div><div className="bk-y-isim">{y.isim}</div><div className="bk-y-tur">{y.tur}</div></div>
-                <div className="bk-y-zaman">
-                  {y.adimlar.map(([tarih, olay, num]) => (
-                    <div key={tarih} className="bk-y-adim">
-                      <div className="bk-y-tarih">{tarih}</div>
-                      <div className="bk-y-olay">{olay}</div>
-                      {num && <div className="bk-y-num">{num}</div>}
-                    </div>
-                  ))}
+            <div className="bk-etiket">MST YAZAR UYGULAMASI</div>
+            <div className="bk-hitap">Cebinizdeki yayınevi ofisi</div>
+            <h2 className="bk-bas">Süreç boyunca elinizin altında</h2>
+            <p className="bk-metin" style={{ marginBottom: 28, maxWidth: 640 }}>
+              Değerlendirme sürecinden itibaren, tüm bu araçlar kişisel panelinizde sizi bekliyor.
+            </p>
+            <div className="bk-ozellik-grid">
+              {[
+                { ikon: "📢", bas: "Reklam yönetimi", acik: "Reklam talebinizi iletin, MST Ajans kurup yönetsin. Performansı — erişim, tıklama, dönüşüm — kendi panelinizden anlık izleyin." },
+                { ikon: "📊", bas: "Anlık satış takibi", acik: "MST, Trendyol, Hepsiburada, N11, İdefix, Pazarama — 15 platformdaki satışlarınız tek ekranda, gecikmeden." },
+                { ikon: "💰", bas: "Şeffaf telif", acik: "Her satış anında panele düşer. Hangi platformdan, ne zaman, ne kadar — hepsi kayıtlı ve görünür." },
+                { ikon: "🤖", bas: "AI Menajer", acik: "Sorularınıza 7/24 yanıt veren, sürecin neresinde olduğunuzu bilen kişisel yapay zekâ desteği." },
+                { ikon: "🎓", bas: "Yazarlık Akademisi", acik: "Yayına hazırlıktan pazarlamaya, modül modül ilerleyen eğitim içeriği — süreç boyunca açık." },
+                { ikon: "👤", bas: "Danışman desteği", acik: "Sorularınız olduğunda gerçek bir kişiyle görüşme talep edebilirsiniz." },
+              ].map((o, i) => (
+                <div key={o.bas} className="bk-ozellik-kart" style={{ animationDelay: `${.15 + i * .1}s` }}>
+                  <div className="bk-ozellik-ikon">{o.ikon}</div>
+                  <div className="bk-ozellik-bas">{o.bas}</div>
+                  <div className="bk-ozellik-acik">{o.acik}</div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           <Asagi />
         </div>
@@ -6432,7 +6552,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
               </div>
               <div className="bk-krt mst" style={{ animationDelay: ".35s" }}>
                 <div className="bk-krt-bas">MST YAYINCILIK</div>
-                {[["⚡","30 günde vitrine","Her adım kişisel panelinden canlı takip edilir."],["📊","Şeffaf telif, her ay","Satış anında panele düşer. Her platformdan ayrı görülür."],["🛒","6 kanal, eş zamanlı","MST Ajans reklam desteğiyle otomatik tanıtım."],["🤖","AI menajer — 7/24","Sorularınıza anında cevap, stratejinize sürekli destek."]].map(([ikon,bas,acik]) => (
+                {[["⚡","30 günde vitrine","Her adım kişisel panelinden canlı takip edilir."],["📊","Şeffaf telif, her ay","Satış anında panele düşer. Her platformdan ayrı görülür."],["🛒","15 kanal, eş zamanlı","MST Ajans reklam desteğiyle otomatik tanıtım."],["🤖","AI menajer — 7/24","Sorularınıza anında cevap, stratejinize sürekli destek."]].map(([ikon,bas,acik]) => (
                   <div key={bas} className="bk-krt-mad"><div className="bk-krt-mad-ikon">{ikon}</div><div><div className="bk-krt-mad-bas">{bas}</div><div className="bk-krt-mad-acik">{acik}</div></div></div>
                 ))}
               </div>
@@ -6608,7 +6728,837 @@ function AdayVideoZemin({ video, poster, children }) {
 // Sorular BACKEND'den gelir (tek kaynak). Süre, geri dönüş ve değişiklik
 // telemetrisi kaydedilir. Sonuç ekranı direktifin 10 bölümlü sırasını izler.
 // ============================================================
+// ============================================================
+// LABORATUVARLAR (Aşama 6 — Simülasyon)
+// Backend: GET /aday/laboratuvarlar, POST /aday/laboratuvar/:kod
+// Video izlemek tamamlama sayılmaz; aday kendi eseri üzerine bir çıktı
+// üretir. Dört laboratuvar (kapak, konumlandırma, lansman, ikinci kitap)
+// uzman onayından geçer; dört tanesi (fiyat, reklam, yazar markası, okur
+// topluluğu) otomatik portfolyoya girer.
+// ============================================================
+function Laboratuvarlar({ oturum, onKapat }) {
+  const [liste, setListe] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  const [acikKod, setAcikKod] = React.useState(null);
+  const [cikti, setCikti] = React.useState("");
+  const [gonderiliyor, setGonderiliyor] = React.useState(false);
+  const [sonuc, setSonuc] = React.useState(null);
+
+  const yetkili = React.useCallback((yol, ayar = {}) => fetch(`${BACKEND_URL}${yol}`, {
+    ...ayar,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${oturum.token}`, ...(ayar.headers || {}) },
+  }), [oturum]);
+
+  const yukle = React.useCallback(async () => {
+    try {
+      const r = await yetkili("/api/aday/laboratuvarlar");
+      const v = await r.json();
+      if (v.laboratuvarlar) setListe(v.laboratuvarlar);
+      else setHata(v.error || "Laboratuvarlar yüklenemedi");
+    } catch { setHata("Bağlantı kurulamadı"); }
+  }, [yetkili]);
+
+  React.useEffect(() => { yukle(); }, [yukle]);
+
+  const ac = (lab) => { setAcikKod(lab.kod); setCikti(""); setSonuc(null); };
+
+  const gonder = async () => {
+    if (cikti.trim().length < 20 || gonderiliyor) return;
+    setGonderiliyor(true);
+    try {
+      const r = await yetkili(`/api/aday/laboratuvar/${acikKod}`, {
+        method: "POST", body: JSON.stringify({ cikti }),
+      });
+      const v = await r.json();
+      if (v.ok) { setSonuc(v); await yukle(); }
+      else setHata(v.error || "Kaydedilemedi");
+    } catch { setHata("Bağlantı kurulamadı"); }
+    finally { setGonderiliyor(false); }
+  };
+
+  const detay = liste && acikKod ? liste.find(l => l.kod === acikKod) : null;
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(5,10,20,.97)",
+                  overflowY: "auto", padding: "40px 20px" }}>
+      <div style={{ maxWidth: 640, margin: "0 auto", animation: "adayGiris .5s cubic-bezier(.22,1,.36,1) both" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)" }}>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#C9A24B" strokeWidth="1.8"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+            UYGULAMALI LABORATUVARLAR
+          </div>
+          <button onClick={onKapat} style={{ background: "none", border: "1px solid rgba(245,240,228,.2)",
+            color: "rgba(245,240,228,.5)", padding: "6px 12px", fontSize: 11, cursor: "pointer" }}>KAPAT ✕</button>
+        </div>
+
+        {hata && <div className="aday-hata" style={{ marginBottom: 16 }}>{hata}</div>}
+
+        {!liste && !hata && <p className="aday-metin">Yükleniyor…</p>}
+
+        {/* ---- Liste görünümü ---- */}
+        {liste && !acikKod && (
+          <>
+            <p className="aday-metin" style={{ marginBottom: 24 }}>
+              Video izlemek tamamlama sayılmaz — her laboratuvarda kendi eseriniz üzerine bir çıktı üretirsiniz.
+              Dördü uzman onayından geçer, dördü doğrudan portföyünüze eklenir.
+            </p>
+            {liste.map(lab => (
+              <div key={lab.kod} onClick={() => ac(lab)}
+                style={{ border: "1px solid rgba(201,162,75,.25)", padding: "16px 18px", marginBottom: 10,
+                         cursor: "pointer", background: lab.tamamlandi ? "rgba(201,162,75,.05)" : "transparent" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ fontSize: 15, color: "#F0D68A" }}>{lab.ad}</div>
+                  {lab.tamamlandi && (
+                    <span style={{ fontSize: 10.5, letterSpacing: ".1em",
+                      color: lab.uzmanOnayi ? "#2E7D32" : (lab.uzman_kapisi ? "#C9A24B" : "#2E7D32") }}>
+                      {lab.uzmanOnayi ? "✓ ONAYLANDI" : (lab.uzman_kapisi ? "İNCELENİYOR" : "✓ KAYDEDİLDİ")}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.55)", marginTop: 4 }}>{lab.aday_ne_yapar}</div>
+                <div style={{ fontSize: 11, color: "rgba(201,162,75,.5)", marginTop: 6 }}>
+                  Üretilen çıktı: {lab.uretilen_kanit}{lab.uzman_kapisi ? " · uzman onayı gerektirir" : ""}
+                </div>
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* ---- Çalışma ekranı ---- */}
+        {detay && !sonuc && (
+          <div>
+            <button onClick={() => setAcikKod(null)} style={{ background: "none", border: "none",
+              color: "rgba(245,240,228,.4)", fontSize: 12, cursor: "pointer", marginBottom: 16 }}>← Listeye dön</button>
+            <h2 style={{ fontSize: 20, color: "#F0D68A", fontFamily: "'Cormorant Garamond', serif", marginBottom: 8 }}>{detay.ad}</h2>
+            <p className="aday-metin" style={{ marginBottom: 6 }}>{detay.aday_ne_yapar}</p>
+            <p style={{ fontSize: 12, color: "rgba(201,162,75,.6)", marginBottom: 20 }}>
+              Üretmeniz gereken çıktı: <b>{detay.uretilen_kanit}</b>
+            </p>
+            <textarea value={cikti} onChange={e => setCikti(e.target.value)} rows={8}
+              placeholder="Kendi eseriniz üzerine düşüncelerinizi buraya yazın (en az 20 karakter)"
+              className="aday-input" style={{ width: "100%", resize: "vertical", marginBottom: 6 }} />
+            <div style={{ fontSize: 11, color: "rgba(245,240,228,.35)", marginBottom: 16 }}>{cikti.length}/20 en az</div>
+            <button className="aday-btn-asil" onClick={gonder} disabled={cikti.trim().length < 20 || gonderiliyor}>
+              {gonderiliyor ? "KAYDEDİLİYOR…" : "ÇIKTIYI KAYDET →"}
+            </button>
+          </div>
+        )}
+
+        {/* ---- Gönderim sonrası ---- */}
+        {sonuc && (
+          <div>
+            <div style={{ fontSize: 15, color: "#F0D68A", marginBottom: 10 }}>Kaydedildi — {sonuc.uretilenKanit}</div>
+            <p className="aday-metin" style={{ marginBottom: 20 }}>{sonuc.not}</p>
+            <button className="aday-btn-asil" onClick={() => setAcikKod(null)}>Listeye dön →</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// SÜREÇ MERKEZİ (Aşama 7-12) — 5 Ağustos 2026
+// GET /aday/yolculuk-ozeti nihayet kullanılıyor: aşama, ilerleme, sonraki
+// aksiyon, engeller ve bilinmeyenler SUNUCUDAN gelir; arayüz tahmin etmez.
+// Sekmeler yalnız ilgili oldukları anda etkinleşir (sonraki_aksiyon.hedef'e
+// göre); erken açılan sekme "henüz hazır değil" gösterir, hata vermez.
+// ============================================================
+function surecFetch(oturum, yol, ayar = {}) {
+  return fetch(`${BACKEND_URL}${yol}`, {
+    ...ayar,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${oturum.token}`, ...(ayar.headers || {}) },
+  });
+}
+
+function SM_Bos({ metin }) {
+  return <p className="aday-metin" style={{ fontSize: 13, opacity: .6, padding: "20px 0" }}>{metin}</p>;
+}
+
+function SM_CozumYolu({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  React.useEffect(() => {
+    let aktif = true;
+    surecFetch(oturum, "/api/aday/uygun-hizmetler")
+      .then(r => r.json()).then(v => { if (aktif) (v.uygun ? setVeri(v) : setHata(v.error || "Yüklenemedi")); })
+      .catch(() => { if (aktif) setHata("Bağlantı kurulamadı"); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
+  if (hata) return <SM_Bos metin={hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+
+  const Kart = ({ h, ertelendi, i }) => (
+    <div style={{ border: "1px solid rgba(201,162,75,.25)", padding: "14px 16px", marginBottom: 10,
+                  opacity: ertelendi ? .65 : 1, animation: `adayYukari .5s cubic-bezier(.22,1,.36,1) both ${.05 + (i||0) * .07}s` }}>
+      <div style={{ fontSize: 14, color: "#F0D68A" }}>{h.vaat || h.hizmet}</div>
+      {h.kapsam && <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.6)", marginTop: 4 }}>{h.kapsam}</div>}
+      {h.kapsamDisi && (
+        <div style={{ fontSize: 11.5, color: "rgba(226,120,120,.75)", marginTop: 6 }}>
+          Kapsam dışı: {h.kapsamDisi}
+        </div>
+      )}
+      {h.sla_gun && <div style={{ fontSize: 11, color: "rgba(201,162,75,.55)", marginTop: 4 }}>SLA: {h.sla_gun} gün</div>}
+      {ertelendi && h.engeller?.length > 0 && (
+        <div style={{ fontSize: 11.5, color: "rgba(226,120,120,.7)", marginTop: 8 }}>
+          {h.engeller.join(" · ")}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div>
+      <p className="aday-metin" style={{ fontSize: 12.5, marginBottom: 18 }}>{veri.not}</p>
+      {veri.uygun.length > 0 && (
+        <>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 10 }}>ŞİMDİ UYGUN</div>
+          {veri.uygun.map((h, i) => <Kart key={h.hizmet} h={h} i={i} />)}
+        </>
+      )}
+      {veri.ertelenen.length > 0 && (
+        <>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(245,240,228,.4)", margin: "18px 0 10px" }}>ŞİMDİLİK ERTELENEN</div>
+          {veri.ertelenen.map((h, i) => <Kart key={h.hizmet} h={h} i={i} ertelendi />)}
+        </>
+      )}
+      {!veri.uygun.length && !veri.ertelenen.length && <SM_Bos metin="Henüz hizmet değerlendirmesi yapılmadı." />}
+    </div>
+  );
+}
+
+function SM_Kanit({ oturum }) {
+  const [tur, setTur] = React.useState("kanal_link");
+  const [link, setLink] = React.useState("");
+  const [not, setNot] = React.useState("");
+  const [gonderiliyor, setGonderiliyor] = React.useState(false);
+  const [mesaj, setMesaj] = React.useState("");
+
+  const TURLER = [
+    ["kanal_link", "Sosyal medya / kanal bağlantısı"],
+    ["satis_kaydi", "Önceki satış kaydı"],
+    ["editor_raporu", "Editör raporu"],
+    ["dosya", "Belge / dosya"],
+    ["diger", "Diğer"],
+  ];
+
+  const gonder = async () => {
+    if (gonderiliyor || !link.trim()) return;
+    setGonderiliyor(true); setMesaj("");
+    try {
+      const r = await surecFetch(oturum, "/api/aday/kanit", {
+        method: "POST", body: JSON.stringify({ tur, link, beyanEdilen: not ? { not } : null }),
+      });
+      const v = await r.json();
+      setMesaj(v.ok ? v.not : (v.error || "Kaydedilemedi"));
+      if (v.ok) { setLink(""); setNot(""); }
+    } catch { setMesaj("Bağlantı kurulamadı"); }
+    finally { setGonderiliyor(false); }
+  };
+
+  return (
+    <div>
+      <p className="aday-metin" style={{ fontSize: 12.5, marginBottom: 18 }}>
+        Değerlendirmede beyan ettiğiniz bilgileri doğrulamak, planlamayı gerçekçi yapar.
+      </p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        {TURLER.map(([k, ad]) => (
+          <button key={k} onClick={() => setTur(k)}
+            style={{ padding: "7px 12px", fontSize: 12, cursor: "pointer",
+                     background: tur === k ? "rgba(201,162,75,.18)" : "transparent",
+                     border: `1px solid ${tur === k ? "#C9A24B" : "rgba(245,240,228,.2)"}`,
+                     color: tur === k ? "#F0D68A" : "rgba(245,240,228,.6)" }}>{ad}</button>
+        ))}
+      </div>
+      <input className="aday-input" placeholder="Bağlantı veya referans" value={link}
+        onChange={e => setLink(e.target.value)} style={{ marginBottom: 8 }} />
+      <textarea className="aday-input" rows={3} placeholder="Ek not (opsiyonel)" value={not}
+        onChange={e => setNot(e.target.value)} style={{ marginBottom: 12 }} />
+      {mesaj && <p className="aday-metin" style={{ fontSize: 12.5, marginBottom: 10 }}>{mesaj}</p>}
+      <button className="aday-btn-asil" onClick={gonder} disabled={gonderiliyor || !link.trim()}>
+        {gonderiliyor ? "GÖNDERİLİYOR…" : "KANIT GÖNDER →"}
+      </button>
+    </div>
+  );
+}
+
+function SM_Teklif({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  React.useEffect(() => {
+    let aktif = true;
+    surecFetch(oturum, "/api/aday/teklifim")
+      .then(r => r.json()).then(v => { if (aktif) (v.fiyat ? setVeri(v) : setHata(v.error || "Henüz teklif yok")); })
+      .catch(() => { if (aktif) setHata("Bağlantı kurulamadı"); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
+  if (hata) return <SM_Bos metin={hata === "Henüz teklif hazırlanmadı" ? "Teklifiniz henüz hazırlanmadı — danışmanınız görüşme sonrası hazırlayacak." : hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+
+  return (
+    <div>
+      {veri.hedefOzeti && <p className="aday-metin" style={{ marginBottom: 6 }}>{veri.hedefOzeti}</p>}
+      {veri.cozumGerekcesi && <p className="aday-metin" style={{ fontSize: 12.5, opacity: .75, marginBottom: 18 }}>{veri.cozumGerekcesi}</p>}
+
+      <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 10 }}>TESLİMATLAR</div>
+      {(veri.teslimatlar || []).map(t => (
+        <div key={t.hizmet} style={{ border: "1px solid rgba(201,162,75,.2)", padding: "12px 14px", marginBottom: 8 }}>
+          <div style={{ fontSize: 13.5, color: "#F0D68A" }}>{t.vaat}</div>
+          <div style={{ fontSize: 12, color: "rgba(245,240,228,.6)", marginTop: 3 }}>{t.kapsam}</div>
+          {t.kapsamDisi && <div style={{ fontSize: 11, color: "rgba(226,120,120,.7)", marginTop: 4 }}>Kapsam dışı: {t.kapsamDisi}</div>}
+          <div style={{ fontSize: 11, color: "rgba(201,162,75,.5)", marginTop: 4 }}>SLA {t.sla} gün · {t.revizyonHakki} revizyon hakkı</div>
+        </div>
+      ))}
+
+      <div style={{ marginTop: 16, padding: "14px 16px", background: "rgba(201,162,75,.06)", border: "1px solid rgba(201,162,75,.2)" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "#F0D68A" }}>
+          <span>Toplam (KDV dahil)</span><b>{veri.fiyat?.toplamYuk} ₺</b>
+        </div>
+        <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.5)", marginTop: 4 }}>Ödeme planı: {veri.fiyat?.odemePlani}</div>
+      </div>
+
+      {veri.suresiDoldu && <p className="aday-metin" style={{ fontSize: 12, color: "rgba(226,120,120,.75)", marginTop: 10 }}>Bu teklifin süresi doldu — danışmanınızla güncel bir teklif isteyin.</p>}
+      <p className="aday-metin" style={{ fontSize: 11.5, opacity: .55, marginTop: 14 }}>{veri.not}</p>
+    </div>
+  );
+}
+
+function SM_Sozlesme({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  const [mutabakat, setMutabakat] = React.useState({ garantiYok: false, reklamSureci: false, yazarSorumlulugu: false, hizmetSonucFarki: false, kurallarOkundu: false });
+  const [mesaj, setMesaj] = React.useState("");
+  const [gonderiliyor, setGonderiliyor] = React.useState(false);
+
+  const yukle = React.useCallback(() => {
+    surecFetch(oturum, "/api/aday/sozlesmem")
+      .then(r => r.json()).then(v => v.maddeler ? setVeri(v) : setHata(v.error || "Henüz sözleşme yok"))
+      .catch(() => setHata("Bağlantı kurulamadı"));
+  }, [oturum]);
+  React.useEffect(() => { yukle(); }, [yukle]);
+
+  const mutabakatGonder = async () => {
+    if (gonderiliyor) return; setGonderiliyor(true); setMesaj("");
+    try {
+      const r = await surecFetch(oturum, "/api/aday/beklenti-mutabakati", { method: "POST", body: JSON.stringify(mutabakat) });
+      const v = await r.json();
+      setMesaj(v.ok ? "Mutabakat kaydedildi." : (v.error || "Kaydedilemedi"));
+      if (v.ok) yukle();
+    } catch { setMesaj("Bağlantı kurulamadı"); }
+    finally { setGonderiliyor(false); }
+  };
+
+  const imzaBasla = async () => {
+    if (gonderiliyor) return; setGonderiliyor(true); setMesaj("");
+    try {
+      const r = await surecFetch(oturum, `/api/aday/sozlesme/${veri.id || ""}/imza-basla`, { method: "POST" });
+      const v = await r.json();
+      if (v.ok && v.hazir === false) setMesaj(v.not);
+      else if (v.ok) setMesaj("İmza akışı başladı: " + v.saglayici);
+      else setMesaj((v.error || "Başlatılamadı") + (v.engeller ? " — " + v.engeller.join(", ") : ""));
+    } catch { setMesaj("Bağlantı kurulamadı"); }
+    finally { setGonderiliyor(false); }
+  };
+
+  if (hata) return <SM_Bos metin={hata === "Sözleşme henüz hazırlanmadı" ? "Sözleşmeniz henüz hazırlanmadı." : hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+
+  const mutabakatTamam = Object.values(mutabakat).every(Boolean);
+
+  return (
+    <div>
+      <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 10 }}>MADDELER</div>
+      {veri.maddeler.map((m, i) => (
+        <div key={m.maddeNo} style={{ marginBottom: 14, paddingLeft: 10, borderLeft: `2px solid ${m.kritik ? "#C9A24B" : "rgba(245,240,228,.15)"}`,
+          animation: `adayYukari .5s cubic-bezier(.22,1,.36,1) both ${.04 + i * .05}s` }}>
+          <div style={{ fontSize: 12.5, color: "#F0D68A" }}>{m.maddeNo} — {m.baslik}</div>
+          <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.65)", marginTop: 3 }}>{m.buSizinIcinNeDemek}</div>
+        </div>
+      ))}
+
+      {!mutabakatTamam ? (
+        <div style={{ marginTop: 20, padding: "14px 16px", border: "1px solid rgba(201,162,75,.25)" }}>
+          <div style={{ fontSize: 12.5, color: "#F0D68A", marginBottom: 10 }}>İmzaya geçmeden önce beklenti mutabakatı</div>
+          {[["garantiYok","Satış/görünürlük garantisi olmadığını anladım"],["reklamSureci","Reklam sürecinin nasıl işlediğini anladım"],
+            ["yazarSorumlulugu","Kendi sorumluluklarımı anladım"],["hizmetSonucFarki","Hizmet ile sonucun farklı şeyler olduğunu anladım"],
+            ["kurallarOkundu","Sözleşme maddelerini okudum"]].map(([k, etiket]) => (
+            <label key={k} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12, color: "rgba(245,240,228,.7)", marginBottom: 8, cursor: "pointer" }}>
+              <input type="checkbox" checked={mutabakat[k]} onChange={e => setMutabakat({ ...mutabakat, [k]: e.target.checked })} style={{ marginTop: 2 }} />
+              {etiket}
+            </label>
+          ))}
+          <button className="aday-btn-asil" onClick={mutabakatGonder} disabled={gonderiliyor || !Object.values(mutabakat).every(Boolean)} style={{ marginTop: 8 }}>
+            MUTABAKATI ONAYLA →
+          </button>
+        </div>
+      ) : (
+        <button className="aday-btn-asil" onClick={imzaBasla} disabled={gonderiliyor || !veri.imzaAcik} style={{ marginTop: 16 }}>
+          {veri.imzaAcik ? "İMZA SÜRECİNİ BAŞLAT →" : "İMZA HENÜZ AÇIK DEĞİL"}
+        </button>
+      )}
+      {!veri.imzaAcik && veri.imzaEngelleri?.length > 0 && (
+        <p className="aday-metin" style={{ fontSize: 11.5, color: "rgba(226,120,120,.7)", marginTop: 8 }}>{veri.imzaEngelleri.join(" · ")}</p>
+      )}
+      {mesaj && <p className="aday-metin" style={{ fontSize: 12.5, marginTop: 10 }}>{mesaj}</p>}
+    </div>
+  );
+}
+
+function SM_Gorevler({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  React.useEffect(() => {
+    let aktif = true;
+    surecFetch(oturum, "/api/aday/gorevlerim")
+      .then(r => r.json()).then(v => { if (aktif) (v.gorevler ? setVeri(v) : setHata("Yüklenemedi")); })
+      .catch(() => { if (aktif) setHata("Bağlantı kurulamadı"); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
+  if (hata) return <SM_Bos metin={hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+  if (!veri.gorevler.length) return <SM_Bos metin="Henüz görev takviminiz oluşmadı — sözleşme imzalandıktan sonra burada görünecek." />;
+
+  const DURUM_RENK = { bekliyor: "rgba(245,240,228,.4)", basladi: "#C9A24B", tamamlandi: "#2E7D32", bloke: "#C0392B" };
+  const Liste = ({ baslik, gorevler }) => gorevler.length > 0 && (
+    <>
+      <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", margin: "16px 0 10px" }}>{baslik}</div>
+      {gorevler.map((g, i) => (
+        <div key={g.id} style={{ display: "flex", justifyContent: "space-between", padding: "9px 0", borderBottom: "1px solid rgba(245,240,228,.08)",
+          animation: `adayYukari .45s cubic-bezier(.22,1,.36,1) both ${.03 + i * .04}s` }}>
+          <div>
+            <div style={{ fontSize: 13, color: "rgba(245,240,228,.85)" }}>{g.gorev}</div>
+            <div style={{ fontSize: 11, color: "rgba(245,240,228,.4)" }}>{g.vaat_adi} · {g.planlanan_bitis}</div>
+          </div>
+          <span style={{ fontSize: 11, color: DURUM_RENK[g.durum] || "rgba(245,240,228,.4)" }}>{g.durum}</span>
+        </div>
+      ))}
+    </>
+  );
+  return (
+    <div>
+      <Liste baslik="SİZİN GÖREVLERİNİZ" gorevler={veri.benimGorevlerim} />
+      <Liste baslik="MST'NİN GÖREVLERİ" gorevler={veri.mstGorevleri} />
+    </div>
+  );
+}
+
+function SM_Devir({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  React.useEffect(() => {
+    let aktif = true;
+    surecFetch(oturum, "/api/aday/devir-ozeti")
+      .then(r => r.json()).then(v => { if (aktif) (v.ilk90GunPlani ? setVeri(v) : setHata(v.error || "Henüz hazır değil")); })
+      .catch(() => { if (aktif) setHata("Bağlantı kurulamadı"); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
+  if (hata) return <SM_Bos metin={hata === "Devir paketi henüz hazır değil" ? "Yazarlık dönemine devir paketiniz, sözleşme imzalandıktan sonra burada hazır olacak." : hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+
+  return (
+    <div>
+      {veri.kariyerHedefi && (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 6 }}>KARİYER HEDEFİNİZ</div>
+          <p className="aday-metin">{veri.kariyerHedefi}</p>
+        </div>
+      )}
+      {veri.ilkTeslimat && (
+        <div style={{ marginBottom: 14, padding: "12px 14px", background: "rgba(201,162,75,.06)", border: "1px solid rgba(201,162,75,.2)" }}>
+          <div style={{ fontSize: 11, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>İLK TESLİMAT</div>
+          <div style={{ fontSize: 13, color: "#F0D68A" }}>{veri.ilkTeslimat.gorev}</div>
+          <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.5)", marginTop: 3 }}>{veri.ilkTeslimat.tarih}</div>
+        </div>
+      )}
+      {veri.benimIlkGorevim && (
+        <div style={{ marginBottom: 18, padding: "12px 14px", border: "1px solid rgba(245,240,228,.15)" }}>
+          <div style={{ fontSize: 11, color: "rgba(245,240,228,.5)", marginBottom: 4 }}>SİZİN İLK GÖREVİNİZ</div>
+          <div style={{ fontSize: 13, color: "rgba(245,240,228,.85)" }}>{veri.benimIlkGorevim.gorev}</div>
+        </div>
+      )}
+      {(veri.portfolyom || []).length > 0 && (
+        <>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", margin: "18px 0 10px" }}>AKADEMİ PORTFOLYONUZ</div>
+          {veri.portfolyom.map((p, i) => (
+            <div key={i} style={{ fontSize: 12.5, color: "rgba(245,240,228,.65)", marginBottom: 6 }}>· {p.lab_kodu}</div>
+          ))}
+        </>
+      )}
+      {(veri.ilk90GunPlani || []).length > 0 && (
+        <>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", margin: "18px 0 10px" }}>İLK 90 GÜN</div>
+          {veri.ilk90GunPlani.map((p, i) => (
+            <div key={i} style={{ fontSize: 12, color: "rgba(245,240,228,.6)", marginBottom: 4 }}>· {p.gorev} — {p.tarih}</div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+function SM_KariyerDosyasi({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  const [olusturuluyor, setOlusturuluyor] = React.useState(false);
+  const [mesaj, setMesaj] = React.useState("");
+
+  const yukle = React.useCallback(() => {
+    surecFetch(oturum, "/api/aday/kariyer-dosyam")
+      .then(r => r.json()).then(v => v.icerik ? setVeri(v) : setHata(v.error || "Henüz oluşturulmadı"))
+      .catch(() => setHata("Bağlantı kurulamadı"));
+  }, [oturum]);
+  React.useEffect(() => { yukle(); }, [yukle]);
+
+  const olustur = async () => {
+    if (olusturuluyor) return; setOlusturuluyor(true); setMesaj("");
+    try {
+      const r = await surecFetch(oturum, "/api/aday/kariyer-dosyasi/olustur", { method: "POST", body: JSON.stringify({}) });
+      const v = await r.json();
+      if (v.ok) { setMesaj("Kariyer dosyanız oluşturuldu."); yukle(); }
+      else setMesaj(v.error || "Oluşturulamadı");
+    } catch { setMesaj("Bağlantı kurulamadı"); }
+    finally { setOlusturuluyor(false); }
+  };
+
+  const paylasimLinki = veri?.paylasim_kodu ? `${window.location.origin}/paylasim/kariyer/${veri.paylasim_kodu}` : null;
+
+  if (hata && !veri) return (
+    <div>
+      <SM_Bos metin="Kariyer dosyanız henüz oluşturulmadı. Değerlendirmeniz tamamlandıktan sonra oluşturabilirsiniz." />
+      {mesaj && <p className="aday-metin" style={{ fontSize: 12.5, marginBottom: 10 }}>{mesaj}</p>}
+      <button className="aday-btn-asil" onClick={olustur} disabled={olusturuluyor}>
+        {olusturuluyor ? "OLUŞTURULUYOR…" : "KARİYER DOSYAMI OLUŞTUR →"}
+      </button>
+    </div>
+  );
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+
+  const ic = veri.icerik || {};
+  return (
+    <div>
+      <div style={{ marginBottom: 16, padding: "12px 14px", background: "rgba(201,162,75,.06)", border: "1px solid rgba(201,162,75,.2)" }}>
+        <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.5)" }}>Sürüm {veri.surum} · {veri.gecerlilik_tarihi} tarihine kadar geçerli</div>
+        {paylasimLinki && (
+          <div style={{ fontSize: 12, color: "#F0D68A", marginTop: 6, wordBreak: "break-all" }}>{paylasimLinki}</div>
+        )}
+      </div>
+
+      {ic.gucluYonler?.length > 0 && (
+        <>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 8 }}>GÜÇLÜ YÖNLER</div>
+          {ic.gucluYonler.map((g, i) => <div key={i} style={{ fontSize: 12.5, color: "rgba(245,240,228,.7)", marginBottom: 4 }}>· {g.gosterge || JSON.stringify(g)}</div>)}
+        </>
+      )}
+      {ic.bugunGerekliCalismalar && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 6 }}>BUGÜN GEREKLİ ÇALIŞMALAR</div>
+          <p className="aday-metin" style={{ fontSize: 12.5 }}>{ic.bugunGerekliCalismalar?.aciklama || JSON.stringify(ic.bugunGerekliCalismalar)}</p>
+        </div>
+      )}
+      <p className="aday-metin" style={{ fontSize: 11, opacity: .5, marginTop: 16 }}>{ic.not}</p>
+
+      <button className="aday-btn-asil" onClick={olustur} disabled={olusturuluyor} style={{ marginTop: 14 }}>
+        {olusturuluyor ? "GÜNCELLENİYOR…" : "GÜNCEL BİLGİLERLE YENİDEN OLUŞTUR →"}
+      </button>
+      {mesaj && <p className="aday-metin" style={{ fontSize: 12, marginTop: 8 }}>{mesaj}</p>}
+    </div>
+  );
+}
+
+function SM_Gorusmelerim({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  React.useEffect(() => {
+    let aktif = true;
+    surecFetch(oturum, "/api/aday/gorusmelerim")
+      .then(r => r.json()).then(v => { if (aktif) (v.gorusmeler ? setVeri(v.gorusmeler) : setHata("Yüklenemedi")); })
+      .catch(() => { if (aktif) setHata("Bağlantı kurulamadı"); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
+  if (hata) return <SM_Bos metin={hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+  if (!veri.length) return <SM_Bos metin="Henüz görüşme talebiniz yok." />;
+
+  const DURUM_ADI = { bekliyor: "Bekliyor", planlandi: "Planlandı", tamamlandi: "Tamamlandı", iptal: "İptal edildi" };
+  return (
+    <div>
+      {veri.map(g => (
+        <div key={g.id} style={{ padding: "12px 0", borderBottom: "1px solid rgba(245,240,228,.08)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 13, color: "rgba(245,240,228,.85)" }}>{g.yontem === "telefon" ? "Telefon görüşmesi" : "Çevrim içi görüşme"}</span>
+            <span style={{ fontSize: 11.5, color: "rgba(201,162,75,.7)" }}>{DURUM_ADI[g.durum] || g.durum}</span>
+          </div>
+          <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.4)", marginTop: 3 }}>
+            {g.uygun_gun ? `Talep edilen: ${g.uygun_gun} ${g.uygun_saat || ""}` : "Tarih belirtilmedi"}
+            {g.atanan_danisman && ` · Danışman: ${g.atanan_danisman}`}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SM_Izinlerim({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  const [gonderiliyor, setGonderiliyor] = React.useState(null);
+  const [mesaj, setMesaj] = React.useState("");
+  const [eserler, setEserler] = React.useState(null);
+  const [silOnay, setSilOnay] = React.useState(null);
+
+  // KVKK silme hakkı — backend hazırdı, arayüzde hiç erişim yoktu (5 Ağu 2026).
+  React.useEffect(() => {
+    surecFetch(oturum, "/api/aday/eserlerim")
+      .then(r => r.json()).then(v => setEserler(Array.isArray(v) ? v : (v.eserler || [])))
+      .catch(() => {});
+  }, [oturum]);
+
+  const metniSil = async (eserId) => {
+    if (gonderiliyor) return; setGonderiliyor(`sil-${eserId}`); setMesaj("");
+    try {
+      const r = await surecFetch(oturum, `/api/aday/eser/${eserId}/metni-sil`, { method: "POST" });
+      const v = await r.json();
+      setMesaj(v.ok ? v.not : (v.error || "Silinemedi"));
+      setSilOnay(null);
+      if (v.ok) setEserler(es => es.map(e => e.id === eserId ? { ...e, metin_silindi_mi: true } : e));
+    } catch { setMesaj("Bağlantı kurulamadı"); }
+    finally { setGonderiliyor(null); }
+  };
+
+  const yukle = React.useCallback(() => {
+    surecFetch(oturum, "/api/aday/izinlerim")
+      .then(r => r.json()).then(v => v.izinler ? setVeri(v.izinler) : setHata("Yüklenemedi"))
+      .catch(() => setHata("Bağlantı kurulamadı"));
+  }, [oturum]);
+  React.useEffect(() => { yukle(); }, [yukle]);
+
+  const geriCek = async (izinTuru) => {
+    if (gonderiliyor) return; setGonderiliyor(izinTuru); setMesaj("");
+    try {
+      const r = await surecFetch(oturum, "/api/aday/izin-geri-cek", { method: "POST", body: JSON.stringify({ izinTuru }) });
+      const v = await r.json();
+      if (v.ok) yukle(); else setMesaj(v.error || "Geri çekilemedi");
+    } catch { setMesaj("Bağlantı kurulamadı"); }
+    finally { setGonderiliyor(null); }
+  };
+
+  const IZIN_ADI = { beklenti_mutabakati: "Beklenti mutabakatı", kvkk_aydinlatma: "KVKK aydınlatma metni",
+    acik_riza: "Açık rıza (eser incelemesi)", ticari_ileti: "Ticari elektronik ileti" };
+
+  if (hata) return <SM_Bos metin={hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+  if (!veri.length) return <SM_Bos metin="Kayıtlı izniniz yok." />;
+
+  return (
+    <div>
+      <p className="aday-metin" style={{ fontSize: 12, opacity: .6, marginBottom: 16 }}>
+        Verdiğiniz izinleri buradan görebilir, dilediğiniz zaman geri çekebilirsiniz.
+      </p>
+      {mesaj && <p className="aday-metin" style={{ fontSize: 12, marginBottom: 10 }}>{mesaj}</p>}
+      {veri.map(i => (
+        <div key={i.izin_turu} style={{ display: "flex", justifyContent: "space-between", alignItems: "center",
+          padding: "12px 0", borderBottom: "1px solid rgba(245,240,228,.08)" }}>
+          <div>
+            <div style={{ fontSize: 13, color: "rgba(245,240,228,.85)" }}>{IZIN_ADI[i.izin_turu] || i.izin_turu}</div>
+            <div style={{ fontSize: 11, color: i.geri_cekme_zamani ? "rgba(226,120,120,.7)" : "rgba(245,240,228,.4)" }}>
+              {i.geri_cekme_zamani ? "Geri çekildi" : (i.kabul ? "Onaylandı" : "Onaylanmadı")}
+            </div>
+          </div>
+          {i.kabul && !i.geri_cekme_zamani && (
+            <button onClick={() => geriCek(i.izin_turu)} disabled={gonderiliyor === i.izin_turu}
+              style={{ background: "none", border: "1px solid rgba(226,120,120,.4)", color: "rgba(226,120,120,.85)",
+                       padding: "6px 12px", fontSize: 11, cursor: "pointer" }}>
+              {gonderiliyor === i.izin_turu ? "…" : "Geri çek"}
+            </button>
+          )}
+        </div>
+      ))}
+
+      {eserler?.length > 0 && (
+        <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px dashed rgba(201,162,75,.3)" }}>
+          <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 4 }}>ESER METNİNİZ ÜZERİNDE KONTROL</div>
+          <p className="aday-metin" style={{ fontSize: 11.5, opacity: .55, marginBottom: 12 }}>
+            Eser metninizi dilediğiniz zaman silebilirsiniz. Raporunuz ve değerlendirmeniz erişilebilir kalır.
+          </p>
+          {eserler.map(e => (
+            <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0" }}>
+              <span style={{ fontSize: 12.5, color: "rgba(245,240,228,.75)" }}>{e.eser_adi}</span>
+              {e.metin_silindi_mi ? (
+                <span style={{ fontSize: 11, color: "rgba(245,240,228,.4)" }}>Metin silindi</span>
+              ) : silOnay === e.id ? (
+                <span style={{ display: "flex", gap: 6 }}>
+                  <button onClick={() => metniSil(e.id)} disabled={gonderiliyor === `sil-${e.id}`}
+                    style={{ background: "none", border: "1px solid rgba(226,120,120,.6)", color: "rgba(226,120,120,.9)",
+                             padding: "5px 10px", fontSize: 10.5, cursor: "pointer" }}>
+                    {gonderiliyor === `sil-${e.id}` ? "…" : "Onayla, sil"}
+                  </button>
+                  <button onClick={() => setSilOnay(null)} style={{ background: "none", border: "1px solid rgba(245,240,228,.2)",
+                    color: "rgba(245,240,228,.5)", padding: "5px 10px", fontSize: 10.5, cursor: "pointer" }}>Vazgeç</button>
+                </span>
+              ) : (
+                <button onClick={() => setSilOnay(e.id)}
+                  style={{ background: "none", border: "1px solid rgba(245,240,228,.2)", color: "rgba(245,240,228,.5)",
+                           padding: "5px 10px", fontSize: 10.5, cursor: "pointer" }}>Metni sil</button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SM_AkademiPortfolyo({ oturum }) {
+  const [veri, setVeri] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  React.useEffect(() => {
+    let aktif = true;
+    surecFetch(oturum, "/api/aday/akademi-portfolyo")
+      .then(r => r.json()).then(v => { if (aktif) (v.kanitlar ? setVeri(v) : setHata("Yüklenemedi")); })
+      .catch(() => { if (aktif) setHata("Bağlantı kurulamadı"); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
+  if (hata) return <SM_Bos metin={hata} />;
+  if (!veri) return <SM_Bos metin="Yükleniyor…" />;
+  if (!veri.kanitlar.length) return <SM_Bos metin="Henüz Akademi'den bir kanıt üretmediniz." />;
+
+  return (
+    <div>
+      {veri.kanitlar.map((k, i) => (
+        <div key={i} style={{ padding: "12px 0", borderBottom: "1px solid rgba(245,240,228,.08)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 13, color: "rgba(245,240,228,.85)" }}>Modül {k.modul_no} — {veri.sinyalSozlugu?.[k.sinyal]?.anlam || k.sinyal}</span>
+            {k.portfolyoda && <span style={{ fontSize: 10.5, color: "#2E7D32" }}>✓ PORTFÖYDE</span>}
+          </div>
+          {k.uzman_onayi != null && (
+            <div style={{ fontSize: 11, color: k.uzman_onayi ? "#2E7D32" : "rgba(226,120,120,.7)", marginTop: 3 }}>
+              {k.uzman_onayi ? "Uzman onayladı" : "Uzman onayı bekliyor"}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SurecMerkezi({ oturum, onKapat }) {
+  const [ozet, setOzet] = React.useState(null);
+  const [hata, setHata] = React.useState("");
+  const [sekme, setSekme] = React.useState("genel");
+
+  React.useEffect(() => {
+    let aktif = true;
+    surecFetch(oturum, "/api/aday/yolculuk-ozeti")
+      .then(r => r.json()).then(v => { if (aktif) (v.asama ? setOzet(v) : setHata("Yüklenemedi")); })
+      .catch(() => { if (aktif) setHata("Bağlantı kurulamadı"); });
+    return () => { aktif = false; };
+  }, [oturum]);
+
+  const SEKMELER = [
+    ["genel", "Genel Bakış"],
+    ["cozum", "Çözüm Yolu"],
+    ["kanit", "Kanıt"],
+    ["teklif", "Teklifim"],
+    ["sozlesme", "Sözleşmem"],
+    ["kariyer", "Kariyer Dosyam"],
+    ["gorevler", "Görevlerim"],
+    ["devir", "Devir"],
+    ["gorusmeler", "Görüşmelerim"],
+    ["izinler", "İzinlerim"],
+    ["akademiportfolyo", "Akademi Portföyüm"],
+  ];
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(5,10,20,.97)", overflowY: "auto", padding: "40px 20px" }}>
+      <div className="aday-kasa-izgara" style={{ position: "fixed" }} />
+      <div style={{ maxWidth: 680, margin: "0 auto", position: "relative", animation: "adayGiris .5s cubic-bezier(.22,1,.36,1) both" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)" }}>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#C9A24B" strokeWidth="1.8"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+            SÜREÇ MERKEZİ
+          </div>
+          <button onClick={onKapat} style={{ background: "none", border: "1px solid rgba(245,240,228,.2)",
+            color: "rgba(245,240,228,.5)", padding: "6px 12px", fontSize: 11, cursor: "pointer" }}>KAPAT ✕</button>
+        </div>
+
+        {hata && <div className="aday-hata" style={{ marginBottom: 16 }}>{hata}</div>}
+
+        {ozet && (
+          <>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <div style={{ flex: 1, height: 3, background: "rgba(201,162,75,.15)" }}>
+                  <div style={{ width: `${ozet.ilerleme_yuzdesi}%`, height: "100%", background: "#C9A24B" }} />
+                </div>
+                <span style={{ fontSize: 11, color: "rgba(245,240,228,.4)" }}>{ozet.asama_no}/{ozet.toplam_asama}</span>
+              </div>
+              <h2 style={{ fontSize: 19, color: "#F0D68A", fontFamily: "'Cormorant Garamond', serif", marginBottom: 4 }}>{ozet.baslik}</h2>
+              <p className="aday-metin" style={{ fontSize: 12.5 }}>{ozet.aciklama}</p>
+            </div>
+
+            {ozet.engeller?.length > 0 && (
+              <div style={{ marginBottom: 16, padding: "10px 14px", background: "rgba(226,120,120,.08)", border: "1px solid rgba(226,120,120,.25)" }}>
+                {ozet.engeller.map((e, i) => (
+                  <div key={i} style={{ fontSize: 12, color: "rgba(245,240,228,.7)" }}>· {e.aciklama}</div>
+                ))}
+              </div>
+            )}
+
+            <div className="aday-sekme-serit" style={{ display: "flex", gap: 6, marginBottom: 20, borderBottom: "1px solid rgba(245,240,228,.1)",
+                          paddingBottom: 14, overflowX: "auto", WebkitOverflowScrolling: "touch", scrollbarWidth: "none" }}>
+              {SEKMELER.map(([k, ad]) => (
+                <button key={k} onClick={() => setSekme(k)}
+                  style={{ padding: "7px 13px", fontSize: 11.5, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap",
+                           transition: "background .2s, border-color .2s, color .2s",
+                           background: sekme === k ? "rgba(201,162,75,.15)" : "transparent",
+                           border: `1px solid ${sekme === k ? "#C9A24B" : "rgba(245,240,228,.15)"}`,
+                           color: sekme === k ? "#F0D68A" : "rgba(245,240,228,.5)" }}>{ad}</button>
+              ))}
+            </div>
+
+            <div key={sekme} style={{ animation: "adayGiris .4s cubic-bezier(.22,1,.36,1) both" }}>
+            {sekme === "genel" && (
+              <div>
+                {ozet.bilinmeyenler?.length > 0 && (
+                  <>
+                    <div style={{ fontSize: 11, letterSpacing: ".2em", color: "rgba(201,162,75,.7)", marginBottom: 10 }}>DOĞRULANMASI GEREKENLER</div>
+                    {ozet.bilinmeyenler.map((b, i) => (
+                      <div key={i} style={{ fontSize: 12.5, color: "rgba(245,240,228,.65)", marginBottom: 6 }}>· {b.neden}</div>
+                    ))}
+                  </>
+                )}
+                <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(201,162,75,.06)", border: "1px solid rgba(201,162,75,.2)" }}>
+                  <div style={{ fontSize: 12.5, color: "#F0D68A" }}>{ozet.sonraki_aksiyon?.etiket}</div>
+                </div>
+              </div>
+            )}
+            {sekme === "cozum" && <SM_CozumYolu oturum={oturum} />}
+            {sekme === "kanit" && <SM_Kanit oturum={oturum} />}
+            {sekme === "teklif" && <SM_Teklif oturum={oturum} />}
+            {sekme === "sozlesme" && <SM_Sozlesme oturum={oturum} />}
+            {sekme === "kariyer" && <SM_KariyerDosyasi oturum={oturum} />}
+            {sekme === "gorevler" && <SM_Gorevler oturum={oturum} />}
+            {sekme === "devir" && <SM_Devir oturum={oturum} />}
+            {sekme === "gorusmeler" && <SM_Gorusmelerim oturum={oturum} />}
+            {sekme === "izinler" && <SM_Izinlerim oturum={oturum} />}
+            {sekme === "akademiportfolyo" && <SM_AkademiPortfolyo oturum={oturum} />}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function DegerlendirmeAkisi({ oturum, onBitti }) {
+  const [laboratuvarlarAcik, setLaboratuvarlarAcik] = useState(false);
+  const [surecMerkeziAcik, setSurecMerkeziAcik] = useState(false);
   const [oturumId, setOturumId] = useState(null);
   const [soru, setSoru] = useState(null);
   const [ilerleme, setIlerleme] = useState({ cevaplanan: 0, toplam: 0, yuzde: 0 });
@@ -6619,6 +7569,35 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
   const [gecmis, setGecmis] = useState([]);          // geri dönebilmek için
   const gosterimZamani = React.useRef(Date.now());
   const backtrack = React.useRef({});
+
+  // ============================================================
+  // SOHBET GÖRÜNÜMÜ (5 Ağu 2026) — API/state mantığı DEĞİŞMEDİ, yalnız
+  // sunum değişti. sohbet[]: {tip:'ai'|'user', metin, id?} sırayla birikir.
+  // Karar motoru (SORU_BANKASI, kararKapilari, GEREKCE_KODLARI) aynen
+  // aday.js'de duruyor — burada yalnız görüntüleme katmanı yeniden yazıldı.
+  // ============================================================
+  const [sohbet, setSohbet] = useState([]);
+  const [yaziyor, setYaziyor] = useState(false);
+  const sohbetSonRef = React.useRef(null);
+  const gosterilenSoruIdler = React.useRef(new Set());
+
+  React.useEffect(() => {
+    sohbetSonRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [sohbet, yaziyor]);
+
+  // Yeni soru geldiğinde (aynı soru tekrar gösterilmiyorsa) kısa bir
+  // "yazıyor..." arasıyla AI balonunu sohbete ekle.
+  React.useEffect(() => {
+    if (!soru || gosterilenSoruIdler.current.has(soru.id)) return;
+    gosterilenSoruIdler.current.add(soru.id);
+    setYaziyor(true);
+    const gecikme = sohbet.length === 0 ? 300 : 550 + Math.random() * 400;
+    const zamanlayici = setTimeout(() => {
+      setYaziyor(false);
+      setSohbet(s => [...s, { tip: "ai", id: soru.id, soru }]);
+    }, gecikme);
+    return () => clearTimeout(zamanlayici);
+  }, [soru]);
 
   const yetkili = React.useCallback((yol, ayar = {}) => fetch(`${BACKEND_URL}${yol}`, {
     ...ayar,
@@ -6654,9 +7633,17 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
     })();
   }, []);
 
-  const cevapGonder = async (deger) => {
+  const cevapGonder = async (deger, etiketGoster) => {
     if (!soru || mesgul) return;
     setMesgul(true); setHata("");
+    // Kullanıcının cevabı HEMEN sohbete eklenir — API yanıtını beklemeden,
+    // gerçek bir mesajlaşma hissi için.
+    const gosterilecekMetin = etiketGoster != null ? etiketGoster
+      : deger === "__bilinmiyor__" ? (soru.bilinmiyorMetni || "Bilmiyorum")
+      : Array.isArray(deger)
+        ? (soru.secenekler || []).filter(o => deger.includes(o.deger)).map(o => o.etiket).join(", ")
+        : String(deger);
+    setSohbet(s => [...s, { tip: "user", metin: gosterilecekMetin }]);
     try {
       const sure = Date.now() - gosterimZamani.current;
       await yetkili(`/api/aday/degerlendirme/${oturumId}/cevap`, {
@@ -6690,6 +7677,14 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
     const oncekiId = gecmis[gecmis.length - 1];
     backtrack.current[oncekiId] = (backtrack.current[oncekiId] || 0) + 1;
     setGecmis(g => g.slice(0, -1));
+    // Sohbetten son AI+kullanıcı balon çiftini kaldır — geri dönünce
+    // konuşma da geri sarılmış gibi görünsün.
+    setSohbet(s => {
+      const kopya = [...s];
+      if (kopya[kopya.length - 1]?.tip === "user") kopya.pop();
+      if (kopya[kopya.length - 1]?.tip === "ai") { gosterilenSoruIdler.current.delete(kopya[kopya.length - 1].id); kopya.pop(); }
+      return kopya;
+    });
     yetkili(`/api/aday/degerlendirme/${oturumId}/olay`, {
       method: "POST", body: JSON.stringify({ eventType: "step_back", soruId: oncekiId }),
     }).catch(() => {});
@@ -6775,93 +7770,120 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
           <p className="aday-metin" style={{ fontSize: 12.5, margin: 0 }}>{sonuc.not}</p>
         </div>
 
+        {/* Aşama 7-12 — Süreç Merkezi. Opsiyonel, mevcut akışı bozmaz. */}
+        <button onClick={() => setSurecMerkeziAcik(true)}
+          style={{ display: "block", width: "100%", marginBottom: 10, padding: "13px 16px",
+                   background: "transparent", border: "1px solid rgba(201,162,75,.4)",
+                   color: "#F0D68A", fontFamily: "'Jost', sans-serif", fontSize: 13, cursor: "pointer" }}>
+          SÜREÇ MERKEZİNİ AÇ →
+        </button>
+
+        {/* Aşama 6 — Simülasyon. Opsiyonel: mevcut "devam et" akışını bozmaz. */}
+        <button onClick={() => setLaboratuvarlarAcik(true)}
+          style={{ display: "block", width: "100%", marginBottom: 10, padding: "13px 16px",
+                   background: "transparent", border: "1px solid rgba(201,162,75,.4)",
+                   color: "#F0D68A", fontFamily: "'Jost', sans-serif", fontSize: 13, cursor: "pointer" }}>
+          UYGULAMALI LABORATUVARLARI KEŞFET →
+        </button>
+
         <button className="aday-btn-asil" onClick={() => onBitti && onBitti(sonuc)}>
           DANIŞMAN GÖRÜŞMESİ TALEP ET →
         </button>
+
+        {laboratuvarlarAcik && (
+          <Laboratuvarlar oturum={oturum} onKapat={() => setLaboratuvarlarAcik(false)} />
+        )}
+        {surecMerkeziAcik && (
+          <SurecMerkezi oturum={oturum} onKapat={() => setSurecMerkeziAcik(false)} />
+        )}
       </div>
     );
   }
 
-  if (!soru) return <div className="aday-metin" style={{ padding: 20 }}>Değerlendirme hazırlanıyor…</div>;
+  if (!soru && !sohbet.length) return <div className="aday-metin" style={{ padding: 20 }}>Değerlendirme hazırlanıyor…</div>;
 
-  const coklu = soru.tip === "coklu";
+  const coklu = soru?.tip === "coklu";
   const secimTamam = coklu ? secim.length > 0 : false;
+  // Bu sorunun cevabı zaten sohbete eklenmiş mi (kullanıcı yanıtladı, sıradaki
+  // bekleniyor) — eklenmişse seçenekler tekrar gösterilmez.
+  const soruCevaplanmisMi = soru && sohbet.some((m, i) =>
+    m.tip === "ai" && m.id === soru.id && sohbet[i + 1]?.tip === "user");
 
   return (
     <div style={{ animation: "mstFadeUp .35s both" }}>
-      {/* Neden bu soruları soruyoruz */}
-      {ilerleme.cevaplanan === 0 && (
-        <div className="aday-deg-tanitim">
-          <div className="aday-deg-kimlik"><span>60 SANİYELİK KARİYER PROFİLİ</span><b>{oturum.adSoyad}</b></div>
-          <h2>Önce sizi ve hedefinizi anlayalım.</h2>
-          <p>Bu soruları size uygun olmayan bir kapsam önermemek için soruyoruz. Amaç sizi bir pakete yönlendirmek değil; doğrulanması gereken alanları ve güvenli sonraki adımı birlikte belirlemek.</p>
-          <div className="aday-deg-guven">
-            <span><b>Bilmiyorum geçerlidir</b>Eksik bilgi sıfır kabul edilmez.</span>
-            <span><b>Sonuç açıklanır</b>Her önerinin gerekçesi gösterilir.</span>
-            <span><b>Garanti verilmez</b>Bu bir ön değerlendirmedir.</span>
+      <div className="aday-sohbet-ust">
+        <div className="aday-sohbet-kimlik">
+          <div className="aday-sohbet-avatar">◆</div>
+          <div>
+            <div className="aday-sohbet-ad">MST AI Danışman</div>
+            <div className="aday-sohbet-durum">● şu an sizinle</div>
           </div>
         </div>
-      )}
-
-      {/* Gerçek soru sayısına göre ilerleme — dallanmada dinamik güncellenir */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-        <div style={{ flex: 1, height: 3, background: "rgba(201,162,75,.2)" }}>
-          <div style={{ width: `${ilerleme.yuzde}%`, height: "100%", background: "#C9A24B", transition: "width .3s" }} />
+        <div className="aday-sohbet-ilerleme">
+          <div className="aday-sohbet-ilerleme-bar"><div className="aday-sohbet-ilerleme-dolu" style={{ width: `${ilerleme.yuzde}%` }} /></div>
+          <span className="aday-sohbet-ilerleme-sayi">{ilerleme.cevaplanan}/{ilerleme.toplam}</span>
         </div>
-        <span style={{ fontSize: 11, color: "rgba(245,240,228,.45)" }}>
-          {ilerleme.cevaplanan}/{ilerleme.toplam}
-        </span>
       </div>
 
-      <p className="aday-deg-soru">{soru.soru}</p>
-      {soru.aciklama && (
-        <p className="aday-metin" style={{ fontSize: 12.5, marginBottom: 14, opacity: .7 }}>{soru.aciklama}</p>
-      )}
+      <div className="aday-sohbet-govde">
+        {sohbet.length === 0 && (
+          <div className="aday-balon aday-balon-ai">
+            Merhaba{oturum.adSoyad ? `, ${oturum.adSoyad.split(" ")[0]}` : ""}! Ben MST'nin yapay zekâ danışmanıyım.
+            Eserinizle ilgili birkaç şey sormak istiyorum — amacım sizi bir pakete yönlendirmek değil,
+            doğru sonraki adımı birlikte bulmak. "Bilmiyorum" her zaman geçerli bir cevaptır.
+          </div>
+        )}
+        {sohbet.map((m, i) => m.tip === "ai" ? (
+          <div key={`ai-${i}`} className="aday-balon aday-balon-ai">
+            {m.soru.soru}
+            {m.soru.aciklama && <div className="aday-balon-aciklama">{m.soru.aciklama}</div>}
+          </div>
+        ) : (
+          <div key={`user-${i}`} className="aday-balon aday-balon-user">{m.metin}</div>
+        ))}
 
-      {(soru.secenekler || []).map(o => {
-        const sec = coklu && secim.includes(o.deger);
-        const doluysa = coklu && soru.azami && secim.length >= soru.azami && !sec;
-        return (
-          <button key={String(o.deger)} type="button" disabled={mesgul || doluysa}
-            onClick={() => {
-              if (coklu) {
-                setSecim(s => sec ? s.filter(x => x !== o.deger) : [...s, o.deger]);
-              } else {
-                cevapGonder(o.deger);
-              }
-            }}
-            style={{
-              display: "block", width: "100%", textAlign: "left", padding: "13px 16px", marginBottom: 8,
-              background: sec ? "rgba(201,162,75,.16)" : "rgba(7,13,27,.15)",
-              border: `1px solid ${sec ? "#C9A24B" : "rgba(201,162,75,.3)"}`,
-              color: "#F5F0E4", fontFamily: "'Jost', sans-serif", fontSize: 13.5,
-              cursor: doluysa ? "not-allowed" : "pointer", opacity: doluysa ? .4 : 1,
-            }}>
-            {o.etiket}
-          </button>
-        );
-      })}
+        {yaziyor && <div className="aday-yaziyor"><span></span><span></span><span></span></div>}
 
-      {coklu && soru.azami && (
-        <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.4)", marginBottom: 10 }}>
-          En fazla {soru.azami} seçim · seçilen: {secim.length}
-        </div>
-      )}
+        {soru && !soruCevaplanmisMi && !yaziyor && (
+          <div className="aday-sohbet-secenekler">
+            {(soru.secenekler || []).map(o => {
+              const sec = coklu && secim.includes(o.deger);
+              const doluysa = coklu && soru.azami && secim.length >= soru.azami && !sec;
+              return (
+                <button key={String(o.deger)} type="button" disabled={mesgul || doluysa}
+                  className={`aday-sohbet-chip${sec ? " secili" : ""}`}
+                  onClick={() => {
+                    if (coklu) setSecim(s => sec ? s.filter(x => x !== o.deger) : [...s, o.deger]);
+                    else cevapGonder(o.deger, o.etiket);
+                  }}>
+                  {o.etiket}
+                </button>
+              );
+            })}
 
-      {coklu && (
-        <button className="aday-btn-asil" disabled={!secimTamam || mesgul}
-          onClick={() => cevapGonder(secim)}>DEVAM →</button>
-      )}
+            {coklu && soru.azami && (
+              <div style={{ fontSize: 11.5, color: "rgba(245,240,228,.4)" }}>
+                En fazla {soru.azami} seçim · seçilen: {secim.length}
+              </div>
+            )}
+            {coklu && (
+              <button className="aday-btn-asil" disabled={!secimTamam || mesgul}
+                onClick={() => cevapGonder(secim)}>DEVAM →</button>
+            )}
 
-      {/* "Bilmiyorum" her soruda geçerli — kullanıcı yalana zorlanmaz */}
-      <button type="button" disabled={mesgul} onClick={() => cevapGonder("__bilinmiyor__")}
-        style={{ display: "block", width: "100%", marginTop: 10, padding: "10px",
-                 background: "transparent", border: "1px dashed rgba(201,162,75,.3)",
-                 color: "rgba(245,240,228,.55)", fontSize: 12.5, cursor: "pointer" }}>
-        {soru.bilinmiyorMetni || "Bilmiyorum / henüz karar vermedim"}
-      </button>
+            <button type="button" disabled={mesgul} onClick={() => cevapGonder("__bilinmiyor__")}
+              style={{ display: "block", width: "100%", padding: "10px",
+                       background: "transparent", border: "1px dashed rgba(201,162,75,.3)",
+                       color: "rgba(245,240,228,.55)", fontSize: 12.5, cursor: "pointer", borderRadius: 14 }}>
+              {soru.bilinmiyorMetni || "Bilmiyorum / henüz karar vermedim"}
+            </button>
+          </div>
+        )}
 
-      {gecmis.length > 0 && (
+        <div ref={sohbetSonRef} />
+      </div>
+
+      {gecmis.length > 0 && !yaziyor && (
         <div style={{ marginTop: 12, fontSize: 12, color: "rgba(245,240,228,.4)",
                       textAlign: "center", cursor: "pointer" }} onClick={geriDon}>
           ← Önceki soruya dön
@@ -7150,6 +8172,7 @@ function AdayDeneyimi({ kaynak }) {
       if (d.ok) {
         sonYuklenenDosyaRef.current = dosyaImzasi;
         olayGonder("manuscript_uploaded", { tur: eserForm.tur });
+        setTaramaAktif(true); // eser başarıyla yüklendi — kısa tarama geçişi göster
         await eserleriYukle(); await perdeGetir();
       }
       else setHata(d.error || "Yüklenemedi");
@@ -7172,6 +8195,11 @@ function AdayDeneyimi({ kaynak }) {
   const [gorusmeForm, setGorusmeForm] = useState({ uygunGun: "", uygunSaat: "", yontem: "telefon", soru: "" });
   const [gorusmeGonderiliyor, setGorusmeGonderiliyor] = useState(false);
   const [gorusmeGonderildi, setGorusmeGonderildi] = useState(false);
+  const [surecMerkeziAcik2, setSurecMerkeziAcik2] = useState(false);
+  // Eser tarama geçişi (5 Ağu 2026) — yalnız BU oturumda az önce eser
+  // yüklendiyse gösterilir; sayfa yenilenince (zaten "incelemede" bir eser
+  // varsa) tekrar gösterilmez, direkt bekleme salonuna gidilir.
+  const [taramaAktif, setTaramaAktif] = useState(false);
 
   // DİKKAT — HOOK SIRASI: aşağıda birden çok erken return var
   // (tanıtım, giriş formu, değerlendirme, yol ayrımı). Bu yüzden HER hook
@@ -7309,6 +8337,9 @@ function AdayDeneyimi({ kaynak }) {
       <Ust />
       <div className="aday-tam-ekran" style={{ paddingTop: 80 }}>
         <div className="aday-icerik">
+          {/* KALDIRILDI (5 Ağu 2026): "Şimdilik atla" linki. Sohbet formatı
+              artık bir "test" gibi hissettirmiyor — kullanıcının önerisiyle
+              kaldırıldı. Geri istenirse: onBitti çağıran bir link eklemek yeterli. */}
           <DegerlendirmeAkisi
             oturum={oturum}
             onBitti={() => {
@@ -7316,14 +8347,6 @@ function AdayDeneyimi({ kaynak }) {
               setDegerlendirmeBitti(true);
             }}
           />
-          <div style={{ marginTop: 14, fontSize: 12, color: "rgba(245,240,228,.35)",
-                        textAlign: "center", cursor: "pointer" }}
-               onClick={() => {
-                 try { localStorage.setItem(degerlendirmeAnahtari, "1"); } catch {}
-                 setDegerlendirmeBitti(true);
-               }}>
-            Şimdilik atla — eserimi yüklemek istiyorum
-          </div>
         </div>
       </div>
     </AdayVideoZemin>
@@ -7426,7 +8449,25 @@ function AdayDeneyimi({ kaynak }) {
       <div style={{ animation: "adayGiris .8s both" }}>
         <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 16 }}>ESER YÜKLEME</div>
         <h1 className="aday-baslik">Eserinizi güvenle teslim edin</h1>
-        <p className="aday-metin" style={{ marginBottom: 10 }}>Dosyanız şifreli ortamda saklanır. Ön analizi <b style={{ color: "#F0D68A", fontWeight: 400 }}>yapay zekâ</b> yapar; editoryal değerlendirmeyi tamamlamak için <b style={{ color: "#F0D68A", fontWeight: 400 }}>yetkili editör ekibimiz gerektiğinde eserinize erişebilir</b>. Dosyanız üçüncü kişilerle paylaşılmaz ve model eğitiminde kullanılmaz.</p>
+
+        <div className="aday-kasa-cerceve">
+          <div className="aday-kasa-izgara" />
+          <div className="aday-kasa-tarama" />
+          <div className="aday-kasa-elmas" style={{ top: -3, left: -3 }} />
+          <div className="aday-kasa-elmas" style={{ top: -3, right: -3 }} />
+          <div className="aday-kasa-rozet">ŞİFRELİ ORTAM</div>
+          <div className="aday-kasa-ust">
+            <div className="aday-kasa-kilit">
+              <svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+            </div>
+            <div>
+              <div className="aday-kasa-baslik">GÜVENLİ TESLİM KANALI</div>
+              <div className="aday-kasa-alt">Üçüncü kişilerle paylaşılmaz</div>
+            </div>
+          </div>
+        </div>
+
+        <p className="aday-metin" style={{ marginBottom: 10 }}>Ön analizi <b style={{ color: "#F0D68A", fontWeight: 400 }}>yapay zekâ</b> yapar; editoryal değerlendirmeyi tamamlamak için <b style={{ color: "#F0D68A", fontWeight: 400 }}>yetkili editör ekibimiz gerektiğinde eserinize erişebilir</b>. Dosyanız üçüncü kişilerle paylaşılmaz ve model eğitiminde kullanılmaz.</p>
         <div className="aday-yukleme-gucler">
           {[
             ["Şifreli saklama", "Dosyanız korumalı ortamda tutulur."],
@@ -7548,6 +8589,18 @@ function AdayDeneyimi({ kaynak }) {
             </>
           )}
         </div>
+
+        {/* Aşama 7-12 — Süreç Merkezi. Teklif/sözleşme/görev takibi için,
+            görüşme talep edilmiş olsun ya da olmasın erişilebilir. */}
+        <button onClick={() => setSurecMerkeziAcik2(true)}
+          style={{ display: "block", width: "100%", marginTop: 14, padding: "12px 16px",
+                   background: "transparent", border: "1px solid rgba(201,162,75,.3)",
+                   color: "rgba(240,214,138,.85)", fontFamily: "'Jost', sans-serif", fontSize: 12.5, cursor: "pointer" }}>
+          SÜREÇ MERKEZİNİ AÇ →
+        </button>
+        {surecMerkeziAcik2 && (
+          <SurecMerkezi oturum={oturum} onKapat={() => setSurecMerkeziAcik2(false)} />
+        )}
       </div>
       );
     }
@@ -7569,28 +8622,30 @@ function AdayDeneyimi({ kaynak }) {
   };
 
   // Bekleme (incelemede/rapor_hazir) dışındaki her durumda tam ekran video zemin;
-  // bekleme sırasında BeklemeIcerigi kendi tasarımını + sağdaki AdayPerde videosunu kullanır.
+  // bekleme sırasında BeklemeIcerigi TAM GENİŞLİK gösterilir.
+  //
+  // KALDIRILDI (5 Ağu 2026): sağdaki "AdayPerde" video paneli. Video hiç
+  // yüklenmiyordu (kalıcı dönen spinner), "DEVAMINI GÖR" butonu görünür bir
+  // ilerleme sağlamıyordu ve işlevi adaya belirsiz geliyordu. BeklemeIcerigi
+  // kendi başına tam sayfa bir deneyim (grid, sticky üst şerit, kaydırmalı
+  // bölümler) — artık dar bir yan panele sıkıştırılmadan tüm genişliği alıyor.
   const bekleniyor = eser && (eser.durum === "incelemede" || eser.durum === "rapor_hazir");
+
+  if (bekleniyor && taramaAktif) return (
+    <div className="aday-zemin">
+      <style>{ADAY_CSS}</style>
+      <Ust />
+      <EserTaramaGecisi ilerleme={ilerleme} simAdim={simAdim} onDevam={() => setTaramaAktif(false)} />
+    </div>
+  );
 
   if (bekleniyor) return (
     <div className="aday-zemin">
       <style>{ADAY_CSS}</style>
       <Ust />
-      <div className="aday-perde-zemin" style={{ paddingTop: 64 }}>
-        <div className="aday-perde-sol">
-          {/* DİKKAT: {AnaIcerik()} — <AnaIcerik /> DEĞİL.
-              AnaIcerik bu bileşenin İÇİNDE tanımlı; JSX etiketi olarak
-              kullanılırsa her render'da yeni bileşen kimliği oluşur, React
-              tüm ağacı söküp yeniden kurar. Sonuç: yazarken girdi odağı
-              kayıyor ve ekran "yenileniyor" gibi görünüyordu (4 Ağu 2026).
-              Fonksiyon çağrısı olarak yazınca ağaç korunur. */}
-          {AnaIcerik()}
-        </div>
-        {perde && (
-          <div className="aday-perde-sag">
-            <AdayPerde perde={perde} perdeGetir={perdeGetir} perdeGecmis={perdeGecmis} />
-          </div>
-        )}
+      <div style={{ paddingTop: 64 }}>
+        {/* DİKKAT: {AnaIcerik()} — <AnaIcerik /> DEĞİL. Bkz. yukarıdaki not. */}
+        {AnaIcerik()}
       </div>
     </div>
   );
@@ -7993,7 +9048,8 @@ function YazarUygulamasi({ onAdayGirisTamam } = {}) {
     const res = await authFetch("/api/author/service-order", { method: "POST", body: JSON.stringify({ serviceKey, title, bookTitle, detail, price, status }) });
     if (res.ok) refreshAccount(); else alert((await res.json()).error || "Sipariş oluşturulamadı");
   };
-  const unlockEgitimDirect = () => placeOrder({ serviceKey: "egitim-pro", title: "Yazar Kariyer Eğitim Programı", price: SERVICES.find((s) => s.key === "egitim-pro").price, status: "Onay bekliyor" });
+  // KALDIRILDI (5 Ağu 2026): unlockEgitimDirect — eğitim artık ücretsiz,
+  // satın alma akışına gerek kalmadı.
   const subscribeAI = async () => {
     const res = await authFetch("/api/author/ai-subscribe", { method: "POST", body: JSON.stringify({ price: AI_PRICE }) });
     if (res.ok) refreshAccount(); else alert((await res.json()).error || "Abonelik başlatılamadı");
@@ -8128,13 +9184,29 @@ function YazarUygulamasi({ onAdayGirisTamam } = {}) {
         {tab === "reklam" && <AdSection books={account.books} token={session.token} onRefresh={refreshAccount} />}
         {tab === "ek" && vip && <ExtrasSection books={account.books} requests={myTranslations} onSubmit={submitTranslation} />}
         {tab === "kazanc" && <EarningsSection account={account} />}
-        {tab === "egitim" && <EducationSection unlocked={account.unlocked["egitim-pro"]} onUnlock={unlockEgitimDirect} wallet={account.wallet} />}
+        {/* DEĞİŞTİRİLDİ (5 Ağu 2026): "Eğitim" sekmesi artık ayrı, ücretli
+            (899₺) bir programı (EducationSection, 8 modül) değil, TEK VE
+            ÜCRETSİZ eğitim sistemini (MSTAkademi, 10 modül) gösteriyor —
+            aynı bileşen ana sayfadaki widget'tan da erişiliyor. İki farklı
+            eğitim sistemi tek çatı altında birleşti. */}
+        {tab === "egitim" && (
+          <MSTAkademi
+            yazarAdi={account.name} yazarUnvan={account.title} yazarId={account.id}
+            token={session.token} ilerlemeUcu="/api/author/akademi-ilerleme"
+            onKapat={() => setTab("stok")}
+          />
+        )}
         {tab === "ai" && <AIAssistant account={account} token={session.token} onSubscribe={subscribeAI} />}
         {tab === "akademi" && (() => {
           // Akademi sekmesine girildiğinde her zaman akademiyi aç
           if (!akademiAcik) { setTimeout(() => setAkademiAcik(true), 0); }
+          // DÜZELTME (5 Ağu 2026): token ve ilerlemeUcu hiç geçilmiyordu —
+          // ilerleme backend'e hiç kaydedilmiyor/yüklenmiyordu, yalnız
+          // localStorage'da kalıyordu (cihaz değişince kayboluyordu).
           return akademiAcik
-            ? <MSTAkademi yazarAdi={account.name} yazarUnvan={account.title} yazarId={account.id} onKapat={() => setAkademiAcik(false)} />
+            ? <MSTAkademi yazarAdi={account.name} yazarUnvan={account.title} yazarId={account.id}
+                token={session.token} ilerlemeUcu="/api/author/akademi-ilerleme"
+                onKapat={() => setAkademiAcik(false)} />
             : <div style={{padding:40,textAlign:'center',color:'rgba(245,240,228,.5)'}}>Yükleniyor...</div>;
         })()}
         {tab === "destek" && (<><Announcements items={myAnnouncements} /><DestekAyrimi /><SupportSection requests={myRequests} onSubmit={submitRequest} /></>)}

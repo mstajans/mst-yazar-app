@@ -126,7 +126,13 @@ function MSTAkademi({ yazarAdi, yazarUnvan, yazarId, onKapat, onIlerlemeGuncelle
   // Madde 9 — ANA KAYIT KAYNAĞI BACKEND'DİR. localStorage yalnız hızlı önbellek.
   // Kullanıcı farklı cihazdan girerse ilerleme buradan geri yüklenir.
   React.useEffect(() => {
-    if (!adayModu || !token) return;
+    // DÜZELTME (5 Ağu 2026): önceden yalnız adayModu===true iken çalışırdı.
+    // Yorum "adayModu verilmezse eski (yazar) davranış korunur" diyordu ama
+    // kod bunu hiç yapmıyordu — token verilse bile yazar modunda (adayModu
+    // undefined) bu efekt tamamen atlanıyordu, ilerleme backend'den asla
+    // yüklenmiyordu. Artık yalnız token'ın varlığına bakıyor — hem aday hem
+    // yazar modunda (ikisi de kendi token'ını geçtiği sürece) çalışır.
+    if (!token) return;
     let iptal = false;
     (async () => {
       try {

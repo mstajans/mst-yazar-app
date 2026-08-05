@@ -6096,14 +6096,15 @@ const BK_CSS = `
   background:none;border:1px solid rgba(245,240,228,.1);font-family:'Jost',sans-serif;
   padding:5px 12px;transition:all .2s;flex-shrink:0;white-space:nowrap}
 .bk-serit-atla:hover{color:rgba(201,162,75,.7);border-color:rgba(201,162,75,.3)}
-/* DÜZELTME (5 Ağu 2026, kullanıcı geri bildirimi): üst şerit ve B1 alt
-   tarama çizgisi AYNI keyframe'i (adayKasaTara) paylaşıyordu — "üstte de
-   altta da aynı çizgi var" izlenimi buradan geliyordu. Üst şerit artık
-   kendi, daha yavaş ve ince bir animasyona sahip. */
+/* DÜZELTME (5 Ağu 2026, kullanıcı geri bildirimi #2): önceki düzeltmede
+   çizgi çok SÖNÜK kalmıştı ("sağdan sola giden çizgi sönük kalmış, eski
+   haline gelsin, parlak ince olsun"). Parlaklık (opacity, box-shadow)
+   eski seviyesine döndürüldü; ince kalınlık (1px) ve yavaş hız (7.5s)
+   korundu — B1'in alt çizgisinden hâlâ ayrı, kendi animasyonu var. */
 .bk-serit-tarama{position:absolute;bottom:-1px;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(240,214,138,.7),transparent);
-  box-shadow:0 0 4px rgba(240,214,138,.25);animation:bkSeritTaramaYavas 7.5s ease-in-out infinite}
-@keyframes bkSeritTaramaYavas { 0% { opacity:0; transform:translateX(-100%); } 15% { opacity:.8; } 85% { opacity:.8; } 100% { opacity:0; transform:translateX(100%); } }
+  background:linear-gradient(90deg,transparent,#F0D68A,transparent);
+  box-shadow:0 0 6px rgba(240,214,138,.4);animation:bkSeritTaramaYavas 7.5s ease-in-out infinite}
+@keyframes bkSeritTaramaYavas { 0% { opacity:0; transform:translateX(-100%); } 12% { opacity:1; } 88% { opacity:1; } 100% { opacity:0; transform:translateX(100%); } }
 
 /* Her bölüm tam ekran yüksekliği */
 .bk-bolum{
@@ -6423,10 +6424,12 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
         ` + BK_CSS + `
       `}</style>
 
-      {/* SABİT ŞERİT */}
+      {/* SABİT ŞERİT — "MST YAYINCILIK" yazısı KALDIRILDI (5 Ağu 2026,
+          kullanıcı geri bildirimi: sol üstte iki kez yazıyordu, üstteki
+          sabit başlık (Ust bileşeni) kalsın, bu tekrar eden ikincisi
+          kaldırılsın). */}
       <div className="bk-serit" style={{ position: "sticky" }}>
         <div className="bk-serit-tarama" />
-        <div className="bk-serit-logo">MST YAYINCILIK</div>
         <div className="bk-serit-durum">
           <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#C9A24B" strokeWidth="2" style={{ marginRight: 2 }}>
             <rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 018 0v4"/>

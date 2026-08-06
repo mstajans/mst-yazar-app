@@ -7847,6 +7847,16 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
   const [yaziyor, setYaziyor] = useState(false);
   const gosterilenSoruIdler = React.useRef(new Set());
 
+  // EKLENDİ (6 Ağu 2026, kullanıcı kararı — "sorularla boğmadan veri
+  // gerçekliğini artırmak, ikisinin ortası"). Yalnız iki soru (aşağıda)
+  // cevaplandıktan sonra, AI'ın o cevaba özel ürettiği TEK satırlık bir
+  // takip sorusu gösterilir — serbest, isteğe bağlı, "geç" her zaman var.
+  // Bu, SORU_BANKASI akışını DEĞİŞTİRMEZ; yalnız araya kısa bir ek an girer.
+  const AI_TAKIP_SORULARI = React.useRef({ birincil_hedef: true, yatirim_modeli: true }).current;
+  const [aiTakip, setAiTakip] = useState(null); // { soruId, aiSorusu } | null
+  const [aiTakipMetin, setAiTakipMetin] = useState("");
+  const [aiTakipYukleniyor, setAiTakipYukleniyor] = useState(false);
+
   // DÜZELTME (5 Ağu 2026): önceden scrollIntoView kullanılıyordu — bu, sohbet
   // kendi kaydırma alanına sahip olmadığı için TÜM SAYFAYI kaydırıyordu ve
   // mobilde ekranın zıplamasına yol açıyordu. Ayrıca bağımlılık listesinde
@@ -7934,6 +7944,28 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
         }),
       });
       setGecmis(g => [...g, soru.id]);
+
+      // AI takip sorusu — yalnız iki izinli soru için, ve yazar bilinmiyor
+      // demediyse (boş/anlamsız cevaba takip sorusu sormanın anlamı yok).
+      if (AI_TAKIP_SORULARI[soru.id] && deger !== "__bilinmiyor__") {
+        setAiTakipYukleniyor(true);
+        try {
+          const cevapOzeti = Array.isArray(deger)
+            ? (soru.secenekler || []).filter(o => deger.includes(o.deger)).map(o => o.etiket).join(", ")
+            : (soru.secenekler || []).find(o => o.deger === deger)?.etiket || String(deger);
+          const r = await yetkili(`/api/aday/degerlendirme/${oturumId}/ai-takip-sor`, {
+            method: "POST", body: JSON.stringify({ soruId: soru.id, cevapOzeti }),
+          });
+          const v = await r.json();
+          if (v.soru) {
+            setAiTakip({ soruId: soru.id, aiSorusu: v.soru });
+            setMesgul(false); setAiTakipYukleniyor(false);
+            return; // sonraki soruya GEÇMİYORUZ — önce bu ara adım gösterilecek
+          }
+        } catch { /* AI takip sorusu üretilemezse akış sessizce normal devam eder */ }
+        setAiTakipYukleniyor(false);
+      }
+
       const v = await sonrakiGetir(oturumId);
       if (v.bitti) {
         await yetkili(`/api/aday/degerlendirme/${oturumId}/tamamla`, { method: "POST", body: "{}" });
@@ -7945,6 +7977,30 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
       }
     } catch { setHata("Cevap kaydedilemedi"); }
     finally { setMesgul(false); }
+  };
+
+  // AI takip sorusunun cevabını (ya da "geç"ini) kaydedip normal akışa döner.
+  const aiTakipTamamla = async (gec) => {
+    if (!aiTakip || mesgul) return;
+    setMesgul(true);
+    const cevapMetni = gec ? "" : aiTakipMetin.trim();
+    // Adayın kendi cevabı da (varsa) sohbette görünsün — samimi akış korunur.
+    setSohbet(s => [...s, { tip: "ai", id: `aitakip-${aiTakip.soruId}`, soru: { soru: aiTakip.aiSorusu } },
+      ...(cevapMetni ? [{ tip: "user", metin: cevapMetni }] : [])]);
+    try {
+      await yetkili(`/api/aday/degerlendirme/${oturumId}/ai-takip-cevap`, {
+        method: "POST",
+        body: JSON.stringify({ soruId: aiTakip.soruId, aiSorusu: aiTakip.aiSorusu, adayCevabi: cevapMetni || null }),
+      });
+    } catch { /* kaydedilemezse akış yine de devam eder — yazarı bekletmeyiz */ }
+    setAiTakip(null); setAiTakipMetin("");
+    const v = await sonrakiGetir(oturumId);
+    if (v.bitti) {
+      await yetkili(`/api/aday/degerlendirme/${oturumId}/tamamla`, { method: "POST", body: "{}" });
+      const s = await (await yetkili(`/api/aday/degerlendirme/${oturumId}/sonuc`)).json();
+      setSonuc(s);
+    }
+    setMesgul(false);
   };
 
   const geriDon = async () => {
@@ -8075,7 +8131,30 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
 
         {yaziyor && <div className="aday-yaziyor"><span></span><span></span><span></span></div>}
 
-        {soru && !soruCevaplanmisMi && !yaziyor && (
+        {aiTakipYukleniyor && <div className="aday-yaziyor"><span></span><span></span><span></span></div>}
+
+        {aiTakip && !aiTakipYukleniyor && (
+          <>
+            <div className="aday-balon aday-balon-ai">{aiTakip.aiSorusu}</div>
+            <div className="aday-sohbet-secenekler">
+              <textarea value={aiTakipMetin} onChange={e => setAiTakipMetin(e.target.value)}
+                placeholder="İsterseniz birkaç cümleyle yanıtlayın…" rows={3}
+                style={{ width: "100%", background: "rgba(5,13,26,.5)", border: "1px solid rgba(201,162,75,.25)",
+                         borderRadius: 10, color: "#F5F0E4", fontSize: 14, padding: 12, fontFamily: "inherit",
+                         resize: "vertical", boxSizing: "border-box" }} />
+              <button className="aday-btn-asil" disabled={mesgul || !aiTakipMetin.trim()}
+                onClick={() => aiTakipTamamla(false)}>GÖNDER</button>
+              <button type="button" disabled={mesgul} onClick={() => aiTakipTamamla(true)}
+                style={{ display: "block", width: "100%", padding: "10px",
+                         background: "transparent", border: "1px dashed rgba(201,162,75,.3)",
+                         color: "rgba(245,240,228,.55)", fontSize: 12.5, cursor: "pointer", borderRadius: 14 }}>
+                Şimdilik geç
+              </button>
+            </div>
+          </>
+        )}
+
+        {soru && !soruCevaplanmisMi && !yaziyor && !aiTakip && !aiTakipYukleniyor && (
           <div className="aday-sohbet-secenekler">
             {(soru.secenekler || []).map(o => {
               const sec = coklu && secim.includes(o.deger);

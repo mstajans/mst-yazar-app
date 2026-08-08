@@ -9605,6 +9605,27 @@ function YazarUygulamasi({ onAdayGirisTamam } = {}) {
             );
           })()}
 
+          {/* EKLENDİ (8 Ağu 2026, kullanıcı talebi — "tüm yazarlarımıza ana
+              ekranda panoda belirgin bir şekilde 2000 TL ödülünü hemen al
+              diye ekleyelim"): yazar getirme ödülü önceden sadece Hesabım
+              sekmesinde, görünmez bir yerdeydi. Şimdi ana ekranda, ilk
+              girişte hemen göze çarpan bir banner — "Hesabım" sekmesindeki
+              gerçek referans formuna yönlendiriyor (form burada tekrar
+              edilmiyor, tek bir yerde kalsın diye). */}
+          <div onClick={() => setTab("hesabim")} style={{ cursor: "pointer", background: `linear-gradient(135deg, ${THEME.gold}22, ${THEME.headerBg})`, border: `1.5px solid ${THEME.gold}`, borderRadius: 0, padding: "16px 18px", marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div>
+              <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, color: THEME.gold, fontWeight: 700, marginBottom: 4 }}>
+                Bir yazar tanıyor musunuz? 2.000₺ kazanın
+              </div>
+              <div style={{ fontSize: 13.5, color: THEME.textLight, lineHeight: 1.55 }}>
+                Önerdiğiniz kişi paket aldığında, 2.000₺ hesabınıza otomatik yansır.
+              </div>
+            </div>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14, color: THEME.gold, fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>
+              HEMEN AL →
+            </div>
+          </div>
+
           <div style={{ fontSize: 14, letterSpacing: "0.05em", color: THEME.textMuted, marginBottom: 10 }}>
             KİTAPLARINIZ ({account.books.length})
           </div>

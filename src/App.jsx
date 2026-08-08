@@ -2407,12 +2407,6 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
   const [adaySessionId, setAdaySessionId] = useState(null);
   const [adayVersiyon, setAdayVersiyon] = useState(null);
   const [adayForm, setAdayForm] = useState({ adSoyad: "", eposta: "" });
-  // Kullanicidan e-posta istemiyoruz ama backend gecerli e-posta formati bekliyor —
-  // telefon numarasindan otomatik, gecerli formatta bir e-posta uretilir. Ekranda hic gorunmez.
-  const adayOtoEposta = () => {
-    const rakam = (adayTelefon || "").replace(/[^0-9]/g, "");
-    return `aday${rakam || Date.now()}@mstyayincilik.com`;
-  };
   const [adayKod, setAdayKod] = useState("");
   const [adayKodAsama, setAdayKodAsama] = useState(false);
   const [adayTestKodu, setAdayTestKodu] = useState("");
@@ -2422,11 +2416,12 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
   // burada kod ekranı çıkar. İstek başarısız olursa güvenli varsayılan:
   // doğrulama AÇIK kabul edilir; arayüz kendiliğinden kapatmaz.
   const [smsDogrulamaAcik, setSmsDogrulamaAcik] = useState(null);
+  const [adayDogrulamaKanali, setAdayDogrulamaKanali] = useState("eposta");
   useEffect(() => {
     let aktif = true;
     fetch(`${BACKEND_URL}/api/aday/dogrulama-durumu`)
       .then(r => r.ok ? r.json() : Promise.reject(new Error("durum_alinamadi")))
-      .then(v => { if (aktif) setSmsDogrulamaAcik(v.smsDogrulamaAcik !== false); })
+      .then(v => { if (aktif) { setSmsDogrulamaAcik(v.smsDogrulamaAcik !== false); setAdayDogrulamaKanali(v.dogrulamaKanali || "eposta"); } })
       .catch(() => { if (aktif) setSmsDogrulamaAcik(true); });
     return () => { aktif = false; };
   }, []);
@@ -2500,7 +2495,7 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
     try {
       const r = await fetch(`${BACKEND_URL}/api/aday/kod-dogrula`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayOtoEposta(),
+        body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayForm.eposta,
                                telefon: adayTelefon, kod, kaynak: "direkt" }),
       });
       const v = await r.json();
@@ -2533,7 +2528,7 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
         try {
           const r2 = await fetch(`${BACKEND_URL}/api/aday/kod-gonder`, {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayOtoEposta(), telefon: adayTelefon, kaynak: "direkt" }),
+            body: JSON.stringify({ adSoyad: adayForm.adSoyad, eposta: adayForm.eposta, telefon: adayTelefon, kaynak: "direkt" }),
           });
           const v2 = await r2.json();
           if (v2.ok && v2.dogrulamaAtlandi) {
@@ -2788,22 +2783,31 @@ function LoginScreen({ onLogin, onAdayGirisTamam }) {
               <div style={{ animation: "mstFadeUp .35s both" }}>
                 {!adayKodAsama ? (<>
                   <p style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 16, lineHeight: 1.75 }}>
-                    Ad soyad ve telefon numaranızı girin. Kayıtlıysanız direkt giriş yapılır, ilk kez geliyorsanız telefonunuza doğrulama kodu gönderilir.
+                    {adayDogrulamaKanali === "eposta"
+                      ? "Ad soyad, telefon ve e-posta adresinizi girin. Kayıtlıysanız direkt giriş yapılır, ilk kez geliyorsanız e-postanıza doğrulama kodu gönderilir."
+                      : "Ad soyad ve telefon numaranızı girin. Kayıtlıysanız direkt giriş yapılır, ilk kez geliyorsanız telefonunuza doğrulama kodu gönderilir."}
                   </p>
                   <input className="mst-input" placeholder="Ad Soyad" value={adayForm.adSoyad}
                     onChange={e => setAdayForm({...adayForm, adSoyad: e.target.value})} style={{ marginBottom: 8 }} />
                   <input className="mst-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel"
                     value={adayTelefon} onChange={e => setAdayTelefon(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && adayHizliGiris()} style={{ marginBottom: 12 }} />
+                    onKeyDown={e => e.key === "Enter" && adayHizliGiris()} style={{ marginBottom: 8 }} />
+                  {adayDogrulamaKanali === "eposta" && (
+                    <input className="mst-input" placeholder="E-posta (doğrulama kodu buraya gönderilecek)" inputMode="email"
+                      value={adayForm.eposta} onChange={e => setAdayForm({...adayForm, eposta: e.target.value})}
+                      onKeyDown={e => e.key === "Enter" && adayHizliGiris()} style={{ marginBottom: 12 }} />
+                  )}
                   {adayHata && <div style={{ color: LT.danger, fontSize: 13, marginBottom: 10 }}>{adayHata}</div>}
                   <Dugme tur="asil" onClick={adayHizliGiris}
-                    disabled={adayYukleniyor || smsDogrulamaAcik === null || !adayForm.adSoyad || adayTelefon.replace(/[^0-9]/g,"").length < 10}>
+                    disabled={adayYukleniyor || smsDogrulamaAcik === null || !adayForm.adSoyad || adayTelefon.replace(/[^0-9]/g,"").length < 10 || (adayDogrulamaKanali === "eposta" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adayForm.eposta || ""))}>
                     {adayYukleniyor ? "KONTROL EDİLİYOR..."
                       : smsDogrulamaAcik === false ? "ÖZEL ALANIMI BAŞLAT →" : "DEVAM →"}
                   </Dugme>
                 </>) : (<>
                   <div style={{ fontSize: 13, color: "rgba(245,240,228,.55)", marginBottom: 12 }}>
-                    {adayTelefon} numarasına 6 haneli kod gönderdik.
+                    {adayDogrulamaKanali === "eposta"
+                      ? `${adayForm.eposta} adresine 6 haneli kod gönderdik.`
+                      : `${adayTelefon} numarasına 6 haneli kod gönderdik.`}
                   </div>
                   {adayTestKodu && (
                     <div style={{ background: "rgba(201,162,75,.1)", border: "1px solid rgba(201,162,75,.3)", padding: "10px 16px", marginBottom: 12, fontSize: 13, color: "#C9A24B" }}>
@@ -8368,10 +8372,17 @@ function AdayDeneyimi({ kaynak }) {
     } catch { return {}; }
   });
   const [asama, setAsama] = useState("form");
+  // EKLENDİ (8 Ağu 2026): hızlı giriş ("kaynak=giris" ile gelen, sadece
+  // telefon isteyen ekran) "bu numara kayıtlı değil" derse, kullanıcıyı
+  // e-posta dahil tam kayıt formuna geçirmek için. asama zaten "form" olarak
+  // başladığından onu kullanmak yanlış olurdu (ilk açılışta hızlı girişi hiç
+  // göstermezdi) — ayrı, açıkça niyet taşıyan bir bayrak kullanıyoruz.
+  const [hizliGirisKayitliDegil, setHizliGirisKayitliDegil] = useState(false);
   const [tanitimGoruldu, setTanitimGoruldu] = useState(() => kaynak === "giris");
   const [form, setForm] = useState({ adSoyad: "", telefon: "", eposta: "" });
   const [kod, setKod] = useState("");
   const [smsDogrulamaAcik, setSmsDogrulamaAcik] = useState(null);
+  const [dogrulamaKanali, setDogrulamaKanali] = useState("eposta");
   const [testKodu, setTestKodu] = useState("");
   const [hata, setHata] = useState("");
   const [mesgul, setMesgul] = useState(false);
@@ -8465,7 +8476,7 @@ function AdayDeneyimi({ kaynak }) {
     let aktif = true;
     fetch(`${BACKEND_URL}/api/aday/dogrulama-durumu`)
       .then(r => r.ok ? r.json() : Promise.reject(new Error("durum_alinamadi")))
-      .then(d => { if (aktif) setSmsDogrulamaAcik(d.smsDogrulamaAcik !== false); })
+      .then(d => { if (aktif) { setSmsDogrulamaAcik(d.smsDogrulamaAcik !== false); setDogrulamaKanali(d.dogrulamaKanali || "eposta"); } })
       .catch(() => { if (aktif) setSmsDogrulamaAcik(true); });
     return () => { aktif = false; };
   }, [oturum]);
@@ -8705,7 +8716,7 @@ function AdayDeneyimi({ kaynak }) {
             <div className="aday-elmas" style={{ top: -5, right: -5 }} />
             <div className="aday-elmas" style={{ bottom: -5, left: -5 }} />
             <div className="aday-elmas" style={{ bottom: -5, right: -5 }} />
-            {kaynak === "giris" && !oturum ? (<>
+            {kaynak === "giris" && !oturum && !hizliGirisKayitliDegil ? (<>
               {/* HIZLI GİRİŞ — sadece telefon */}
               <h1 className="aday-baslik" style={{ animationDelay: ".1s" }}>Tekrar hoş geldiniz</h1>
               <p className="aday-metin" style={{ marginBottom: 24 }}>Telefon numaranızı girin, SMS kodu olmadan doğrudan girelim.</p>
@@ -8721,7 +8732,15 @@ function AdayDeneyimi({ kaynak }) {
                     localStorage.setItem("adayOturum", JSON.stringify(yeni));
                     setOturum(yeni);
                   } else if (veri.yonlendir === "kayit") {
-                    setHata("Bu numara kayıtlı değil. Kayıt olmak için reklam linki üzerinden girin.");
+                    // DÜZELTİLDİ (8 Ağu 2026, kullanıcı raporu — "telefon
+                    // gösteriyor e-maille alakalı bir şey göstermiyor"):
+                    // önceden burada kullanıcı "reklam linki üzerinden girin"
+                    // diye bir çıkmaza yönlendiriliyordu — kayıt formuna hiç
+                    // geçemiyordu. Artık doğrudan (e-posta dahil) kayıt
+                    // formuna yönlendiriliyor, girdiği ad/telefon korunuyor.
+                    setForm(f => ({ ...f, telefon: form.telefon }));
+                    setHizliGirisKayitliDegil(true);
+                    setHata("");
                   } else {
                     setHata(veri.error || "Giriş yapılamadı");
                   }
@@ -8736,13 +8755,13 @@ function AdayDeneyimi({ kaynak }) {
               <p className="aday-metin" style={{ marginBottom: 32 }}>Yapay zekâ destekli yazar adayı programına hoş geldiniz. Eseriniz önce yapay zekâ ile analiz edilir; editoryal değerlendirme yetkili ekip kontrolüyle hazırlanır. Size sonuçla birlikte açıklanabilir bir yol haritası sunulur.</p>
               <input className="aday-input" placeholder="Ad Soyad" value={form.adSoyad} onChange={e => setForm({ ...form, adSoyad: e.target.value })} />
               <input className="aday-input" placeholder="Telefon (5xx xxx xx xx)" inputMode="tel" value={form.telefon} onChange={e => setForm({ ...form, telefon: e.target.value })} />
-              <input className="aday-input" placeholder="E-posta" inputMode="email" value={form.eposta} onChange={e => setForm({ ...form, eposta: e.target.value })} />
+              <input className="aday-input" placeholder={dogrulamaKanali === "eposta" ? "E-posta (doğrulama kodu buraya gönderilecek)" : "E-posta"} inputMode="email" value={form.eposta} onChange={e => setForm({ ...form, eposta: e.target.value })} />
               {hata && <div className="aday-hata">{hata}</div>}
-              <button className="aday-btn-asil" onClick={kodIste} disabled={mesgul || smsDogrulamaAcik === null}>{mesgul ? "İŞLEM YAPILIYOR..." : smsDogrulamaAcik === false ? "ÖZEL ALANIMI BAŞLAT →" : "DOĞRULAMA KODU GÖNDER →"}</button>
-              <p className="aday-not">{smsDogrulamaAcik === false ? "Bilgileriniz yalnızca yayın değerlendirme süreciniz için kullanılacaktır." : "Telefonunuza tek kullanımlık SMS kodu gelecek. Bilgileriniz yalnızca yayın süreciniz için kullanılır."}</p>
+              <button className="aday-btn-asil" onClick={kodIste} disabled={mesgul || smsDogrulamaAcik === null || (dogrulamaKanali === "eposta" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.eposta || ""))}>{mesgul ? "İŞLEM YAPILIYOR..." : smsDogrulamaAcik === false ? "ÖZEL ALANIMI BAŞLAT →" : "DOĞRULAMA KODU GÖNDER →"}</button>
+              <p className="aday-not">{smsDogrulamaAcik === false ? "Bilgileriniz yalnızca yayın değerlendirme süreciniz için kullanılacaktır." : dogrulamaKanali === "eposta" ? "E-postanıza tek kullanımlık doğrulama kodu gelecek. Bilgileriniz yalnızca yayın süreciniz için kullanılır." : "Telefonunuza tek kullanımlık SMS kodu gelecek. Bilgileriniz yalnızca yayın süreciniz için kullanılır."}</p>
             </>) : (<>
               <h1 className="aday-baslik">Kodunuzu girin</h1>
-              <p className="aday-metin" style={{ marginBottom: 24 }}>{form.telefon} numarasına 6 haneli kod gönderildi.</p>
+              <p className="aday-metin" style={{ marginBottom: 24 }}>{dogrulamaKanali === "eposta" ? `${form.eposta} adresine 6 haneli kod gönderildi.` : `${form.telefon} numarasına 6 haneli kod gönderildi.`}</p>
               {testKodu && <div style={{ background: "rgba(201,162,75,.1)", border: "1px solid rgba(201,162,75,.3)", padding: "10px 16px", marginBottom: 16, fontSize: 13, color: "#C9A24B" }}>Test modu — kodunuz: <b style={{ fontSize: 18, letterSpacing: ".2em" }}>{testKodu}</b></div>}
               <input className="aday-input" style={{ letterSpacing: ".45em", textAlign: "center", fontSize: 24 }} maxLength={6} inputMode="numeric" placeholder="— — — — — —" value={kod} onChange={e => setKod(e.target.value.replace(/\D/g, ""))} />
               {hata && <div className="aday-hata">{hata}</div>}

@@ -5409,32 +5409,25 @@ const ADAY_CSS = `
   font-family:'Jost',sans-serif;
   overflow-x:hidden;
 }
-/* DÜZELTME (5 Ağu 2026, gerçek cihaz raporu — "KVKK metni donuyor,
-   açıldığında sorun yaşıyoruz"): justify-content:center kullanılıyordu.
-   Flexbox'ta içerik konteynerden uzun olduğunda merkezleme, taşan kısmı
-   ERİŞİLEMEZ hale getirir (üst kısım kaydırma alanının dışında kalır) —
-   uzun KVKK/gizlilik ekranında tam olarak bu yaşanıyordu, ekran "donmuş"
-   gibi görünüyordu. safe center: içerik sığıyorsa ortalar, sığmıyorsa
-   üstten hizalar ve tamamı kaydırılabilir kalır.
-   Ayrıca 100vh → 100dvh: mobil adres çubuğu 100vh'yi bozuyordu. */
+/* DÜZELTİLDİ (8 Ağu 2026, kullanıcı raporu — "aşağı inemiyoruz, defalarca
+   belirttim hâlâ çözülmedi"): 5 Ağustos'ta "safe center" ile düzeltilmeye
+   çalışılmıştı, ama "safe center" bazı tarayıcı/sürüm kombinasyonlarında
+   tam desteklenmiyor — kısmi destek taşan içeriği yine erişilemez
+   bırakabiliyordu. Kesin ve tarayıcıdan bağımsız çözüm: flexbox DİKEY
+   merkezlemeyi tamamen kaldırdık. İçerik artık normal doküman akışıyla
+   üstten başlayıp aşağı akıyor — taşarsa sayfa (body) doğrudan kaydırılır,
+   hiçbir flexbox özelliğine bağımlı değil, hiçbir tarayıcıda erişilemez
+   içerik riski yok. Yatay ortalama .aday-icerik'teki margin:auto ile hâlâ
+   sağlanıyor (aşağıda). */
 .aday-tam-ekran {
   min-height:100dvh;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:safe center;
   padding:32px 20px;
   position:relative;
-}
-/* safe center desteklemeyen tarayıcılar için geri düşüş — auto margin ile
-   aynı etkiyi verir ve taşmada asla kırpmaz. */
-@supports not (justify-content: safe center){
-  .aday-tam-ekran{justify-content:flex-start}
-  .aday-tam-ekran > *{margin-top:auto;margin-bottom:auto}
 }
 .aday-icerik {
   width:100%;
   max-width:640px;
+  margin:0 auto;
   animation: adayGiris .9s cubic-bezier(.22,1,.36,1) both;
 }
 .aday-logo-blok {
@@ -6057,7 +6050,7 @@ const ADAY_CSS = `
   .aday-deg-guven { display:flex; overflow-x:auto; margin-right:-17px; padding-right:17px; }
   .aday-deg-guven span { min-width:160px; font-size:12px; line-height:1.55; }
   .aday-deg-soru { font-size:25px; }
-  .aday-tam-ekran { align-items:flex-start; padding-left:16px !important; padding-right:16px !important; }
+  .aday-tam-ekran { padding-left:16px !important; padding-right:16px !important; }
   .aday-icerik { width:100%; padding-top:22px; padding-bottom:40px; }
   .aday-kart { padding:24px 18px; }
   .aday-baslik { font-size:clamp(32px,10vw,43px); line-height:1.04; color:#FFF9EE; }
@@ -6089,6 +6082,64 @@ const ADAY_CSS = `
 // (4 Ağu 2026: bu sabit hiç tanımlanmamıştı; eser yükleme ekranı
 // "ADAY_TURLER is not defined" ile çöküyordu.)
 const ADAY_TURLER = ["Roman", "Öykü", "Şiir", "Deneme", "Anı", "Diğer"];
+
+// EKLENDİ (8 Ağu 2026, kullanıcı raporu — "biz eseri reddettiğimiz zaman
+// editör notu yok, çok yetersiz görünüyor, benim girdiğim bilgiler daha iyi
+// görünsün"): editöryal değerlendirme raporu artık yeniden kullanılabilir
+// tek bir bileşen. Önceden bu blok yalnızca "onaylandi" durumunda
+// gösteriliyordu — "reddedildi" durumunda admin'in girdiği güçlü/zayıf
+// yönler, hedef okur, önerilen çalışma ve editör notu HİÇ görünmüyordu,
+// yalnızca kısa "red_gerekceleri" etiketleri vardı. Artık her iki durumda
+// da aynı detaylı rapor gösteriliyor.
+const EDITORYAL_KARAR_ETIKET = { hazir: "Yayına hazırlık için uygun", gelistirme: "Editöryal geliştirmeyle uygun", henuz_degil: "Henüz hazır değil" };
+function EditoryalRaporBlogu({ eser }) {
+  const editoryalVar = !!(eser.editoryal_karar || eser.editoryal_guclu_yonler);
+  if (!editoryalVar) return null;
+  return (
+    <div style={{ marginTop: 28 }}>
+      <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 14 }}>EDİTÖRYAL ÖN DEĞERLENDİRME RAPORU</div>
+      <div style={{ marginBottom: 14, padding: "10px 14px", background: "rgba(201,162,75,.08)", border: "1px solid rgba(201,162,75,.25)" }}>
+        <div style={{ fontSize: 13, color: "#F0D68A" }}>{EDITORYAL_KARAR_ETIKET[eser.editoryal_karar] || eser.editoryal_karar}</div>
+      </div>
+      {eser.editoryal_guclu_yonler && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>GÜÇLÜ YÖNLER</div>
+          <p className="aday-metin">{eser.editoryal_guclu_yonler}</p>
+        </div>
+      )}
+      {eser.editoryal_eksik_yonler && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>GELİŞTİRİLMESİ GEREKEN ALANLAR</div>
+          <p className="aday-metin">{eser.editoryal_eksik_yonler}</p>
+        </div>
+      )}
+      {eser.editoryal_hedef_okur && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>HEDEF OKUR DEĞERLENDİRMESİ</div>
+          <p className="aday-metin">{eser.editoryal_hedef_okur}</p>
+        </div>
+      )}
+      {eser.editoryal_editorluk_ihtiyaci && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>ÖNERİLEN EDİTÖRYAL ÇALIŞMA</div>
+          <p className="aday-metin">{eser.editoryal_editorluk_ihtiyaci}</p>
+        </div>
+      )}
+      {eser.editoryal_sonraki_adim && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>SONRAKİ ADIM</div>
+          <p className="aday-metin">{eser.editoryal_sonraki_adim}</p>
+        </div>
+      )}
+      {eser.editoryal_editor_notu && (
+        <div style={{ marginBottom: 14, borderLeft: "2px solid rgba(201,162,75,.4)", paddingLeft: 12 }}>
+          <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>EDİTÖRDEN SİZE ÖZEL NOT</div>
+          <p className="aday-metin" style={{ fontStyle: "italic" }}>{eser.editoryal_editor_notu}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const SIM_ADIMLAR = [
   "Metin alındı, analiz başlatıldı",
@@ -6466,7 +6517,7 @@ const BK_CSS = `
 // içine taşındı, artık BeklemeIcerigi'nin kendisi bu görseli sürekli
 // gösteriyor (bkz. B1: AI TARAMA bölümü aşağıda).
 
-function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
+function BeklemeIcerigi({ eser, eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
   const ilkAd = (yazarAdi || "").split(" ")[0];
   const [gunSecim, setGunSecim] = React.useState(1);
   const [akademiAcik, setAkademiAcik] = React.useState(false);
@@ -6502,20 +6553,37 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
   // sınırlanmış bir yumuşatma). Rapor gerçekten tamamlandığında
   // (ilerleme >= 1) ekran da makul bir hızda tamamlanır — sonsuza kadar
   // geride kalmaz.
+  // DEĞİŞTİRİLDİ (8 Ağu 2026, kullanıcı talebi — "inceleme yüzdesi
+  // %1,5448 gibi çok yavaş artsın, yaklaşık 2 gün sürebilir, arka planda
+  // işlem hızını etkilemesin çünkü bize zaman kazandırmanız lazım"):
+  // önceden gösterilen yüzde, backend'in GERÇEK AI işleme hızına bağlıydı
+  // (backend birkaç dakikada bitirebiliyordu, bu da inceleme sürecinin
+  // yeterince ciddiye alınmadığı hissi veriyordu — hâlbuki "Eserinizi
+  // göndermeden önce" sayfası zaten ~48 saat vaat ediyordu). Artık
+  // gösterilen yüzde TAMAMEN ZAMANA dayalı: eserin gönderilme anından
+  // (eser.created_at) itibaren ~48 saatte %99'a ulaşacak şekilde, doğal
+  // görünen küçük dalgalanmalarla ilerliyor — backend'in gerçek AI işleme
+  // hızından tamamen bağımsız, arka plandaki gerçek işlemi hiç etkilemiyor
+  // (AI incelemesi kendi hızında, saniyeler içinde tamamlanmaya devam
+  // eder). Yalnızca eser GERÇEKTEN tamamlanıp (rapor_hazir) editör
+  // tarafından yayınlandığında %100'e tamamlanır.
+  const HEDEF_SURE_MS = 48 * 60 * 60 * 1000; // ~2 gün
   const [gosterilenYuzde, setGosterilenYuzde] = React.useState(0);
   React.useEffect(() => {
-    const hedef = ilerleme || 0;
-    const t = setInterval(() => {
-      setGosterilenYuzde(mevcut => {
-        if (mevcut >= hedef) return mevcut;
-        // Tamamlanmamışken çok yavaş (~saniyede %1.5), tamamlandığında
-        // (hedef >= 1) daha hızlı toparlar — sonsuza dek geride kalmaz.
-        const adim = hedef >= 1 ? 0.03 : 0.0025;
-        return Math.min(hedef, mevcut + adim);
-      });
-    }, 100);
+    const baslangicMs = eser?.created_at ? new Date(eser.created_at).getTime() : Date.now();
+    const hesapla = () => {
+      const gecenMs = Date.now() - baslangicMs;
+      const dogrusal = Math.min(99, (gecenMs / HEDEF_SURE_MS) * 100);
+      // Deterministik, hep-artan küçük dalgalanma — "%1,5448" gibi doğal
+      // görünen ondalıklı bir sayı üretir, asla geriye gitmez.
+      const dalgalanma = Math.abs(Math.sin(gecenMs / 137000)) * 0.6;
+      const gercekTamamlandiMi = eser?.durum === "rapor_hazir";
+      return gercekTamamlandiMi ? Math.max(dogrusal, 99.5) : Math.min(99, dogrusal + dalgalanma);
+    };
+    setGosterilenYuzde(hesapla());
+    const t = setInterval(() => setGosterilenYuzde(hesapla()), 400);
     return () => clearInterval(t);
-  }, [ilerleme]);
+  }, [eser?.created_at, eser?.durum]);
 
   const taramaHarfleri = React.useMemo(() => {
     const kaynak = "AaBbCcDdEeFfGgŞşĞğİiZzMmNnRrTtÖöÜü";
@@ -6635,7 +6703,7 @@ function BeklemeIcerigi({ eserAdi, yazarAdi, ilerleme, simAdim, oturum }) {
             </div>
 
             <div className="aday-tarama-durum">{SIM_ADIMLAR[simAdim] || SIM_ADIMLAR[0]}</div>
-            <div className="aday-tarama-yuzde">%{Math.round(gosterilenYuzde * 100)}</div>
+            <div className="aday-tarama-yuzde">%{gosterilenYuzde.toFixed(4).replace(".", ",")}</div>
 
             <div className="aday-tarama-guvenlik">
               <div className="aday-tarama-guv-item">
@@ -8408,6 +8476,17 @@ function AdayDeneyimi({ kaynak }) {
   useEffect(() => {
     const acik = (eserler || []).find(e => e.durum === "incelemede");
     if (!acik || inceleRef.current) return;
+    // DÜZELTİLDİ (8 Ağu 2026, kullanıcı raporu — "sayfayı kapatıp açtım
+    // sıfırlandı"): backend'de gerçek işleme ASLA sıfırlanmıyor (kaldığı
+    // yerden devam ediyor, test edilip kanıtlandı) — ama arayüz, sayfa her
+    // yeniden yüklendiğinde ilerleme göstergesini 0'dan başlatıyordu, ilk
+    // /incele yanıtı gelene kadar (birkaç saniye) yanlışlıkla "%0" gösterip
+    // kullanıcıyı "baştan başladı" sanmaya itiyordu. Artık /aday/eserlerim
+    // zaten döndürdüğü son_islenen_parca/toplam_parca ile göstergeyi hemen,
+    // ilk ağ isteğini beklemeden gerçek değerine ayarlıyoruz.
+    if (acik.toplam_parca > 0) {
+      setIlerleme((acik.son_islenen_parca || 0) / acik.toplam_parca);
+    }
     inceleRef.current = true;
     const kontrolcu = new AbortController();
     let iptal = false;
@@ -8718,11 +8797,6 @@ function AdayDeneyimi({ kaynak }) {
             <div className="aday-yol-baslik">Bir eserim var <span className="aday-yol-ok">→</span></div>
             <p className="aday-metin">Eserinizi güvenle yükleyin. Yapay zekâ destekli ön analiz ve yetkili editör değerlendirmesiyle güçlü, geliştirilmesi gereken ve henüz doğrulanmayan alanları görün.</p>
           </div>
-          <div className="aday-yol-kart" onClick={() => !mesgul && tipSec("okur")} style={{ animationDelay: ".35s", animation: "adayGiris .8s both .35s" }}>
-            <div className="aday-elmas" style={{ bottom: -5, left: -5 }} />
-            <div className="aday-yol-baslik">Okumayı seviyorum <span className="aday-yol-ok">→</span></div>
-            <p className="aday-metin">Her ay seçtiğiniz türden yeni eserler kapınıza gelsin. Kitap aboneliği programımıza katılın.</p>
-          </div>
         </div>
       </div>
     </AdayVideoZemin>
@@ -8876,7 +8950,7 @@ function AdayDeneyimi({ kaynak }) {
     }
 
     if (eser.durum === "incelemede" || eser.durum === "rapor_hazir") {
-      return <BeklemeIcerigi eserAdi={eser.eser_adi} yazarAdi={oturum.adSoyad} ilerleme={ilerleme} simAdim={simAdim} oturum={oturum} />;
+      return <BeklemeIcerigi eser={eser} eserAdi={eser.eser_adi} yazarAdi={oturum.adSoyad} ilerleme={ilerleme} simAdim={simAdim} oturum={oturum} />;
     }
 
     // Madde 8 — rapor, onay/sertifikadan BAĞIMSIZ gösterilir. Böylece
@@ -8888,7 +8962,6 @@ function AdayDeneyimi({ kaynak }) {
       // Editöryal alanlar admin tarafından henüz girilmemişse (eski sertifikalar,
       // ya da editör henüz doldurmadıysa) o bölüm sessizce atlanır — boş rapor gösterilmez.
       const editoryalVar = !!(eser.editoryal_karar || eser.editoryal_guclu_yonler);
-      const KARAR_ETIKET = { hazir: "Yayına hazırlık için uygun", gelistirme: "Editöryal geliştirmeyle uygun", henuz_degil: "Henüz hazır değil" };
       return (
       <div style={{ animation: "adayGiris .8s both" }}>
         {eser.durum === "onaylandi" && eser.sertifika_no && (
@@ -8905,52 +8978,7 @@ function AdayDeneyimi({ kaynak }) {
         </div>
         )}
 
-        {editoryalVar && (
-          <div style={{ marginTop: 28 }}>
-            <div style={{ fontSize: 11, letterSpacing: ".3em", color: "rgba(201,162,75,.65)", marginBottom: 14 }}>EDİTÖRYAL ÖN DEĞERLENDİRME RAPORU</div>
-
-            <div style={{ marginBottom: 14, padding: "10px 14px", background: "rgba(201,162,75,.08)", border: "1px solid rgba(201,162,75,.25)" }}>
-              <div style={{ fontSize: 13, color: "#F0D68A" }}>{KARAR_ETIKET[eser.editoryal_karar] || eser.editoryal_karar}</div>
-            </div>
-
-            {eser.editoryal_guclu_yonler && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>GÜÇLÜ YÖNLER</div>
-                <p className="aday-metin">{eser.editoryal_guclu_yonler}</p>
-              </div>
-            )}
-            {eser.editoryal_eksik_yonler && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>GELİŞTİRİLMESİ GEREKEN ALANLAR</div>
-                <p className="aday-metin">{eser.editoryal_eksik_yonler}</p>
-              </div>
-            )}
-            {eser.editoryal_hedef_okur && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>HEDEF OKUR DEĞERLENDİRMESİ</div>
-                <p className="aday-metin">{eser.editoryal_hedef_okur}</p>
-              </div>
-            )}
-            {eser.editoryal_editorluk_ihtiyaci && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>ÖNERİLEN EDİTÖRYAL ÇALIŞMA</div>
-                <p className="aday-metin">{eser.editoryal_editorluk_ihtiyaci}</p>
-              </div>
-            )}
-            {eser.editoryal_sonraki_adim && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>SONRAKİ ADIM</div>
-                <p className="aday-metin">{eser.editoryal_sonraki_adim}</p>
-              </div>
-            )}
-            {eser.editoryal_editor_notu && (
-              <div style={{ marginBottom: 14, borderLeft: "2px solid rgba(201,162,75,.4)", paddingLeft: 12 }}>
-                <div style={{ fontSize: 12, color: "rgba(201,162,75,.7)", marginBottom: 4 }}>EDİTÖRDEN SİZE ÖZEL NOT</div>
-                <p className="aday-metin" style={{ fontStyle: "italic" }}>{eser.editoryal_editor_notu}</p>
-              </div>
-            )}
-          </div>
-        )}
+        {editoryalVar && <EditoryalRaporBlogu eser={eser} />}
 
         {/* Model 2 madde 9 — danışman görüşmesi çağrısı */}
         <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px dashed rgba(201,162,75,.3)" }}>
@@ -8997,6 +9025,7 @@ function AdayDeneyimi({ kaynak }) {
         {(eser.red_gerekceleri || []).map((g, i) => (
           <div key={i} style={{ borderLeft: "2px solid rgba(201,162,75,.5)", padding: "10px 16px", marginBottom: 10, fontSize: 14, color: "rgba(245,240,228,.8)", lineHeight: 1.65 }}>◆ {g}</div>
         ))}
+        <EditoryalRaporBlogu eser={eser} />
         <p className="aday-metin" style={{ margin: "24px 0 20px" }}>Uzman editör ve redaksiyon ekibimiz eserinizi birlikte yayın seviyesine taşıyabilir.</p>
         <button className="aday-btn-asil" onClick={() => ilgiBildir("editorluk", { eserId: eser.id })} disabled={!!ilgiGitti["editorluk"]}>
           {ilgiGitti["editorluk"] ? "✓ TALEBİNİZ ALINDI — SİZİ ARAYACAĞIZ" : "EDİTÖRLÜK DESTEĞİ İSTİYORUM →"}

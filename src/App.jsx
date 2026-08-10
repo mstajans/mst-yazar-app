@@ -3801,14 +3801,7 @@ const TEKLIF_GORUNUM = {
 
 function AdSection({ books, token, onRefresh }) {
   const [teklifler, setTeklifler] = useState(null);
-  const [bookId, setBookId] = useState(books[0]?.id || "");
-  const [hedef, setHedef] = useState("");
-  const [butce, setButce] = useState("");
-  const [sure, setSure] = useState("");
-  const [not, setNot] = useState("");
-  const [gonderiliyor, setGonderiliyor] = useState(false);
   const [mesaj, setMesaj] = useState("");
-  const [formAcik, setFormAcik] = useState(false);
 
   const api = async (yol, ayar = {}) => {
     const r = await fetch(`${BACKEND_URL}${yol}`, {
@@ -3824,30 +3817,10 @@ function AdSection({ books, token, onRefresh }) {
   };
   useEffect(() => { yukle(); }, []);
 
-  const basvur = async () => {
-    if (!hedef.trim() || gonderiliyor) return;
-    setGonderiliyor(true); setMesaj("");
-    try {
-      const d = await api("/api/author/reklam-basvuru", {
-        method: "POST",
-        body: JSON.stringify({ bookId: bookId || null, hedef: hedef.trim(), butceAraligi: butce, sureTercihi: sure, not }),
-      });
-      setMesaj(d.ok ? d.mesaj : (d.error || "Gönderilemedi."));
-      if (d.ok) { setHedef(""); setNot(""); setFormAcik(false); yukle(); }
-    } catch { setMesaj("Sunucuya ulaşılamadı."); }
-    finally { setGonderiliyor(false); }
-  };
-
   const karar = async (id, k) => {
     const d = await api(`/api/author/reklam-teklif/${id}/karar`, { method: "POST", body: JSON.stringify({ karar: k }) });
     setMesaj(d.ok ? d.mesaj : (d.error || "İşlem yapılamadı."));
     yukle();
-  };
-
-  const inputStyle = {
-    padding: "12px 14px", border: "1px solid rgba(201,162,75,.28)", borderRadius: 0, fontSize: 15,
-    boxSizing: "border-box", background: "rgba(255,255,255,.015)", color: THEME.textLight,
-    fontFamily: "'Jost', sans-serif", width: "100%",
   };
 
   return (
@@ -3858,75 +3831,6 @@ function AdSection({ books, token, onRefresh }) {
       </div>
 
       <KendiKampanyam books={books} token={token} />
-
-      {/* Dürüst çerçeve — ne veriyoruz, ne vaat etmiyoruz */}
-      <div style={{ background: "rgba(201,162,75,.04)", border: "1px solid rgba(201,162,75,.28)", padding: "18px 20px", marginBottom: 24 }}>
-        <div style={{ fontSize: 15, color: THEME.textLight, lineHeight: 1.75, fontWeight: 300 }}>
-          Kitabınızı tanıtmak için bize başvurun. Hedefinizi ve bütçenizi yazın; size özel bir çalışma
-          hazırlayıp <b style={{ fontWeight: 500 }}>kalem kalem</b> teklif sunalım — hangi tutarın reklama,
-          hangisinin prodüksiyona gittiğini açıkça görürsünüz.
-        </div>
-        <div style={{ fontSize: 13.5, color: "rgba(245,240,228,.62)", marginTop: 12, lineHeight: 1.7, fontWeight: 300 }}>
-          Dürüst olalım: reklam satış <i>garantisi</i> değildir. Etkili bir çalışma için önerdiğimiz alt bütçe
-          <b style={{ color: "#F0D68A", fontWeight: 500 }}> 1.000 ₺</b> — bunun altındaki bütçeler yeterli
-          veriye ulaşamadan tükeniyor ve sonuç üretmiyor.
-        </div>
-      </div>
-
-      {!formAcik && (
-        <Dugme tur="asil" onClick={() => setFormAcik(true)}>KİTABIMI TANITMAK İSTİYORUM</Dugme>
-      )}
-
-      {formAcik && (
-        <div style={{ display: "grid", gap: 12, marginBottom: 28 }}>
-          {books.length > 0 && (
-            <div>
-              <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>HANGİ KİTAP</div>
-              <select value={bookId} onChange={(e) => setBookId(e.target.value)} style={inputStyle}>
-                {books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}
-              </select>
-            </div>
-          )}
-          <div>
-            <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>NE YAPMAK İSTİYORSUNUZ</div>
-            <textarea value={hedef} onChange={(e) => setHedef(e.target.value)} rows={3}
-              placeholder="Örn: Kitabımın tanıtım videosunu yaptırıp Instagram'da yayınlamak istiyorum"
-              style={{ ...inputStyle, resize: "vertical", lineHeight: 1.7 }} />
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>BÜTÇE ARALIĞI</div>
-              <select value={butce} onChange={(e) => setButce(e.target.value)} style={inputStyle}>
-                <option value="">Seçiniz</option>
-                <option value="1.000 - 2.500 ₺">1.000 - 2.500 ₺</option>
-                <option value="2.500 - 5.000 ₺">2.500 - 5.000 ₺</option>
-                <option value="5.000 - 10.000 ₺">5.000 - 10.000 ₺</option>
-                <option value="10.000 ₺ üzeri">10.000 ₺ üzeri</option>
-                <option value="Önerinizi bekliyorum">Önerinizi bekliyorum</option>
-              </select>
-            </div>
-            <div>
-              <div style={{ fontSize: 10.5, letterSpacing: "0.28em", color: "rgba(201,162,75,.82)", marginBottom: 7 }}>SÜRE</div>
-              <select value={sure} onChange={(e) => setSure(e.target.value)} style={inputStyle}>
-                <option value="">Seçiniz</option>
-                <option value="Bir hafta">Bir hafta</option>
-                <option value="İki hafta">İki hafta</option>
-                <option value="Bir ay">Bir ay</option>
-                <option value="Fark etmez">Fark etmez</option>
-              </select>
-            </div>
-          </div>
-          <textarea value={not} onChange={(e) => setNot(e.target.value)} rows={2}
-            placeholder="Eklemek istediğiniz bir şey var mı? (opsiyonel)" style={{ ...inputStyle, resize: "vertical" }} />
-          <div style={{ display: "flex", gap: 10 }}>
-            <Dugme tur="asil" onClick={basvur} disabled={gonderiliyor || !hedef.trim()}>{gonderiliyor ? "GÖNDERİLİYOR..." : "BAŞVURUYU GÖNDER"}</Dugme>
-            <button onClick={() => setFormAcik(false)} style={{
-              background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
-              padding: "13px 20px", fontSize: 14, cursor: "pointer", fontFamily: "'Jost', sans-serif",
-            }}>Vazgeç</button>
-          </div>
-        </div>
-      )}
 
       {mesaj && <div style={{ fontSize: 14, color: "#F0D68A", marginBottom: 20, lineHeight: 1.7 }}>{mesaj}</div>}
 

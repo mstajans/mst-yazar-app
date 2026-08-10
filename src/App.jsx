@@ -3539,6 +3539,326 @@ const KAMPANYA_DURUM = {
   iptal:         { ad: "İptal edildi",  renk: "rgba(245,240,228,.48)", not: "" },
 };
 
+// EKLENDİ (9 Ağu 2026, "sistem sizin için ne öğrendi" — kural motorunun
+// yazara açılması): kampanya yayındayken, gerçek Meta verisine (frekans,
+// kreatif yaşı) dayanan öneriler getirir ve "uygula" derse gerçekten
+// backend'e (kitle-genislet) bağlanır — mockup değil.
+function KampanyaOnerileri({ kampanyaId, token, onUygulandi }) {
+  const [oneriler, setOneriler] = useState(null);
+  const [uygulaniyor, setUygulaniyor] = useState("");
+  const [mesaj, setMesaj] = useState("");
+
+  const api = async (yol, ayar = {}) => {
+    const r = await fetch(`${BACKEND_URL}${yol}`, {
+      ...ayar,
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(ayar.headers || {}) },
+    });
+    return r.json();
+  };
+
+  useEffect(() => {
+    api(`/api/author/reklam/kampanya/${kampanyaId}/oneriler`)
+      .then((d) => setOneriler(d.oneriler || []))
+      .catch(() => setOneriler([]));
+  }, [kampanyaId]);
+
+  // GENİŞLETİLDİ (9 Ağu 2026, "eksiksiz denetim" — "metin yorulmuş" önerisi
+  // gerçek bir uygulaması yoktu, "MST ekibiyle iletişime geçin" diyordu):
+  // artık her iki öneri türü de gerçek backend uçlarına bağlı.
+  const UC_ESLESME = { kitle_genislet: "kitle-genislet", metin_uret: "metin-yenile" };
+  const uygula = async (oneri) => {
+    const uc = UC_ESLESME[oneri.tur];
+    if (!uc) { setMesaj("Bu öneriyi uygulamak için MST ekibiyle iletişime geçebilirsiniz."); return; }
+    setUygulaniyor(oneri.tur); setMesaj("");
+    try {
+      const d = await api(`/api/author/reklam/kampanya/${kampanyaId}/${uc}`, { method: "POST", body: "{}" });
+      setMesaj(d.ok ? d.mesaj : (d.error || "Uygulanamadı."));
+      if (d.ok) { setOneriler((liste) => liste.filter((o) => o.tur !== oneri.tur)); onUygulandi?.(); }
+    } catch { setMesaj("Sunucuya ulaşılamadı."); }
+    finally { setUygulaniyor(""); }
+  };
+
+  if (!oneriler || !oneriler.length) return null;
+
+  return (
+    <div style={{ marginTop: 16, borderTop: "1px solid rgba(201,162,75,.20)", paddingTop: 14 }}>
+      <div style={{ fontSize: 10.5, letterSpacing: "0.24em", color: "rgba(201,162,75,.82)", marginBottom: 10 }}>
+        SİSTEM SİZİN İÇİN NE ÖĞRENDİ
+      </div>
+      <div style={{ display: "grid", gap: 8 }}>
+        {oneriler.map((o) => (
+          <div key={o.tur} style={{ background: "rgba(201,162,75,.05)", border: "1px solid rgba(201,162,75,.22)", borderLeft: "3px solid #C9A24B", padding: "10px 14px" }}>
+            <div style={{ fontSize: 13, color: THEME.textLight, fontWeight: 500 }}>{o.baslik}</div>
+            <div style={{ fontSize: 12, color: "rgba(245,240,228,.62)", marginTop: 4, lineHeight: 1.6, fontWeight: 300 }}>{o.aciklama}</div>
+            <button onClick={() => uygula(o)} disabled={uygulaniyor === o.tur} style={{
+              marginTop: 8, background: "none", color: "#F0D68A",
+              border: "1px solid rgba(201,162,75,.4)", padding: "7px 14px", fontSize: 12,
+              cursor: "pointer", fontFamily: "'Jost', sans-serif",
+            }}>{uygulaniyor === o.tur ? "Uygulanıyor…" : "Uygula"}</button>
+          </div>
+        ))}
+      </div>
+      {mesaj && <div style={{ fontSize: 12.5, color: "#F0D68A", marginTop: 8 }}>{mesaj}</div>}
+    </div>
+  );
+}
+
+// EKLENDİ (9 Ağu 2026, "7. tasarım güzel ama yetersiz, veriyi işleyebildiğimizi
+// göster" — genişletilmiş "reklam kokpiti"): mevcut, dört metrikli basit
+// görünüm yerine, /rapor ucundan gelen TÜM Meta verisini (video izlenme,
+// etkileşim, maliyet detayı, kalite sıralamaları, günlük trend, satış etkisi)
+// gösteren zengin bir panel. Sistemin zaten topladığı ama önceden hiç
+// gösterilmeyen verileri gün yüzüne çıkarır.
+function KampanyaKokpit({ kampanyaId, token, yenilemeTetigi }) {
+  const [rapor, setRapor] = useState(null);
+  const [hata, setHata] = useState(false);
+
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/author/reklam/kampanya/${kampanyaId}/rapor`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => r.json()).then((d) => {
+      if (d.ok && d.hazir) setRapor(d); else setHata(true);
+    }).catch(() => setHata(true));
+  }, [kampanyaId, yenilemeTetigi]);
+
+  if (hata || !rapor) return null;
+  const t = rapor.toplam || {};
+  const gunluk = rapor.gunluk || [];
+  const gold = "#F0D68A";
+  const dim = "rgba(245,240,228,.58)";
+  const border = "rgba(201,162,75,.20)";
+
+  const stat = (l, v) => (
+    <div>
+      <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 600, color: gold }}>{v}</div>
+      <div style={{ fontSize: 9, letterSpacing: "0.14em", color: "rgba(201,162,75,.75)", marginTop: 2 }}>{l}</div>
+    </div>
+  );
+  const sayi = (n) => (n == null ? "—" : Number(n).toLocaleString("tr-TR"));
+  const para = (n) => (n == null ? "—" : Number(n).toLocaleString("tr-TR") + " ₺");
+
+  const rankRenk = (v) => {
+    if (!v) return dim;
+    if (String(v).toLowerCase().includes("üstü") || String(v).toLowerCase().includes("above")) return "#9FC7A8";
+    if (String(v).toLowerCase().includes("altı") || String(v).toLowerCase().includes("below")) return "#E09080";
+    return gold;
+  };
+
+  // EKLENDİ (9 Ağu 2026, "10 versiyon" tartışmasında beğenilen 7. tasarımın
+  // ("dairesel gösterge") ana unsuru — o zaman kullanıcı "güzel ama yetersiz"
+  // demişti, zenginleştirilmiş veri seti eklenmişti ama dairesel gösterge
+  // kendisi hiç gerçek koda işlenmemişti. Artık gerçek harcananOran'a bağlı
+  // bir SVG halka — bütçenin ne kadarının kullanıldığını tek bakışta gösterir.
+  const oran = Math.min(100, rapor.harcananOran ?? 0);
+  const r = 42, cevre = 2 * Math.PI * r;
+  const halkaRenk = rapor.butceUyariSeviyesi === "kritik" ? "#E09080" : rapor.butceUyariSeviyesi === "uyari" ? "#E0B060" : gold;
+
+  return (
+    <div style={{ marginTop: 16, borderTop: `1px solid ${border}`, paddingTop: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 14, flexWrap: "wrap" }}>
+        <svg width="100" height="100" viewBox="0 0 100 100" style={{ flexShrink: 0 }}>
+          <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(201,162,75,.15)" strokeWidth="7" />
+          <circle cx="50" cy="50" r={r} fill="none" stroke={halkaRenk} strokeWidth="7" strokeLinecap="round"
+            strokeDasharray={cevre} strokeDashoffset={cevre * (1 - oran / 100)}
+            transform="rotate(-90 50 50)" style={{ transition: "stroke-dashoffset .6s ease" }} />
+          <text x="50" y="47" textAnchor="middle" fontSize="20" fontWeight="600" fill={gold} fontFamily="'Cormorant Garamond', serif">%{oran}</text>
+          <text x="50" y="63" textAnchor="middle" fontSize="8" fill={dim} letterSpacing="0.05em">BÜTÇE</text>
+        </svg>
+        <div>
+          <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, color: THEME.textLight, fontWeight: 500 }}>{rapor.kitap}</div>
+          <div style={{ fontSize: 12, color: dim, marginTop: 3 }}>{para(t.harcama)} / {para(rapor.butce)} harcandı</div>
+          {rapor.dogrulama?.sonGuncelleme && (
+            <div style={{ fontSize: 10.5, color: "rgba(245,240,228,.42)", marginTop: 3 }}>
+              Son güncelleme: {new Date(rapor.dogrulama.sonGuncelleme).toLocaleString("tr-TR")}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* EKLENDİ (9 Ağu 2026, "eksiksiz denetim" — bütçe uyarısı eksikti):
+          önceden yazar bütçesi bitene kadar hiçbir işaret görmüyordu. */}
+      {rapor.butceUyariSeviyesi && (
+        <div style={{
+          marginBottom: 12, fontSize: 12, lineHeight: 1.6, padding: "8px 12px",
+          background: rapor.butceUyariSeviyesi === "kritik" ? "rgba(224,144,128,.10)" : "rgba(224,176,96,.10)",
+          border: `1px solid ${rapor.butceUyariSeviyesi === "kritik" ? "rgba(224,144,128,.4)" : "rgba(224,176,96,.4)"}`,
+          color: rapor.butceUyariSeviyesi === "kritik" ? "#E09080" : "#E0B060",
+        }}>
+          Bütçenizin %{rapor.harcananOran}'i kullanıldı{rapor.butceUyariSeviyesi === "kritik" ? " — kampanya yakında otomatik duracak." : "."}
+        </div>
+      )}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(90px,1fr))", gap: 12, marginBottom: 14 }}>
+        {stat("GÖSTERİM", sayi(t.gosterim))}
+        {stat("ULAŞILAN KİŞİ", sayi(t.erisim))}
+        {stat("TIKLAMA", sayi(t.tiklama))}
+        {stat("TIKLAMA ORANI", t.ctr != null ? `%${Number(t.ctr).toFixed(2)}` : "—")}
+        {stat("HARCANAN", para(t.harcama))}
+        {stat("TIKLAMA BAŞINA", t.cpc != null ? Number(t.cpc).toFixed(2) + " ₺" : "—")}
+      </div>
+
+      {(t.begeni || t.yorum || t.paylasim) ? (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 9.5, letterSpacing: "0.18em", color: "rgba(201,162,75,.75)", marginBottom: 8 }}>GÖNDERİ ETKİLEŞİMİ</div>
+          <div style={{ display: "flex", gap: 20, fontSize: 12.5, color: dim, fontWeight: 300 }}>
+            <span>{sayi(t.begeni)} beğeni</span><span>{sayi(t.yorum)} yorum</span><span>{sayi(t.paylasim)} paylaşım</span>
+          </div>
+        </div>
+      ) : null}
+
+      {t.video100 != null && (t.videoIzlenme > 0) ? (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 9.5, letterSpacing: "0.18em", color: "rgba(201,162,75,.75)", marginBottom: 8 }}>VİDEO İZLENME (TAMAMLAMA)</div>
+          <div style={{ display: "flex", gap: 2, height: 26 }}>
+            {[["25%", t.video25], ["50%", t.video50], ["75%", t.video75], ["100%", t.video100]].map(([l, v]) => (
+              <div key={l} style={{ flex: 1, textAlign: "center" }}>
+                <div style={{ height: Math.max(4, Math.min(26, (v || 0) / (t.video25 || 1) * 26)), background: gold, opacity: 0.6, marginBottom: 3 }} />
+                <div style={{ fontSize: 9, color: dim }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {rapor.satisFarki != null && (
+        <div style={{ marginBottom: 14, background: "rgba(201,162,75,.04)", border: `1px solid ${border}`, padding: "10px 14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: THEME.textLight }}>{rapor.satisOncesi}</div>
+                <div style={{ fontSize: 9, color: dim }}>öncesi</div>
+              </div>
+              <span style={{ color: gold }}>→</span>
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, color: gold }}>{rapor.satisSonrasi}</div>
+                <div style={{ fontSize: 9, color: dim }}>şu an</div>
+              </div>
+            </div>
+            {t.ciro != null && stat("CİRO", para(t.ciro))}
+            {t.roas != null && stat("ROAS", Number(t.roas).toFixed(2) + "x")}
+          </div>
+        </div>
+      )}
+
+      {(t.kaliteSirasi || t.etkilesimSirasi || t.donusumSirasi) && (
+        <div style={{ marginBottom: 4 }}>
+          <div style={{ fontSize: 9.5, letterSpacing: "0.18em", color: "rgba(201,162,75,.75)", marginBottom: 8 }}>META KALİTE SIRALAMASI</div>
+          <div style={{ display: "flex", gap: 18, fontSize: 12, fontWeight: 500, flexWrap: "wrap" }}>
+            {t.kaliteSirasi && <span style={{ color: rankRenk(t.kaliteSirasi) }}>Kreatif: {t.kaliteSirasi}</span>}
+            {t.etkilesimSirasi && <span style={{ color: rankRenk(t.etkilesimSirasi) }}>Etkileşim: {t.etkilesimSirasi}</span>}
+            {t.donusumSirasi && <span style={{ color: rankRenk(t.donusumSirasi) }}>Dönüşüm: {t.donusumSirasi}</span>}
+          </div>
+        </div>
+      )}
+
+      {gunluk.length > 1 && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ fontSize: 9.5, letterSpacing: "0.18em", color: "rgba(201,162,75,.75)", marginBottom: 8 }}>GÜNLÜK HARCAMA TRENDİ</div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 32 }}>
+            {gunluk.slice(-14).map((g, i, arr) => {
+              const maxH = Math.max(...arr.map((x) => Number(x.harcama) || 0), 1);
+              const h = Math.max(2, ((Number(g.harcama) || 0) / maxH) * 32);
+              return <div key={i} style={{ flex: 1, height: h, background: gold, opacity: i === arr.length - 1 ? 1 : 0.45 }} />;
+            })}
+          </div>
+        </div>
+      )}
+
+      <div style={{ fontSize: 9.5, color: "rgba(245,240,228,.38)", marginTop: 12, lineHeight: 1.6 }}>
+        Bu rakamlar doğrudan Meta'dan alınır, olduğu gibi gösterilir.
+      </div>
+    </div>
+  );
+}
+
+// EKLENDİ (9 Ağu 2026, "reklam eğitim müfredatını uygula" — son bekleyen iş):
+// Akademi'nin 11. günü ("Yayıncılık ve Görünürlük") genel pazarlama/sosyal
+// medya konularını kapsıyor — MST'nin kendi reklam sistemine (kendi
+// kampanyanı açma, Feed/Story görsel, akıllı öneriler, kokpit okuma) özel
+// hiçbir içerik yok. Bu, ayrı, kısa ve pratik bir müfredat — yazarın kendi
+// reklam panelini gerçekten iyi kullanabilmesi için.
+const REKLAM_EGITIM_MODULLERI = [
+  {
+    no: 1, bas: "Neden Reklam Vermelisiniz",
+    ozet: "Reklam, kitabınızı arayanlara değil, henüz sizi tanımayan ama ilgi duyabilecek kişilere ulaşmanın yoludur.",
+    icerik: "Kitabınız zaten iyi olabilir — ama görülmezse satılmaz. Reklam, MST'nin kitap mağazasında zaten dolaşan kişilere değil, hiç haberi olmayan ama o türe ilgi duyan kişilere ulaşmanızı sağlar. Küçük bir bütçeyle bile (1.000₺'den başlayarak) başlayabilirsiniz — sistem size ne kadar erişim/tıklama beklenebileceğini önceden gösterir, garanti vermeden.",
+  },
+  {
+    no: 2, bas: "Kampanyanızı Doğru Kurmak",
+    ozet: "Bütçe, süre ve hedef kitle seçimleri sonucu doğrudan etkiler — rastgele seçmeyin.",
+    icerik: "En az 1.000₺ ve 14 gün öneriyoruz — daha düşük bütçeler yeterli veriye ulaşamadan tükeniyor. \"Kimlere gösterilsin\" seçimini kitabınızın türüne göre yapın (Gelişmiş Ayarlar'dan ilgi alanı da seçebilirsiniz). Kendi metninizi/başlığınızı yazmak istemiyorsanız boş bırakın — sistem kitap adınızı kullanır. Hiç uğraşmak istemiyorsanız \"Kurmak istemiyorum, MST yapsın\" seçeneğiyle uzmanımıza bırakabilirsiniz.",
+  },
+  {
+    no: 3, bas: "Feed ve Story — İki Farklı Görsel",
+    ozet: "Akışta (Feed) kare, Hikayede (Story) dikey görsel gösterilir — tek görsel yüklerseniz Meta onu kırpar.",
+    icerik: "Instagram ve Facebook'ta iki farklı yerleşim var: Akış (kare, 1:1) ve Hikaye/Reels (dikey, 9:16). Sadece bir görsel yüklerseniz, Meta onu diğer formata otomatik sığdırmaya çalışır — bu genelde görselin kenarlarının kesilmesine yol açar. Mümkünse ikisini de yükleyin: kitabınızın kapağının kare bir kırpımı (Feed için) ve dikey bir versiyonu (Story için). Kitabınızın hiç görseli yoksa sistem sizi kampanya açarken uyarır.",
+  },
+  {
+    no: 4, bas: "Yayınlamadan Önce Gerçek Önizleme",
+    ozet: "\"Yayınlamadan önce gerçek önizlemeyi gör\" butonu, Meta'nın kendi render motorundan gelir — tahmin değildir.",
+    icerik: "Görsel ve metninizi girdikten sonra bu butona basın. Gördüğünüz, gerçekten Meta'nın sunucularından gelen, reklamınızın akışta ve hikayede tam olarak nasıl görüneceğini gösteren bir önizlemedir. Bir şey garip görünüyorsa (metin taşıyor, görsel kötü kırpılmış), yayınlamadan önce düzeltme fırsatınız var.",
+  },
+  {
+    no: 5, bas: "Sistem Size Ne Zaman Öneri Sunar",
+    ozet: "\"Kitleniz daralmış\" ya da \"metin yorulmuş\" önerileri, gerçek Meta verisine bakılarak üretilir.",
+    icerik: "Kampanyanız yayındayken, sistem gerçek performans verinizi (frekans, kaç gündür aynı metinle yayında olduğunuz) izler. Aynı kişilere çok sık gösteriliyorsanız \"kitlenizi genişletelim mi\" önerisi gelir — \"Uygula\" dediğinizde Meta'da gerçekten hedeflemeniz genişletilir. Metniniz günlerdir aynıysa \"metni yenile\" önerisi gelir — uyguladığınızda yeni bir açıdan gerçek bir reklam açılır, eskisi durdurulur.",
+  },
+  {
+    no: 6, bas: "Rakamlarınızı Okumak",
+    ozet: "Gösterim, tıklama, CTR, CPC — her biri farklı bir şeyi ölçer, birlikte okunmalı.",
+    icerik: "Gösterim: reklamınızın kaç kez ekrana geldiği. Tıklama: kaç kişinin tıkladığı. Tıklama oranı (CTR): gösterimin yüzde kaçının tıklamaya dönüştüğü — düşükse görseliniz/metniniz ilgi çekmiyor olabilir. Tıklama başına maliyet (CPC): her tıklama için ortalama ne kadar ödediğiniz. Kokpitteki dairesel gösterge, bütçenizin ne kadarının kullanıldığını anında gösterir — %80'de sarı, %90'da kırmızı uyarı çıkar.",
+  },
+  {
+    no: 7, bas: "Bütçe Güvenliğiniz",
+    ozet: "Bütçeniz bitince kampanya otomatik durur — fazla harcama riski yoktur.",
+    icerik: "Ayırdığınız bütçe tükendiğinde sistem, Meta'daki kampanyanızı otomatik olarak durdurur — siz hiçbir şey yapmasanız bile. Bu kontrol, hem siz rapor sayfasını her açtığınızda hem arka planda düzenli olarak çalışır. Yani belirlediğiniz bütçenin üzerinde bir harcama yapmanız mümkün değildir.",
+  },
+  {
+    no: 8, bas: "Sık Yapılan Hatalar",
+    ozet: "Çok düşük bütçe, görselsiz kampanya ve tek bir metinle uzun süre yayında kalmak — üç yaygın tuzak.",
+    icerik: "1.000₺'nin altındaki bütçeler genelde yeterli veri toplayamadan biter — sonuç değerlendirilemez. Görsel yüklemeden kampanya açmak, admin onayına takılma riskini artırır. Aynı metinle haftalarca yayında kalmak performansı düşürür — sistem size \"metni yenile\" önerisi sunduğunda değerlendirin. Ve unutmayın: reklam bir satış garantisi değildir, görünürlüğünüzü artıran bir araçtır.",
+  },
+];
+
+function ReklamEgitimi() {
+  const [acikModul, setAcikModul] = useState(null);
+  return (
+    <div style={{ marginTop: 30, marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+        <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(18px, 5.2vw, 25px)", color: "#F0D68A", fontWeight: 600 }}>Reklam Eğitimi</span>
+        <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg,rgba(201,162,75,.45),transparent)" }} />
+      </div>
+      <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.58)", marginBottom: 16, lineHeight: 1.6, fontWeight: 300 }}>
+        Kendi reklamınızı en iyi şekilde yönetmek için 8 kısa bölüm.
+      </div>
+      <div style={{ display: "grid", gap: 2, background: "rgba(201,162,75,.16)", border: "1px solid rgba(201,162,75,.24)" }}>
+        {REKLAM_EGITIM_MODULLERI.map((m) => {
+          const acik = acikModul === m.no;
+          return (
+            <div key={m.no} style={{ background: "rgba(12,23,48,.55)" }}>
+              <button onClick={() => setAcikModul(acik ? null : m.no)} style={{
+                width: "100%", textAlign: "left", background: "none", border: "none", cursor: "pointer",
+                padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
+              }}>
+                <div>
+                  <div style={{ fontSize: 10, letterSpacing: "0.2em", color: "rgba(201,162,75,.75)", marginBottom: 4 }}>{String(m.no).padStart(2, "0")}</div>
+                  <div style={{ fontSize: 14.5, color: THEME.textLight, fontWeight: 500 }}>{m.bas}</div>
+                  <div style={{ fontSize: 12, color: "rgba(245,240,228,.58)", marginTop: 4, fontWeight: 300, lineHeight: 1.5 }}>{m.ozet}</div>
+                </div>
+                <span style={{ color: "#F0D68A", fontSize: 16, flexShrink: 0 }}>{acik ? "−" : "+"}</span>
+              </button>
+              {acik && (
+                <div style={{ padding: "0 20px 18px", fontSize: 13, color: "rgba(245,240,228,.78)", lineHeight: 1.7, fontWeight: 300 }}>
+                  {m.icerik}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function KendiKampanyam({ books, token }) {
   const [liste, setListe] = useState(null);
   const [kurallar, setKurallar] = useState(null);
@@ -3551,6 +3871,46 @@ function KendiKampanyam({ books, token }) {
   const [calisiyor, setCalisiyor] = useState(false);
   const [mesaj, setMesaj] = useState("");
   const [tahmin, setTahmin] = useState(null);
+  // EKLENDİ (9 Ağu 2026, "yazar panelinde Feed/Story ayrı görsel yükleme
+  // eksik" bulgusu — "örümcek ağı" ilkesi): önceden yazar kendi kampanyasını
+  // açarken hiç görsel seçmiyordu, kitabın admin tarafından girilen kapak
+  // görseli sessizce kullanılıyordu. Artık yazar, kitap seçtikten sonra
+  // isterse kendi Feed (kare) ve Story (dikey) görselini yükleyebiliyor —
+  // /author/kitap/:id/reklam-gorseli ucuna, admin panelindeki gorsel-yukle
+  // ile aynı format-oranı kontrolü ve mantıkla.
+  const [gorselFeed, setGorselFeed] = useState(null); // { dataUrl, dosyaAdi, genislik, yukseklik }
+  const [gorselFeedYuklendi, setGorselFeedYuklendi] = useState(false);
+  const [gorselFeedUyari, setGorselFeedUyari] = useState(null);
+  const [gorselFeedYukleniyor, setGorselFeedYukleniyor] = useState(false);
+  const [gorselStory, setGorselStory] = useState(null);
+  const [gorselStoryYuklendi, setGorselStoryYuklendi] = useState(false);
+  const [gorselStoryUyari, setGorselStoryUyari] = useState(null);
+  const [gorselStoryYukleniyor, setGorselStoryYukleniyor] = useState(false);
+  // EKLENDİ (9 Ağu 2026, "eksiksiz denetim" — form, backend'in kabul ettiği
+  // alanların küçük bir kısmını kullanıyordu): artık yazar kendi reklam
+  // metnini/başlığını/açıklamasını yazabiliyor, bölge/ilgi alanı/eylem
+  // çağrısı/yönlendirme adresini seçebiliyor. Hepsi opsiyonel — boş
+  // bırakılırsa backend zaten makul varsayılanlar kullanıyor.
+  const [gelismisAcik, setGelismisAcik] = useState(false);
+  const [reklamMetni, setReklamMetni] = useState("");
+  const [baslik, setBaslik] = useState("");
+  const [aciklama, setAciklama] = useState("");
+  const [bolge, setBolge] = useState("turkiye");
+  const [ilgi, setIlgi] = useState("genel");
+  const [cta, setCta] = useState("LEARN_MORE");
+  const [hedefAdres, setHedefAdres] = useState("mst_kitap");
+  // Görsel durumu — kitap seçildiğinde, hiç görseli olup olmadığı önceden
+  // bildiriliyor (önceden yazar bunu ancak admin reddettiğinde öğreniyordu).
+  const [gorselDurumu, setGorselDurumu] = useState(null); // { feedVar, storyVar }
+  // Kampanya oluşturmadan ÖNCE, Meta'nın gerçek önizlemesi.
+  const [onizlemeler, setOnizlemeler] = useState(null);
+  const [onizlemeYukleniyor, setOnizlemeYukleniyor] = useState(false);
+  // DÜZELTİLDİ (9 Ağu 2026, gerçek bug — "yeni denetim"): önceden "kitleyi
+  // genişlet"/"metni yenile" uygulandığında kokpitteki rakamlar hemen
+  // güncellenmiyordu (sadece liste yenileniyordu, kokpitin kendi state'i
+  // değil). Bu sayaç, hangi kampanyanın kokpitinin yeniden çekilmesi
+  // gerektiğini işaretler — KampanyaKokpit'in useEffect'ine bağlanır.
+  const [kokpitYenile, setKokpitYenile] = useState({});
 
   const api = async (yol, ayar = {}) => {
     const r = await fetch(`${BACKEND_URL}${yol}`, {
@@ -3568,6 +3928,68 @@ function KendiKampanyam({ books, token }) {
     } catch { setListe([]); }
   };
   useEffect(() => { yukle(); }, []);
+
+  // Kitap seçimi değişince görsel yükleme durumu sıfırlanır — her kitabın
+  // kendi görseli var, önceki kitabın "yüklendi" işareti yanıltıcı olur.
+  useEffect(() => {
+    setGorselFeed(null); setGorselFeedYuklendi(false); setGorselFeedUyari(null);
+    setGorselStory(null); setGorselStoryYuklendi(false); setGorselStoryUyari(null);
+    setOnizlemeler(null); setGorselDurumu(null);
+  }, [bookId]);
+
+  // Kitap seçilir seçilmez, kitabın ZATEN bir görseli var mı kontrol edilir
+  // — önceden yazar bunu ancak admin reddettiğinde öğreniyordu.
+  useEffect(() => {
+    if (!acik || !bookId) return;
+    api(`/api/author/kitap/${bookId}/gorsel-durumu`)
+      .then((d) => { if (d.ok) setGorselDurumu(d); })
+      .catch(() => {});
+  }, [bookId, acik]);
+
+  const gorselSecOlustur = (format) => (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const setYuklendiFn = format === "feed" ? setGorselFeedYuklendi : setGorselStoryYuklendi;
+    const setUyariFn = format === "feed" ? setGorselFeedUyari : setGorselStoryUyari;
+    const setOnizlemeFn = format === "feed" ? setGorselFeed : setGorselStory;
+    setYuklendiFn(false); setUyariFn(null); setMesaj("");
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => setOnizlemeFn({ dataUrl: reader.result, dosyaAdi: f.name, genislik: img.naturalWidth, yukseklik: img.naturalHeight });
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  };
+  const gorselSecFeed = gorselSecOlustur("feed");
+  const gorselSecStory = gorselSecOlustur("story");
+
+  const gorseliYukleOlustur = (format) => async () => {
+    const gorsel = format === "feed" ? gorselFeed : gorselStory;
+    if (!gorsel || !bookId) return;
+    const setYukleniyorFn = format === "feed" ? setGorselFeedYukleniyor : setGorselStoryYukleniyor;
+    const setYuklendiFn = format === "feed" ? setGorselFeedYuklendi : setGorselStoryYuklendi;
+    const setUyariFn = format === "feed" ? setGorselFeedUyari : setGorselStoryUyari;
+    setYukleniyorFn(true); setMesaj("");
+    try {
+      const d = await api(`/api/author/kitap/${bookId}/reklam-gorseli`, {
+        method: "POST", body: JSON.stringify({
+          dataUrl: gorsel.dataUrl, format, genislik: gorsel.genislik, yukseklik: gorsel.yukseklik,
+        }) });
+      if (!d.ok) { setMesaj(d.error || "Görsel yüklenemedi."); return; }
+      setYuklendiFn(true);
+      setUyariFn(d.oranUyarisi || null);
+      setMesaj(d.mesaj);
+      // DÜZELTİLDİ (9 Ağu 2026, gerçek bug — "yeni denetim"): önceden
+      // gorselDurumu, görsel yüklendikten sonra HİÇ güncellenmiyordu — hem
+      // "bu kitabın görseli yok" uyarısı hem de önizleme butonunun gizli
+      // kalması devam ediyordu. Artık ilgili format için anında güncelleniyor.
+      setGorselDurumu((onceki) => ({ ...(onceki || {}), [format === "feed" ? "feedVar" : "storyVar"]: true }));
+    } catch { setMesaj("Sunucuya ulaşılamadı."); }
+    finally { setYukleniyorFn(false); }
+  };
+  const gorseliYukleFeed = gorseliYukleOlustur("feed");
+  const gorseliYukleStory = gorseliYukleOlustur("story");
 
   // Bütçe ya da süre değişince tahmini tazele — yazar yazarken sürekli
   // istek gitmesin diye yarım saniye beklenir
@@ -3588,12 +4010,53 @@ function KendiKampanyam({ books, token }) {
     try {
       const d = await api("/api/author/reklam/kampanya", {
         method: "POST",
-        body: JSON.stringify({ bookId: Number(bookId), butce: Number(butce), gun: Number(gun), kitle, amac }),
+        body: JSON.stringify({
+          bookId: Number(bookId), butce: Number(butce), gun: Number(gun), kitle, amac,
+          // EKLENDİ (9 Ağu 2026, "eksiksiz denetim"): önceden bu alanlar hiç
+          // gönderilmiyordu, backend her zaman varsayılana düşüyordu. Boş
+          // bırakılırsa (kullanıcı doldurmadıysa) yine backend'in kendi
+          // makul varsayılanı devreye girer — hiçbir şey zorunlu değil.
+          reklamMetni: reklamMetni.trim() || undefined, baslik: baslik.trim() || undefined,
+          aciklama: aciklama.trim() || undefined, bolge, ilgi, cta, hedefAdres,
+        }),
       });
       setMesaj(d.ok ? d.mesaj : (d.error || "Gönderilemedi."));
       if (d.ok) { setAcik(false); yukle(); }
     } catch { setMesaj("Sunucuya ulaşılamadı."); }
     finally { setCalisiyor(false); }
+  };
+
+  // EKLENDİ (9 Ağu 2026, "eksiksiz denetim" — "MST yapsın" seçeneği backend'de
+  // hazırdı ama formda hiç yoktu): yazar kendi kurmak istemiyorsa, uzmana
+  // teklif olarak iletir — bakiyeden hiçbir şey düşülmez.
+  const mstYapsinGonder = async () => {
+    if (calisiyor || !bookId) return;
+    setCalisiyor(true); setMesaj("");
+    try {
+      const d = await api("/api/author/reklam/kampanya", {
+        method: "POST",
+        body: JSON.stringify({ bookId: Number(bookId), butce: Number(butce) || undefined, gun: Number(gun) || undefined, mstYapsin: true }),
+      });
+      setMesaj(d.ok ? d.mesaj : (d.error || "Gönderilemedi."));
+      if (d.ok) setAcik(false);
+    } catch { setMesaj("Sunucuya ulaşılamadı."); }
+    finally { setCalisiyor(false); }
+  };
+
+  // EKLENDİ (9 Ağu 2026, "eksiksiz denetim" — yazar tarafında gerçek Meta
+  // önizlemesi hiç yoktu): kampanya oluşturmadan ÖNCE, Meta'nın kendi
+  // render motorundan gerçek önizleme alır.
+  const onizlemeGetir = async () => {
+    if (!bookId || !gorselDurumu?.feedVar) return;
+    setOnizlemeYukleniyor(true); setMesaj(""); setOnizlemeler(null);
+    try {
+      const d = await api(`/api/author/kitap/${bookId}/onizleme`, {
+        method: "POST", body: JSON.stringify({ reklamMetni: reklamMetni.trim(), baslik: baslik.trim(), aciklama: aciklama.trim(), hedefAdres }),
+      });
+      if (!d.ok) { setMesaj(d.error || "Önizleme alınamadı."); return; }
+      setOnizlemeler(d.onizlemeler);
+    } catch { setMesaj("Sunucuya ulaşılamadı."); }
+    finally { setOnizlemeYukleniyor(false); }
   };
 
   const iptal = async (id) => {
@@ -3640,6 +4103,122 @@ function KendiKampanyam({ books, token }) {
               {books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}
             </select>
           </div>
+
+          {/* EKLENDİ (9 Ağu 2026): Feed (kare) ve Story (dikey) için ayrı
+              görsel — Meta bunları farklı yerleşimlerde farklı gösterir,
+              tek görsel otomatik kırpılırsa logo/başlık kesilebilir. */}
+          <div>
+            <div style={etiket}>REKLAM GÖRSELİ</div>
+            <div style={{ fontSize: 12.5, color: "rgba(245,240,228,.58)", marginBottom: 10, lineHeight: 1.6, fontWeight: 300 }}>
+              İsterseniz kendi görselinizi yükleyin — yüklemezseniz kitabınızın kapağı kullanılır.
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { format: "feed", baslikMetin: "Feed (kare)", gorsel: gorselFeed, yuklendi: gorselFeedYuklendi, uyari: gorselFeedUyari, yukleniyor: gorselFeedYukleniyor, secFn: gorselSecFeed, yukleFn: gorseliYukleFeed },
+                { format: "story", baslikMetin: "Story / Reels (dikey)", gorsel: gorselStory, yuklendi: gorselStoryYuklendi, uyari: gorselStoryUyari, yukleniyor: gorselStoryYukleniyor, secFn: gorselSecStory, yukleFn: gorseliYukleStory },
+              ].map((g) => (
+                <div key={g.format} style={{ border: "1px solid rgba(201,162,75,.28)", padding: "10px 12px", background: g.yuklendi ? "rgba(159,199,168,.06)" : "rgba(255,255,255,.015)" }}>
+                  <div style={{ fontSize: 11, color: "rgba(245,240,228,.72)", marginBottom: 6 }}>{g.baslikMetin} {g.yuklendi && <span style={{ color: "#9FC7A8" }}>✓</span>}</div>
+                  <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={g.secFn}
+                    style={{ display: "block", width: "100%", fontSize: 11, color: "rgba(245,240,228,.72)", marginBottom: g.gorsel ? 8 : 0 }} />
+                  {g.gorsel && (
+                    <div>
+                      <img src={g.gorsel.dataUrl} alt="" style={{ width: g.format === "story" ? 40 : 56, height: 56, objectFit: "cover", border: "1px solid rgba(201,162,75,.28)" }} />
+                      {g.uyari && <div style={{ fontSize: 10, color: "#E0B060", marginTop: 5, lineHeight: 1.5 }}>{g.uyari}</div>}
+                      {!g.yuklendi && (
+                        <button onClick={g.yukleFn} disabled={g.yukleniyor} style={{
+                          display: "block", marginTop: 6, background: "none", color: "#F0D68A",
+                          border: "1px solid rgba(201,162,75,.4)", padding: "6px 10px", fontSize: 10.5,
+                          cursor: "pointer", fontFamily: "'Jost', sans-serif",
+                        }}>{g.yukleniyor ? "Yükleniyor…" : "Kaydet"}</button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {/* EKLENDİ (9 Ağu 2026, "eksiksiz denetim" — görsel eksikliği için
+                erken uyarı): önceden yazar, kitabının hiç görseli olmadığını
+                admin reddedene kadar öğrenmiyordu. */}
+            {gorselDurumu && !gorselDurumu.feedVar && !gorselFeedYuklendi && (
+              <div style={{ marginTop: 8, fontSize: 11.5, color: "#E0B060", lineHeight: 1.6, background: "rgba(224,176,96,.08)", padding: "8px 10px", border: "1px solid rgba(224,176,96,.3)" }}>
+                Bu kitabın hiç görseli yok — yukarıdan Feed görseli yüklemezseniz kampanyanız onaya takılabilir.
+              </div>
+            )}
+          </div>
+
+          {/* EKLENDİ (9 Ağu 2026, "eksiksiz denetim" — form, backend'in kabul
+              ettiği alanların küçük bir kısmını kullanıyordu): opsiyonel
+              gelişmiş ayarlar — doldurmazsanız makul varsayılanlar kullanılır. */}
+          <div>
+            <button onClick={() => setGelismisAcik(!gelismisAcik)} style={{
+              background: "none", border: "none", color: "rgba(201,162,75,.82)", fontSize: 11,
+              letterSpacing: "0.2em", cursor: "pointer", padding: 0, fontFamily: "'Jost', sans-serif",
+            }}>{gelismisAcik ? "− GELİŞMİŞ AYARLARI GİZLE" : "+ GELİŞMİŞ AYARLAR (metin, hedefleme, yönlendirme)"}</button>
+          </div>
+          {gelismisAcik && (
+            <div style={{ display: "grid", gap: 12, padding: "14px", border: "1px solid rgba(201,162,75,.20)" }}>
+              <div>
+                <div style={etiket}>REKLAM METNİ (opsiyonel)</div>
+                <textarea value={reklamMetni} onChange={(e) => setReklamMetni(e.target.value)} rows={2}
+                  placeholder="Boş bırakırsanız kitap adınız kullanılır"
+                  style={{ ...inputStyle, resize: "vertical" }} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <div style={etiket}>BAŞLIK (opsiyonel)</div>
+                  <input value={baslik} onChange={(e) => setBaslik(e.target.value)} placeholder="Kitap adınız" style={inputStyle} />
+                </div>
+                <div>
+                  <div style={etiket}>AÇIKLAMA (opsiyonel)</div>
+                  <input value={aciklama} onChange={(e) => setAciklama(e.target.value)} placeholder="Kitabı incelemek için dokunun" style={inputStyle} />
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <div style={etiket}>BÖLGE</div>
+                  <select value={bolge} onChange={(e) => setBolge(e.target.value)} style={inputStyle}>
+                    <option value="turkiye">Türkiye geneli</option>
+                    <option value="buyuksehir">Büyükşehirler</option>
+                    <option value="istanbul">Sadece İstanbul</option>
+                    <option value="ege">Ege ve Akdeniz</option>
+                  </select>
+                </div>
+                <div>
+                  <div style={etiket}>İLGİ ALANI</div>
+                  <select value={ilgi} onChange={(e) => setIlgi(e.target.value)} style={inputStyle}>
+                    <option value="genel">Genel kitap okurları</option>
+                    <option value="roman">Roman ve edebiyat</option>
+                    <option value="kisisel">Kişisel gelişim</option>
+                    <option value="tarih">Tarih ve biyografi</option>
+                    <option value="cocuk">Ebeveynler ve çocuk kitapları</option>
+                    <option value="siir">Şiir ve deneme</option>
+                    <option value="polisiye">Polisiye ve gerilim</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <div style={etiket}>EYLEM ÇAĞRISI</div>
+                  <select value={cta} onChange={(e) => setCta(e.target.value)} style={inputStyle}>
+                    <option value="LEARN_MORE">Daha fazla bilgi</option>
+                    <option value="SHOP_NOW">Hemen satın al</option>
+                    <option value="ORDER_NOW">Sipariş ver</option>
+                    <option value="GET_OFFER">Fırsatı gör</option>
+                    <option value="SIGN_UP">Kaydol</option>
+                  </select>
+                </div>
+                <div>
+                  <div style={etiket}>YÖNLENDİRME</div>
+                  <select value={hedefAdres} onChange={(e) => setHedefAdres(e.target.value)} style={inputStyle}>
+                    <option value="mst_kitap">Kitabımın sayfasına</option>
+                    <option value="mst_magaza">Kitap mağazasına</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <div style={etiket}>AMAÇ</div>
             <select value={amac} onChange={(e) => setAmac(e.target.value)} style={inputStyle}>
@@ -3709,8 +4288,42 @@ function KendiKampanyam({ books, token }) {
             )}
           </div>
 
-          <div style={{ display: "flex", gap: 10 }}>
+          {/* EKLENDİ (9 Ağu 2026, "eksiksiz denetim" — yazar tarafında gerçek
+              önizleme hiç yoktu): kampanya oluşturmadan ÖNCE Meta'nın kendi
+              render motorundan gerçek önizleme. */}
+          {gorselDurumu?.feedVar && (
+            <div>
+              <button onClick={onizlemeGetir} disabled={onizlemeYukleniyor} style={{
+                background: "none", color: "rgba(245,240,228,.72)", border: "1px solid rgba(201,162,75,.28)",
+                padding: "10px 16px", fontSize: 12.5, cursor: "pointer", fontFamily: "'Jost', sans-serif",
+              }}>{onizlemeYukleniyor ? "Meta'dan önizleme isteniyor…" : "Yayınlamadan önce gerçek önizlemeyi gör"}</button>
+              {onizlemeler && (
+                <div style={{ display: "grid", gridTemplateColumns: onizlemeler.story ? "1fr 1fr" : "1fr", gap: 10, marginTop: 10 }}>
+                  {onizlemeler.feed && (
+                    <div>
+                      <div style={{ fontSize: 10, color: "rgba(245,240,228,.52)", marginBottom: 4 }}>AKIŞTA BÖYLE GÖRÜNECEK</div>
+                      <div style={{ border: "1px solid rgba(201,162,75,.28)", maxHeight: 380, overflowY: "auto" }}
+                        dangerouslySetInnerHTML={{ __html: onizlemeler.feed }} />
+                    </div>
+                  )}
+                  {onizlemeler.story && (
+                    <div>
+                      <div style={{ fontSize: 10, color: "rgba(245,240,228,.52)", marginBottom: 4 }}>HİKAYEDE BÖYLE GÖRÜNECEK</div>
+                      <div style={{ border: "1px solid rgba(201,162,75,.28)", maxHeight: 380, overflowY: "auto" }}
+                        dangerouslySetInnerHTML={{ __html: onizlemeler.story }} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <Dugme tur="asil" onClick={gonder} disabled={calisiyor || !bookId}>{calisiyor ? "GÖNDERİLİYOR..." : "KAMPANYAYI BAŞLAT"}</Dugme>
+            <button onClick={mstYapsinGonder} disabled={calisiyor || !bookId} style={{
+              background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
+              padding: "13px 18px", fontSize: 13, cursor: "pointer", fontFamily: "'Jost', sans-serif",
+            }}>Kurmak istemiyorum, MST yapsın</button>
             <button onClick={() => setAcik(false)} style={{
               background: "none", color: "rgba(245,240,228,.62)", border: "1px solid rgba(201,162,75,.28)",
               padding: "13px 20px", fontSize: 14, cursor: "pointer", fontFamily: "'Jost', sans-serif",
@@ -3738,12 +4351,26 @@ function KendiKampanyam({ books, token }) {
                     {d.ad.toLocaleUpperCase("tr-TR")}
                   </div>
                 </div>
-                {d.not && <div style={{ fontSize: 13, color: "rgba(245,240,228,.58)", marginTop: 8, fontWeight: 300 }}>{d.not}</div>}
+                {/* DÜZELTİLDİ (9 Ağu 2026, gerçek bug — "yeni denetim"): "onaylandı"
+                    durumu iki farklı gerçeği kapsıyordu — normal yayına hazırlanma VE
+                    Meta kurulumunun başarısız olup takılı kalması (red_sebebi alanında
+                    gerçek hata saklı ama önceden sadece "reddedildi" durumunda
+                    gösteriliyordu, yazar hiç öğrenemiyordu). Artık ikisi ayrılıyor. */}
+                {d.not && !(k.durum === "onaylandi" && k.redSebebi) && (
+                  <div style={{ fontSize: 13, color: "rgba(245,240,228,.58)", marginTop: 8, fontWeight: 300 }}>{d.not}</div>
+                )}
                 {k.redSebebi && k.durum === "reddedildi" && (
                   <div style={{ fontSize: 13, color: "#E09080", marginTop: 8, fontWeight: 300 }}>Sebep: {k.redSebebi}</div>
                 )}
+                {k.redSebebi && k.durum === "onaylandi" && (
+                  <div style={{ fontSize: 13, color: "#E0B060", marginTop: 8, fontWeight: 300, lineHeight: 1.6 }}>
+                    Onaylandı ama yayına giremedi: {k.redSebebi} — MST ekibiyle iletişime geçin.
+                  </div>
+                )}
 
-                {(k.harcanan > 0 || k.erisim > 0) && (
+                {k.durum === "yayinda" ? (
+                  <KampanyaKokpit kampanyaId={k.id} token={token} yenilemeTetigi={kokpitYenile[k.id] || 0} />
+                ) : (k.harcanan > 0 || k.erisim > 0) && (
                   <div style={{ marginTop: 16, borderTop: "1px solid rgba(201,162,75,.20)", paddingTop: 14 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(90px,1fr))", gap: 14 }}>
                       {[
@@ -3772,6 +4399,8 @@ function KendiKampanyam({ books, token }) {
                     )}
                   </div>
                 )}
+
+                {k.durum === "yayinda" && <KampanyaOnerileri kampanyaId={k.id} token={token} onUygulandi={() => { yukle(); setKokpitYenile((onceki) => ({ ...onceki, [k.id]: (onceki[k.id] || 0) + 1 })); }} />}
 
                 {["onay_bekliyor", "onaylandi"].includes(k.durum) && (
                   <button onClick={() => iptal(k.id)} style={{
@@ -3831,6 +4460,8 @@ function AdSection({ books, token, onRefresh }) {
       </div>
 
       <KendiKampanyam books={books} token={token} />
+
+      <ReklamEgitimi />
 
       {mesaj && <div style={{ fontSize: 14, color: "#F0D68A", marginBottom: 20, lineHeight: 1.7 }}>{mesaj}</div>}
 

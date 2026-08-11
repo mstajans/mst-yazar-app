@@ -8690,8 +8690,16 @@ function DegerlendirmeAkisi({ oturum, onBitti }) {
           UYGULAMALI LABORATUVARLARI KEŞFET →
         </button>
 
-        <button className="aday-btn-asil" onClick={() => onBitti && onBitti(sonuc)}>
-          DANIŞMAN GÖRÜŞMESİ TALEP ET →
+        {/* DÜZELTİLDİ (11 Ağu 2026, kullanıcının 10 varyanttan seçtiği "01 —
+            Sade Çerçeve" tasarımı): genel aday-btn-asil (dolu altın gradyan)
+            yerine, bu özel CTA için ince altın çerçeveli, şeffaf zeminli
+            tasarım — diğer butonlar (giriş, eser gönder) etkilenmiyor. */}
+        <button
+          onClick={() => onBitti && onBitti(sonuc)}
+          style={{ width: "100%", padding: "16px", background: "transparent", border: "1px solid #C9A24B",
+                   color: "#F0D68A", fontSize: 13, letterSpacing: ".12em", fontFamily: "'Jost', sans-serif", cursor: "pointer" }}
+        >
+          YAYINA UYGUNLUK BELGESİ AL →
         </button>
 
         {laboratuvarlarAcik && (
@@ -8991,6 +8999,32 @@ function AdayDeneyimi({ kaynak }) {
         if (d.sonraki_aksiyon.hedef !== "degerlendirme") {
           setDegerlendirmeBitti(true);
           try { localStorage.setItem(degerlendirmeAnahtari, "1"); } catch {}
+        }
+      } catch { /* backend'e ulaşılamazsa yerel değerle devam */ }
+    })();
+    return () => { iptal = true; };
+  }, [oturum]);
+
+  // DÜZELTİLDİ (11 Ağu 2026, "sistemden çıkınca tekrar KVKK ekranına
+  // dönüyorum" bulgusu): gizlilikOnaylandi, degerlendirmeBitti'den FARKLI
+  // olarak backend'den hiç kontrol edilmiyordu — sadece cihaz-bazlı
+  // localStorage'a bakıyordu. Aslında onay zaten backend'e (aday_izinler
+  // tablosuna, /aday/izin ucuyla) kaydediliyordu — sadece frontend bunu
+  // hiç sorup öğrenmiyordu. Aynı "backend'den bir kez sor, yalnız true'ya
+  // düzelt" deseni burada da uygulanıyor — yeni bir uca gerek yok, zaten
+  // var olan /aday/izinlerim kullanılıyor.
+  React.useEffect(() => {
+    if (!oturum || gizlilikOnaylandi) return;
+    let iptal = false;
+    (async () => {
+      try {
+        const r = await yetkili("/api/aday/izinlerim");
+        const d = await r.json();
+        if (iptal || !d?.izinler) return;
+        const izinVerildi = (tur) => d.izinler.some((i) => i.izin_turu === tur && i.kabul && !i.geri_cekme_zamani);
+        if (izinVerildi("aydinlatma_goruntulendi") && izinVerildi("eser_analizi_acik_riza")) {
+          setGizlilikOnaylandi(true);
+          try { localStorage.setItem(gizlilikOnayAnahtari, "1"); } catch {}
         }
       } catch { /* backend'e ulaşılamazsa yerel değerle devam */ }
     })();
@@ -9394,36 +9428,32 @@ function AdayDeneyimi({ kaynak }) {
               yapılandırdığı</b> bir yapay zekâ inceler. Genel amaçlı bir sohbet aracı değil —
               yayıncılık değerlendirmesi için özel olarak talimatlandırılmış, tek işi eser okumak olan bir sistem.
             </p>
-            <div className="aday-guven-liste" style={{ margin: 0 }}>
+            {/* DÜZELTİLDİ (11 Ağu 2026, kullanıcı geri bildirimi — "çok uzun,
+                kısa öz ve motiflerle anlatılsın, daha tasarımsal bir yapı
+                olmalı"): önceki 11 maddelik uzun metin listesi, kullanıcının
+                10 varyanttan seçtiği "İkon Şeridi" tasarımıyla (bkz. 11 Ağu
+                widget sunumu) kompakt bir ikon+kısa metin gridine
+                dönüştürüldü. Aynı 11 maddenin bilgisi korunuyor — birleş-
+                tirilerek 8 karta indirildi, hiçbir yasal/gerekli bilgi
+                kaybedilmedi. */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: 10, margin: "18px 0 4px" }}>
               {[
-                ["Eserinizin tamamı okunur", "Birkaç sayfaya bakıp geçmez. Metin bölüm bölüm işlenir; hiçbir kısım atlanmaz."],
-                ["Üç ayrı gözle değerlendirilir", "Yapı, dil-anlatım ve kurgu ayrı ayrı incelenir — her biri için ayrı gözlem üretilir."],
-                ["Övgü değil, gerçek geri bildirim", "Sistem abartılı övgü ve satış dili kullanmaktan açıkça men edilmiştir. Emin olmadığı yerde 'bu bölümden anlaşılmıyor' der."],
-                ["Karar vermez, gözlem üretir", "Yapay zekâ hiçbir koşulda 'yayınlanır' ya da 'yayınlanmaz' demez. Bu yetki yalnızca editördedir."],
-              ].map(([b, a]) => (
-                <div key={b} className="aday-guven-madde">
-                  <strong>{b}</strong>
-                  <span>{a}</span>
+                ["◇", "Eserinizin tamamı okunur", "Bölüm bölüm ve üç ayrı gözle (yapı, dil, kurgu) işlenir."],
+                ["◈", "Gerçek geri bildirim", "Abartılı övgü yasak — emin olmadığı yerde bunu açıkça söyler."],
+                ["◉", "Karar vermez, gözlem üretir", "Her zaman bir editörde — yapay zekâ 'yayınlanır/yayınlanmaz' demez."],
+                ["◇", "İnsan erişimi yok", "Yalnızca değerlendirmeyi yürüten yetkili editör, yalnızca gerektiğinde."],
+                ["◈", "Paylaşılmaz", "Dosyanız hiçbir üçüncü kişi veya kurumla paylaşılmaz."],
+                ["◉", "Model eğitimi yok", "Eseriniz hiçbir yapay zekâ modelinin eğitiminde kullanılmaz."],
+                ["◇", "48 saat", "Ön inceleme süresi yaklaşık bu kadar sürer."],
+                ["◈", "Zorunluluk yok", "Değerlendirme sonrasında paket satın alma zorunluluğunuz yoktur."],
+              ].map(([ikon, b, a]) => (
+                <div key={b} style={{ border: "1px solid rgba(201,162,75,.28)", padding: "12px 13px", background: "rgba(7,17,32,.36)" }}>
+                  <div style={{ fontSize: 15, color: "#C9A24B", marginBottom: 6 }}>{ikon}</div>
+                  <div style={{ fontSize: 12, color: "#F0D68A", marginBottom: 4 }}>{b}</div>
+                  <div style={{ fontSize: 11, color: "#D5DDE5", lineHeight: 1.5 }}>{a}</div>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="aday-guven-liste">
-            {[
-              ["Sonrasında ne olur?", "Yapay zekânın bulguları, alanında deneyimli editörlerimize iletilir. Onlar bulguları eserinizin bütünü içinde değerlendirir ve nihai kararı verir."],
-              ["Son söz kimde?", "Her zaman bir editörde — yapay zekâda değil. Yapay zekâ çıktısı kesin hüküm değil, editörün önünü açan ayrıntılı bir ön analizdir."],
-              ["Kimler erişebilir?", "Yalnızca değerlendirmeyi yürüten yetkili editör ekibimiz, yalnızca gerektiğinde."],
-              ["Üçüncü kişilerle paylaşım", "Dosyanız hiçbir üçüncü kişi veya kurumla paylaşılmaz."],
-              ["Model eğitimi", "Eseriniz hiçbir yapay zekâ modelinin eğitiminde kullanılmaz."],
-              ["İnceleme süresi", "Ön inceleme yaklaşık 48 saat sürer."],
-              ["Satın alma zorunluluğu", "Değerlendirme sonrasında herhangi bir paket satın alma zorunluluğunuz yoktur."],
-            ].map(([b, a]) => (
-              <div key={b} className="aday-guven-madde">
-                <strong>{b}</strong>
-                <span>{a}</span>
-              </div>
-            ))}
           </div>
 
           <label style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12, fontSize: 12.5, color: "rgba(245,240,228,.75)", cursor: "pointer", lineHeight: 1.5 }}>

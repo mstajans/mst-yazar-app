@@ -8411,8 +8411,14 @@ function SurecMerkezi({ oturum, onKapat }) {
                     ))}
                   </>
                 )}
-                <div style={{ marginTop: 20, padding: "14px 16px", background: "rgba(201,162,75,.06)", border: "1px solid rgba(201,162,75,.2)" }}>
-                  <div style={{ fontSize: 12.5, color: "#F0D68A" }}>{ozet.sonraki_aksiyon?.etiket}</div>
+                <div
+                  onClick={onKapat}
+                  role="button"
+                  style={{ marginTop: 20, padding: "14px 16px", background: "rgba(201,162,75,.06)", border: "1px solid rgba(201,162,75,.2)", cursor: "pointer", transition: "background .15s, border-color .15s" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(201,162,75,.12)"; e.currentTarget.style.borderColor = "rgba(201,162,75,.4)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(201,162,75,.06)"; e.currentTarget.style.borderColor = "rgba(201,162,75,.2)"; }}
+                >
+                  <div style={{ fontSize: 12.5, color: "#F0D68A" }}>{ozet.sonraki_aksiyon?.etiket} →</div>
                 </div>
               </div>
             )}
@@ -9122,7 +9128,11 @@ function AdayDeneyimi({ kaynak }) {
     // FAZ 3 — gerçek dosya doğrulamaları
     const dosya = eserForm.dosya;
     const uzanti = (dosya.name.split(".").pop() || "").toLowerCase();
-    if (!["docx", "txt"].includes(uzanti)) { setHata("Yalnızca .docx ve .txt dosyaları kabul edilir"); return; }
+    // DÜZELTİLDİ (11 Ağu 2026, "dosya yüklerken sorun yaşıyor" bulgusu):
+    // input .pdf'e izin veriyordu ve backend PDF'i destekliyordu (mammoth/
+    // pdf-parse), ama bu kontrol sadece docx/txt kabul ediyordu — PDF seçen
+    // her aday burada "yalnızca .docx ve .txt" hatası alıyordu.
+    if (!["docx", "pdf", "txt"].includes(uzanti)) { setHata("Yalnızca .docx, .pdf ve .txt dosyaları kabul edilir"); return; }
     if (dosya.size === 0) { setHata("Seçtiğiniz dosya boş görünüyor"); return; }
     const AZAMI_BOYUT = 3 * 1024 * 1024; // 3 MB
     if (dosya.size > AZAMI_BOYUT) { setHata("Dosya 3 MB sınırını aşıyor"); return; }

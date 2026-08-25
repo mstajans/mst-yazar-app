@@ -224,6 +224,14 @@ function MSTAkademi({ yazarAdi, yazarUnvan, yazarId, onKapat, onIlerlemeGuncelle
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tok}` },
         body: JSON.stringify({ adayId: yazarId, gun: yeniGun, mod: yeniMod, asama: yeniAsama, tamamlananlar: yeniTamamlananlar, gunTamamlandiMi: !!gunBittiMi, testCevaplari: yeniTestCevaplari || testCevaplari }),
+      }).then(r => r.json()).then(s => {
+        // Backend, günün gerçekten açılıp açılamayacağını sunucu saatiyle
+        // döndürür — kilidi anında güncelle ki kullanıcı sayfa yenilemeden
+        // "sonraki gün" butonunu görebilsin (2 hafta takılma hatası buradandı).
+        if (s && typeof s.gunGecebilirMi !== 'undefined') {
+          setGunKilitliMi(!s.gunGecebilirMi);
+          setSonrakiGunAcilis(s.sonrakiGunAcilis || null);
+        }
       }).catch(() => {});
     } catch {}
     if (onIlerlemeGuncelle) onIlerlemeGuncelle({ gun: yeniGun, mod: yeniMod, tamamlananlar: yeniTamamlananlar });
@@ -506,17 +514,34 @@ function MSTAkademi({ yazarAdi, yazarUnvan, yazarId, onKapat, onIlerlemeGuncelle
                 <div className="ak-sonraki-ok">→</div>
               </div>
             ) : aktifGun < GUNLER_DATA.length ? (
-              // GÜNCELLENDİ (6 Ağu 2026): bu günün SON modülü tamamlandı.
-              // Sonraki gün, sunucu onaylı açılış tarihine kadar kilitli —
-              // "Sonraki Modül" yerine burada net bir bekleme mesajı var.
-              // Sayfa yenilendiğinde (gunKilitliMi güncellenince) üstteki
-              // özel bekleme ekranı devreye girecek.
-              <div style={{background:'rgba(201,162,75,.08)',border:'1px solid rgba(201,162,75,.35)',padding:'24px 28px',textAlign:'center'}}>
-                <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,color:'#F0D68A',marginBottom:10}}>Gün {aktifGun} Tamamlandı</div>
-                <div style={{fontSize:14,color:'rgba(245,240,228,.6)',lineHeight:1.8}}>
-                  {GUNLER_DATA[aktifGun] ? `Yarın "${GUNLER_DATA[aktifGun].baslik}" seviyesi açılacak.` : 'Sonraki seviye yakında açılacak.'} Her gün bir seviye — acele etmeyin, bugün öğrendiklerinizi uygulamaya devam edin.
+              // GÜNCELLENDİ (25 Ağu 2026 — kullanıcı raporu: "2 haftadır
+              // sonraki bölüm açılmıyor"). Bu günün SON modülü tamamlandı.
+              // İki durum vardır ve artık İKİSİ DE ele alınıyor:
+              //  (a) Kilit AÇIK (gunKilitliMi=false, açılış saati geldi VEYA
+              //      hiç açılış saati yok) → net bir "Sonraki Güne Geç" butonu.
+              //  (b) Kilit KAPALI (gunKilitliMi=true) → bekleme mesajı.
+              // Önceki sürümde HER ZAMAN (b) gösteriliyordu; kilit açılsa bile
+              // ileri gitmenin hiçbir yolu yoktu — takılmanın kök nedeni buydu.
+              !gunKilitliMi ? (
+                <div className="ak-sonraki mst-secili" onClick={gunGit} style={{cursor:'pointer'}}>
+                  <div>
+                    <div className="ak-sonraki-et">SONRAKİ GÜN · GÜN {aktifGun+1}</div>
+                    <div className="ak-sonraki-bas">{GUNLER_DATA[aktifGun] ? GUNLER_DATA[aktifGun].baslik : 'Sonraki Seviye'}</div>
+                  </div>
+                  <div className="ak-sonraki-ok">→</div>
                 </div>
-              </div>
+              ) : (
+                <div style={{background:'rgba(201,162,75,.08)',border:'1px solid rgba(201,162,75,.35)',padding:'24px 28px',textAlign:'center'}}>
+                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:26,color:'#F0D68A',marginBottom:10}}>Gün {aktifGun} Tamamlandı</div>
+                  <div style={{fontSize:14,color:'rgba(245,240,228,.6)',lineHeight:1.8}}>
+                    {(() => {
+                      const t = sonrakiGunAcilis ? new Date(sonrakiGunAcilis) : null;
+                      const nesne = GUNLER_DATA[aktifGun] ? `"${GUNLER_DATA[aktifGun].baslik}" seviyesi` : 'Sonraki seviye';
+                      return t ? `${nesne} ${t.toLocaleDateString('tr-TR')} tarihinde açılacak.` : `${nesne} yakında açılacak.`;
+                    })()} Her gün bir seviye — acele etmeyin, bugün öğrendiklerinizi uygulamaya devam edin.
+                  </div>
+                </div>
+              )
             ) : (
               <div style={{background:'rgba(201,162,75,.08)',border:'1px solid rgba(201,162,75,.35)',padding:'24px 28px',textAlign:'center'}}>
                 <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:28,color:'#F0D68A',marginBottom:10}}>Müfredat Tamamlandı</div>

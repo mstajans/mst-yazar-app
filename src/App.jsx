@@ -1176,7 +1176,7 @@ function DemoDeneyimi({ kod }) {
   };
   const secili = veri.paketler.find((p) => p.kod === seciliPaket) || veri.paketler[1];
   const seciliTelif = telifHesapla(seciliPaket, satisTahmin);
-  const baslangicTelif = telifHesapla("standart", satisTahmin);
+  const baslangicTelif = telifHesapla("baslangic", satisTahmin);
   const fark = seciliTelif - baslangicTelif;
 
   const platformDagilim = [
@@ -1755,11 +1755,30 @@ const PIPELINE_STAGES = [
   { key: "yayin", label: "Yayında" },
 ];
 
+// GÜNCELLENDİ (25 Ağu 2026 — yeni sözleşmeler): 9 paket. Etiket/renk/rozet ve
+// birkaç arayüz ipucu (budgetCap = self-serve reklam bütçe tavanı, selfServe =
+// kendi reklamını başlatabilme, platformGate = pazaryeri kilidi satış eşiği,
+// amazon = Amazon satışı). Telif/eşik gibi asıl kurallar backend'den
+// account.paketKurali ile gelir; burası yalnız görünürlük/etikettir.
 const PLANS = {
-  standart: { label: "Standart", fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0, selfServe: false, platformGate: 100, amazon: false },
-  profesyonel: { label: "Profesyonel", fg: THEME.secondary, bg: THEME.secondaryBg, budgetCap: 20000, selfServe: true, platformGate: null, amazon: false },
-  vip: { label: "VIP", fg: THEME.vip, bg: THEME.vipBg, budgetCap: 50000, selfServe: true, platformGate: null, amazon: true },
+  dijital:     { label: "Dijital Üyelik",     fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0,      selfServe: false, platformGate: null, amazon: false },
+  gorunur:     { label: "Görünür Üyelik",     fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0,      selfServe: false, platformGate: null, amazon: false },
+  cocuk:       { label: "Çocuk Kampanya",     fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0,      selfServe: false, platformGate: 100,  amazon: false },
+  kademeli:    { label: "Kademeli Yayın",     fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0,      selfServe: false, platformGate: 100,  amazon: false },
+  baslangic:   { label: "Başlangıç Yayın",    fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0,      selfServe: false, platformGate: null, amazon: false },
+  profesyonel: { label: "Profesyonel Büyüme", fg: THEME.secondary,  bg: THEME.secondaryBg, budgetCap: 20000, selfServe: true,  platformGate: null, amazon: false },
+  vip:         { label: "VIP Uluslararası",   fg: THEME.vip,        bg: THEME.vipBg,      budgetCap: 50000, selfServe: true,  platformGate: null, amazon: true },
+  prestij:     { label: "Prestij",            fg: THEME.vip,        bg: THEME.vipBg,      budgetCap: 100000, selfServe: true, platformGate: null, amazon: true },
+  sifir_pesin: { label: "Sıfır Peşin",        fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0,      selfServe: false, platformGate: null, amazon: false },
+  // Eski plan değeri (alias): mevcut "standart" yazarlar Başlangıç gibi görünür.
+  standart:    { label: "Başlangıç Yayın",    fg: THEME.standartFg, bg: THEME.standartBg, budgetCap: 0,      selfServe: false, platformGate: null, amazon: false },
 };
+// Bilinmeyen plan gelirse güvenli varsayılan (çökmesin).
+const planMeta = (plan) => PLANS[String(plan || "").toLowerCase()] || PLANS.baslangic;
+// Mağaza görünürlüğü: tüm paketler + eski alias. "PR yok" = PR hizmeti pakete
+// dahil OLMAYAN paketler (VIP ve Prestij'de PR zaten dahil, onlar mağazadan almaz).
+const TUM_PAKETLER = ["dijital", "gorunur", "cocuk", "kademeli", "baslangic", "profesyonel", "vip", "prestij", "sifir_pesin", "standart"];
+const PR_YOK = ["dijital", "gorunur", "cocuk", "kademeli", "baslangic", "profesyonel", "sifir_pesin", "standart"];
 const COMMISSION_RATE = 0.5;
 const AD_PLATFORMS = ["Instagram", "Facebook"];
 const LANGUAGES = ["İngilizce", "Almanca", "Fransızca", "İspanyolca", "Arapça", "Rusça"];
@@ -1793,24 +1812,24 @@ const FAIRS = [
 const EVENT_SERVICE_MARGIN = 0.2;
 
 const SERVICES = [
-  { key: "analitik", title: "Detaylı Satış Analitiği", icon: "▤", plans: ["standart", "profesyonel", "vip"], pricing: "fixed", price: 349, period: "aylık",
+  { key: "analitik", title: "Detaylı Satış Analitiği", icon: "▤", plans: TUM_PAKETLER, pricing: "fixed", price: 349, period: "aylık",
     desc: "Hangi şehirden, hangi saatte, hangi cihazdan satış geldiğini gösteren derinlemesine rapor." },
-  { key: "sesli-kitap", title: "Sesli Kitap Prodüksiyonu", icon: "🎧", plans: ["standart", "profesyonel", "vip"], pricing: "per-page",
+  { key: "sesli-kitap", title: "Sesli Kitap Prodüksiyonu", icon: "🎧", plans: TUM_PAKETLER, pricing: "per-page",
     desc: "Kitabınız profesyonel yapay zeka seslendirmesiyle sesli kitaba dönüştürülür." },
-  { key: "podcast", title: "Podcast Tanıtım Bölümü", icon: "◉", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: PODCAST_TIERS,
+  { key: "podcast", title: "Podcast Tanıtım Bölümü", icon: "◉", plans: TUM_PAKETLER, pricing: "tiers", tiers: PODCAST_TIERS,
     desc: "Kitabınız için söyleşi formatında bir tanıtım podcast bölümü prodüksiyonu." },
-  { key: "influencer", title: "Influencer / BookTok Eşleştirme", icon: "◈", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: INFLUENCER_TIERS,
+  { key: "influencer", title: "Influencer / BookTok Eşleştirme", icon: "◈", plans: TUM_PAKETLER, pricing: "tiers", tiers: INFLUENCER_TIERS,
     desc: "Kitap içerikli sosyal medya hesaplarına ürün gönderimi ve içerik iş birliği organizasyonu." },
-  { key: "etkinlik", title: "Kitap Fuarı & Lansman Organizasyonu", icon: "▣", plans: ["standart", "profesyonel", "vip"], pricing: "fairs",
+  { key: "etkinlik", title: "Kitap Fuarı & Lansman Organizasyonu", icon: "▣", plans: TUM_PAKETLER, pricing: "fairs",
     desc: "Yaklaşan kitap fuarlarına katılım ve imza günü organizasyonu; katılım ve stand ücretleri otomatik takip edilir." },
-  { key: "egitim-pro", title: "Yazar Kariyer Eğitim Programı", icon: "◉", plans: ["standart", "profesyonel", "vip"], pricing: "fixed", price: 899, period: "tek seferlik",
+  { key: "egitim-pro", title: "Yazar Kariyer Eğitim Programı", icon: "◉", plans: TUM_PAKETLER, pricing: "fixed", price: 899, period: "tek seferlik",
     desc: "7 bölümlük tam program: reklam stratejisi, sosyal medya, Instagram, BookTok iş birliği, PR, e-posta bülteni ve lansman planlaması." },
-  { key: "pr", title: "Haber & PR Çalışması", icon: "▤", plans: ["standart"], pricing: "fixed", price: 2200, period: "kampanya başı",
+  { key: "pr", title: "Haber & PR Çalışması", icon: "▤", plans: PR_YOK, pricing: "fixed", price: 2200, period: "kampanya başı",
     desc: "Kitabınız için medya bülteni ve haber yerleştirme çalışması. Profesyonel ve VIP paketlerde bu hizmet zaten dahildir." },
-  { key: "film", title: "Film & Dizi Uyarlama Başvurusu", icon: "▶", plans: ["standart", "profesyonel", "vip"], pricing: "info",
+  { key: "film", title: "Film & Dizi Uyarlama Başvurusu", icon: "▶", plans: TUM_PAKETLER, pricing: "info",
     desc: "Kitabınızın görsel içeriğe uyarlanması için ön değerlendirmeye başvurun.",
     infoNote: "Uyarlama bedelleri kitabın kapsamına göre değişir; ön bilgilendirme olarak minimum 100.000 ₺'den başlar." },
-  { key: "marka-magazasi", title: "Yazar Marka Mağazası", icon: "◇", plans: ["standart", "profesyonel", "vip"], pricing: "tiers", tiers: BRAND_STORE_TIERS,
+  { key: "marka-magazasi", title: "Yazar Marka Mağazası", icon: "◇", plans: TUM_PAKETLER, pricing: "tiers", tiers: BRAND_STORE_TIERS,
     desc: "İmzalı özel baskı, markalı yer imi ve poster gibi ürünlerinizi okuyucularınıza satışa sunun." },
 ];
 
@@ -2160,8 +2179,9 @@ function StockBadge({ count }) {
   return <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 14.5, color, fontWeight: 600 }}>{String(count).padStart(2, "0")}</span>;
 }
 function PlanBadge({ plan }) {
-  const p = PLANS[plan];
-  return <span style={{ fontSize: "clamp(11px, 3vw, 14px)", letterSpacing: "0.04em", color: p.fg, background: p.bg, borderRadius: 0, padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", flexShrink: 0 }}>{plan === "vip" && "✦"} {p.label.toUpperCase()}</span>;
+  const p = planMeta(plan);
+  const yildiz = plan === "vip" || plan === "prestij";
+  return <span style={{ fontSize: "clamp(11px, 3vw, 14px)", letterSpacing: "0.04em", color: p.fg, background: p.bg, borderRadius: 0, padding: "4px 10px", display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", flexShrink: 0 }}>{yildiz && "✦"} {p.label.toUpperCase()}</span>;
 }
 
 function getNotifications(account) {
@@ -2891,9 +2911,9 @@ function MiniRingNode({ count, maxCount, badgeBg, badgeFg, tag, locked }) {
 }
 
 function PlatformGrid({ book, plan }) {
-  const gate = PLANS[plan].platformGate;
+  const gate = planMeta(plan).platformGate;
   const gated = gate && book.totalSold < gate;
-  const platforms = plan === "vip" ? [...PLATFORMS, AMAZON] : PLATFORMS;
+  const platforms = planMeta(plan).amazon ? [...PLATFORMS, AMAZON] : PLATFORMS;
   const pct = gate ? Math.min(100, Math.round((book.totalSold / gate) * 100)) : 100;
   const daysLeft = daysUntilStockout(book);
   const maxCount = Math.max(...platforms.map((p) => book.stock[p.key] ?? 0), 1);
@@ -2966,7 +2986,7 @@ function PipelineTimeline({ pipeline, onApproveCover }) {
 function BookCard({ book, plan, expanded, onToggle, onApproveCover }) {
   const active = getActiveStage(book.pipeline);
   const published = isPublished(book.pipeline);
-  const vip = plan === "vip";
+  const vip = plan === "vip" || plan === "prestij";
   return (
     <div style={{ background: THEME.yuzey, border: vip ? `1px solid ${THEME.vipBorder}` : `1px solid ${THEME.border}`, borderLeft: vip ? `3px solid ${THEME.vip}` : `1px solid ${THEME.border}`, borderRadius: 0, marginBottom: 14, overflow: "hidden" }}>
       <button onClick={onToggle} style={{ width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "16px 16px", background: "transparent", border: "none", cursor: "pointer", textAlign: "left" }}>
@@ -10084,7 +10104,9 @@ function YazarUygulamasi({ onAdayGirisTamam } = {}) {
 
   if (!session) return <LoginScreen onLogin={setSession} onAdayGirisTamam={onAdayGirisTamam} />;
   const account = session.account;
-  const vip = account.plan === "vip";
+  // "Ek Hizmetler" (Amazon/çeviri vb.) sekmesi: Amazon içeren paketlerde (VIP,
+  // Prestij) açılır — tek kaynak backend'den gelen paketKurali.
+  const vip = !!(account.paketKurali?.ozellikler?.amazon) || account.plan === "vip" || account.plan === "prestij";
 
   // ONBOARDING KAPISI: yazarın hiçbir kitabı "yayin" aşamasında değilse
   // (henüz hiç kitabı olmayan yeni yazar dahil) tam uygulama yerine süreç/bekleme ekranı gösterilir.

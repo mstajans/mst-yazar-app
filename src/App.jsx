@@ -10208,13 +10208,15 @@ function YazarUygulamasi({ onAdayGirisTamam } = {}) {
     } catch { alert("Sunucuya bağlanılamadı."); }
   };
 
-  const tabs = [["kitaplar", "Kitaplarım"], ["stok", "Stok Takip"], ["kariyer", "Kariyer & Görevler"], ["magaza", "Mağaza"], ["reklam", "Reklam"], ...(vip ? [["ek", "Ek Hizmetler"]] : []), ["kazanc", "Kazanç"], ["egitim", "Eğitim"], ["ai", "Menajerim · abonelik"], ["destek", "Destek & Duyurular"], ["hesabim", "Hesabım"]];
+  // Ödül sistemi sunucuda kapalıyken (ya da yanıt gelmeden) Kariyer hiç gösterilmez.
+  const odulAcik = !!oyun && !oyun.gizli;
+  const tabs = [["kitaplar", "Kitaplarım"], ["stok", "Stok Takip"], ...(odulAcik ? [["kariyer", "Kariyer & Görevler"]] : []), ["magaza", "Mağaza"], ["reklam", "Reklam"], ...(vip ? [["ek", "Ek Hizmetler"]] : []), ["kazanc", "Kazanç"], ["egitim", "Eğitim"], ["ai", "Menajerim · abonelik"], ["destek", "Destek & Duyurular"], ["hesabim", "Hesabım"]];
   const OTHER_ITEMS = [["kitaplar", "Kitaplarım", "◫"], ["magaza", "Mağaza", "◫"], ["reklam", "Reklam", "◈"], ...(vip ? [["ek", "Ek Hizmetler", "✦"]] : []), ["destek", "Destek & Duyurular · ücretsiz", "◔"], ["egitim", "Eğitim", "◉"]];
   // Kariyer alt menüye alındı — oyunlaştırma en büyük yatırım, arka planda kalmamalı.
   // İkonlar emoji değil: paket sayfasının geometrik/eşkenar dörtgen dili.
   const BOTTOM_NAV = [
     { key: "stok", label: "PANO", icon: "◎" },
-    { key: "kariyer", label: "KARİYER", icon: "◈" },
+    odulAcik ? { key: "kariyer", label: "KARİYER", icon: "◈" } : { key: "egitim", label: "EĞİTİM", icon: "◉" },
     { key: "ai", label: "A . I .", center: true },
     { key: "kazanc", label: "KAZANÇ", icon: "₺" },
     { key: "hesabim", label: "PROFİL", icon: "◐" },
@@ -10351,7 +10353,7 @@ function YazarUygulamasi({ onAdayGirisTamam } = {}) {
           </div>
         </>)}
         {tab === "stok" && <StockOrbitTab books={account.books} account={account} token={session.token} onQuickAction={(t) => setTab(t)} onAkademiAc={akademiAc} />}
-        {tab === "kariyer" && <GameSection oyun={oyun} token={session.token} onRefresh={oyunCek} katman={katman} />}
+        {tab === "kariyer" && odulAcik && <GameSection oyun={oyun} token={session.token} onRefresh={oyunCek} katman={katman} />}
         {tab === "magaza" && <StoreSection plan={account.plan} books={account.books} wallet={account.wallet} notices={myNotices} orders={myOrders} onOrder={placeOrder} onSubmitNotice={submitNotice} token={session.token} />}
         {tab === "reklam" && <AdSection books={account.books} token={session.token} onRefresh={refreshAccount} />}
         {tab === "ek" && vip && <ExtrasSection books={account.books} requests={myTranslations} onSubmit={submitTranslation} />}
